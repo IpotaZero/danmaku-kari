@@ -12,7 +12,7 @@
 
 /* pushSubMenuで開かれたレイヤー。フェード中もrootと重ねて表示できるようoverlay配置にする */
 .menu-submenu-layer {
-    padding: 1em;
+    padding: 1.5em;
     position: absolute;
     inset: 0;
 }
@@ -43,7 +43,6 @@
 .option {
     position: relative;
     width: fit-content;
-    opacity: 0.5;
     border-radius: 0.1em;
 
     &.selected {
@@ -52,7 +51,7 @@
     }
 
     &.disabled {
-        opacity: 0.3;
+        opacity: 0.1;
     }
 }
 

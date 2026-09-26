@@ -26,6 +26,7 @@ export class SceneMap extends Scene {
     private livesEl!: HTMLElement
     private livesRecoveryEl!: HTMLElement
     private equipMenu?: Menu
+    private equipDescriptionEl?: HTMLElement
 
     constructor(selectedId: MapNodeId = mapGraph.startId) {
         super()
@@ -46,6 +47,10 @@ export class SceneMap extends Scene {
             <div class="map-lives">
                 <div class="map-lives-count"></div>
                 <div class="map-lives-recovery"></div>
+            </div>
+            <div class="map-controls">
+                <div>cancel: タイトルへ戻る</div>
+                <div>action: 装備変更</div>
             </div>
             <div class="texture-overlay"></div>
         `
@@ -131,7 +136,8 @@ export class SceneMap extends Scene {
         this.equipMenu = new Menu(
             `<div id="equip-root"></div>
              <div id="equip-main-options" class="fadeout"></div>
-             <div id="equip-sub-options" class="fadeout"></div>`,
+             <div id="equip-sub-options" class="fadeout"></div>
+             <div class="equip-description"></div>`,
             {
                 elementId: "equip-root",
                 title: "--:: 装備変更 ::--",
@@ -142,14 +148,17 @@ export class SceneMap extends Scene {
                             label: `主装備: ${mainEquipments[playerData.getLoadout().main]?.label ?? playerData.getLoadout().main}`,
                             hides: ["equip-root"],
                             shows: ["equip-main-options"],
+                            onFocus: () => this.hideEquipDescription(),
                             subMenu: () => ({
                                 elementId: "equip-main-options",
                                 title: "--:: 主装備を選択 ::--",
                                 options: () =>
-                                    [...playerData.getOwnedMainEquipmentIds()].map((id) => [
+                                    Object.keys(mainEquipments).map((id) => [
                                         {
-                                            type: "select",
+                                            type: "select" as const,
                                             label: mainEquipments[id]?.label ?? id,
+                                            disabled: () => !playerData.getOwnedMainEquipmentIds().has(id),
+                                            onFocus: () => this.showEquipDescription(mainEquipments[id]?.description ?? ""),
                                             onSelect: () => {
                                                 playerData.setLoadout({ ...playerData.getLoadout(), main: id })
                                                 this.equipMenu?.backToRoot()
@@ -165,6 +174,7 @@ export class SceneMap extends Scene {
                             label: `副装備: ${this.getSubEquipmentLabel()}`,
                             hides: ["equip-root"],
                             shows: ["equip-sub-options"],
+                            onFocus: () => this.hideEquipDescription(),
                             subMenu: () => ({
                                 elementId: "equip-sub-options",
                                 title: "--:: 副装備を選択 ::--",
@@ -173,16 +183,19 @@ export class SceneMap extends Scene {
                                         {
                                             type: "select" as const,
                                             label: "なし",
+                                            onFocus: () => this.showEquipDescription("副装備を使用しない。"),
                                             onSelect: () => {
                                                 playerData.setLoadout({ ...playerData.getLoadout(), sub: null })
                                                 this.equipMenu?.backToRoot()
                                             },
                                         },
                                     ],
-                                    ...[...playerData.getOwnedSubEquipmentIds()].map((id) => [
+                                    ...Object.keys(subEquipments).map((id) => [
                                         {
                                             type: "select" as const,
                                             label: subEquipments[id]?.label ?? id,
+                                            disabled: () => !playerData.getOwnedSubEquipmentIds().has(id),
+                                            onFocus: () => this.showEquipDescription(subEquipments[id]?.description ?? ""),
                                             onSelect: () => {
                                                 playerData.setLoadout({ ...playerData.getLoadout(), sub: id })
                                                 this.equipMenu?.backToRoot()
@@ -207,11 +220,25 @@ export class SceneMap extends Scene {
         this.equipMenu.onBack = () => this.closeEquipMenu()
         this.equipMenu.container.classList.add("map-equip-modal")
         this.root.appendChild(this.equipMenu.container)
+
+        this.equipDescriptionEl = this.equipMenu.container.querySelector<HTMLElement>(".equip-description")!
     }
 
     private closeEquipMenu() {
         this.equipMenu?.container.remove()
         this.equipMenu = undefined
+        this.equipDescriptionEl = undefined
+    }
+
+    // 装備選択肢にカーソルが乗っている間、その装備の説明を表示する
+    private showEquipDescription(description: string) {
+        if (!this.equipDescriptionEl) return
+        this.equipDescriptionEl.textContent = description
+        this.equipDescriptionEl.classList.toggle("visible", description.length > 0)
+    }
+
+    private hideEquipDescription() {
+        this.showEquipDescription("")
     }
 
     private getSubEquipmentLabel(): string {

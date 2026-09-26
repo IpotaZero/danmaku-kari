@@ -120,12 +120,51 @@
     opacity: 0.7;
 }
 
+.map-controls {
+    position: absolute;
+    bottom: 0.8em;
+    left: 1em;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+
+    font-family: "Courier New", monospace;
+    font-size: 0.6em;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+}
+
+.equip-description {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    padding: 0.6em 0.8em;
+
+    background: #000000d0;
+    border: 0.05em solid #ffffff40;
+    border-radius: 0.1em;
+
+    font-size: 0.65em;
+    line-height: 1.4;
+
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease-out;
+
+    &.visible {
+        opacity: 1;
+    }
+}
+
 .map-equip-modal {
     position: absolute;
     top: 0;
     right: 0;
     height: 100%;
-    width: 16em;
+    width: 20em;
 
     display: flex;
     flex-direction: column;
