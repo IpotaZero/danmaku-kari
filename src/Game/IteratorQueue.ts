@@ -23,6 +23,10 @@ export abstract class IteratorQueue {
         this.sleepFrame = frame
     }
 
+    clearScripts() {
+        this.scripts.clear()
+    }
+
     protected addScript(
         g: (me: this) => Iterable<void, void, void>,
         { loop = 1, margin = 0, id = crypto.randomUUID() }: { loop?: number; margin?: number; id?: string } = {},

@@ -19,4 +19,8 @@ export abstract class Stage extends IteratorQueue {
             yield
         }
     }
+
+    protected scorenizeAllBullets() {
+        this.game.bullets.forEach((b) => b.scorenize())
+    }
 }

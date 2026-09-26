@@ -96,10 +96,7 @@ export class Player extends Actor {
                 .filter((b) => b.type === "enemy")
                 .filter((b) => b.isScorable)
                 .filter((b) => b.p.sub(center).magnitude() <= radius)
-                .forEach((b) => {
-                    b.life = 0
-                    this.game.score++
-                })
+                .forEach((b) => b.scorenize())
 
             ctx.save()
             this.game.camera.apply(ctx, this.game.WIDTH, this.game.HEIGHT)

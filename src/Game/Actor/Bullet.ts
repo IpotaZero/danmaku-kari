@@ -34,8 +34,32 @@ export class Bullet extends Actor {
             this.addScript(...g)
         })
 
-        this.addScript(this.move.bind(this), { loop: Infinity })
-        this.addScript(this.boundary.bind(this), { loop: Infinity })
+        this.addScript(this.move.bind(this), { loop: Infinity, id: "move" })
+        this.addScript(this.boundary.bind(this), { loop: Infinity, id: "boundary" })
+    }
+
+    // scoreタイプに変え、自機へのホーミングを開始する
+    scorenize() {
+        this.type = "score"
+        this.r = 8
+        this.alpha = 1
+        this.color = "cyan"
+        this.isScorable = false
+
+        this.clearScripts()
+
+        this.addScript(() => this.homing(), { loop: Infinity, id: "score-homing" })
+        this.addScript(() => this.move(), { loop: Infinity, id: "move" })
+    }
+
+    private *homing() {
+        const target = this.game.player.p.clone()
+        const diff = target.sub(this.p)
+
+        this.radian = diff.radian()
+        this.speed = diff.magnitude() / 6
+
+        yield
     }
 
     addScriptBook(

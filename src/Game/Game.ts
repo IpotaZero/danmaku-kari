@@ -103,6 +103,15 @@ export class Game extends IteratorQueue {
         }
 
         this.bullets
+            .filter((b) => b.type === "score")
+            .forEach((b) => {
+                if (this.bulletCollision.isColliding(b, this.player)) {
+                    this.score++
+                    b.life = 0
+                }
+            })
+
+        this.bullets
             .filter((b) => b.type === "friend")
             .forEach((b) => {
                 this.enemies.forEach((e) => {
