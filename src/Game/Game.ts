@@ -75,7 +75,7 @@ export class Game extends IteratorQueue {
                 .filter((b) => b.type === "enemy")
                 .forEach((b) => {
                     if (this.bulletCollision.isColliding(b, this.player)) {
-                        this.player.life -= b.damage
+                        this.player.hit(b.damage)
 
                         if (b.isScorable) {
                             b.life = 0

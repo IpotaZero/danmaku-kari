@@ -25,9 +25,6 @@ export class Player extends Actor {
     private drawRadian = 0
     private sneakProgress = 0 // 0.0〜1.0、低速中に1へ近づく
 
-    // クールダウンはジェネレータ内で保持
-    private isInvincibleBecauseOfHit = false
-
     constructor(game: Game, startPosition: Vec) {
         super(game)
         this.p = startPosition
@@ -58,7 +55,26 @@ export class Player extends Actor {
     }
 
     isInvincible() {
-        return this.isInvincibleBecauseOfHit
+        return this.scripts.has("invincible")
+    }
+
+    // 被弾処理: ライフを減らし、しばらく無敵にする
+    hit(damage: number) {
+        if (this.isInvincible()) return
+
+        this.life = Math.max(0, this.life - damage)
+
+        this.addScript(
+            function* () {
+                const invincibleFrame = 120
+                yield* Array(invincibleFrame)
+            },
+            { id: "invincible" },
+        )
+
+        if (this.life <= 0) {
+            this.game.onLose()
+        }
     }
 
     private *fireLoop() {
@@ -153,7 +169,7 @@ export class Player extends Actor {
         const ratio = 1 - this.sneakProgress
         if (ratio < 0.001) return
 
-        Ctx.polygon(ctx, 8, 2, this.p, this.GRAZE_R * 2.5 * ratio, "#ffffff40", {
+        Ctx.polygon(ctx, 8, 2, this.p, this.GRAZE_R * 2.2 * ratio, "#ffffff40", {
             theta: this.drawRadian / 100,
             lineWidth: 1,
         })
