@@ -7,6 +7,12 @@ import { Remodel, remodel } from "../Remodel"
 import { Ease } from "@ipota/functions"
 import type { MainEquipment, SubEquipment } from "./PlayerEquipment"
 
+// 残像1コマ分のスナップショット
+type AfterImage = { p: Vec; alpha: number }
+
+const AFTER_IMAGE_MAX = 12
+const AFTER_IMAGE_DECAY = 0.08
+
 // Player自身はセーブデータ(Data層)を知らない。呼び出し側(Scene層)が
 // playerDataから読んだ値をここに詰めて渡し、被弾等による変化もonLifeChangeで送り返してもらう
 export type PlayerConfig = {
@@ -37,6 +43,10 @@ export class Player extends Actor {
     private drawRadian = 0
     private sneakProgress = 0 // 0.0〜1.0、低速中に1へ近づく
 
+    // ブースト(ダッシュ等でspeedMultiplierが1を超えた状態)時の見た目まわり
+    private dashProgress = 0 // 0.0〜1.0、ブースト中に1へ近づく
+    private readonly afterImages: AfterImage[] = []
+
     private readonly onLifeChange: (life: number) => void
 
     constructor(game: Game, startPosition: Vec, config: PlayerConfig) {
@@ -57,14 +67,17 @@ export class Player extends Actor {
         this.move()
         this.updateDrawRadian()
         this.updateSneakProgress()
+        this.updateDashEffect()
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
         ctx.save()
         ctx.globalAlpha = this.isInvincible() ? 0.5 : 1
 
+        this.drawAfterImages(ctx)
         this.drawSneakEffect(ctx)
         this.drawNormalEffect(ctx)
+        this.drawDashEffect(ctx)
         this.drawLife(ctx)
         this.drawGrazeBoundary(ctx)
         this.drawCore(ctx)
@@ -190,6 +203,23 @@ export class Player extends Actor {
         if (Math.abs(this.sneakProgress - target) < 0.001) this.sneakProgress = target
     }
 
+    // ブースト中は現在地を残像として積み、経時で薄くしながら古いものから消す
+    private updateDashEffect() {
+        const isBoosted = this.speedMultiplier > 1
+
+        const target = isBoosted ? 1 : 0
+        this.dashProgress += (target - this.dashProgress) * 0.35
+        if (Math.abs(this.dashProgress - target) < 0.001) this.dashProgress = target
+
+        if (isBoosted) {
+            this.afterImages.push({ p: this.p.clone(), alpha: 1.0 })
+            if (this.afterImages.length > AFTER_IMAGE_MAX) this.afterImages.shift()
+        }
+
+        this.afterImages.forEach((img) => (img.alpha -= AFTER_IMAGE_DECAY))
+        while (this.afterImages.length > 0 && this.afterImages[0]!.alpha <= 0) this.afterImages.shift()
+    }
+
     private drawSneakEffect(ctx: CanvasRenderingContext2D) {
         const ratio = this.sneakProgress
         if (ratio < 0.001) return
@@ -206,14 +236,45 @@ export class Player extends Actor {
         })
     }
 
-    // 通常時の見た目。スニーク中はその分だけ縮んで消え、スニーク解除で元の大きさへ戻る
+    // 通常時の見た目。スニーク中・ブースト中はその分だけ縮んで消え、解除で元の大きさへ戻る
     private drawNormalEffect(ctx: CanvasRenderingContext2D) {
-        const ratio = 1 - this.sneakProgress
+        const ratio = Math.max(0, 1 - this.sneakProgress - this.dashProgress)
         if (ratio < 0.001) return
 
         Ctx.polygon(ctx, 8, 2, this.p, this.GRAZE_R * 2.2 * ratio, "#ffffff40", {
             theta: this.drawRadian / 100,
             lineWidth: 1,
+        })
+    }
+
+    // ブースト中の見た目: 鋭い多角形を二重・三重に重ねて回転させる
+    private drawDashEffect(ctx: CanvasRenderingContext2D) {
+        const ratio = this.dashProgress
+        if (ratio < 0.001) return
+
+        const r = this.drawRadian
+        const cyan = `rgba(80, 220, 255, ${ratio.toFixed(3)})`
+        const white = `rgba(255, 255, 255, ${ratio.toFixed(3)})`
+
+        Ctx.polygon(ctx, 3, 2, this.p, this.GRAZE_R * 2.8 * ratio, cyan, { theta: r / 8, lineWidth: 2 })
+        Ctx.polygon(ctx, 4, 2, this.p, this.GRAZE_R * 2.2 * ratio, cyan, { theta: -r / 12, lineWidth: 2 })
+        Ctx.polygon(ctx, 3, 2, this.p, this.GRAZE_R * 1.6 * ratio, white, { theta: -r / 6, lineWidth: 1 })
+        Ctx.polygon(ctx, 4, 2, this.p, this.GRAZE_R * 0.9 * ratio, cyan, { theta: r / 4, lineWidth: 1 })
+    }
+
+    private drawAfterImages(ctx: CanvasRenderingContext2D) {
+        const total = this.afterImages.length
+
+        this.afterImages.forEach((img, i) => {
+            const ratio = (i + 1) / total
+            const alpha = img.alpha * ratio
+            if (alpha <= 0) return
+
+            const color = `rgba(80, 220, 255, ${alpha.toFixed(3)})`
+
+            Ctx.arc(ctx, img.p, this.r * ratio, color, { lineWidth: 0 })
+            Ctx.polygon(ctx, 3, 2, img.p, this.GRAZE_R * 1.8 * ratio, color, { theta: this.drawRadian / 8, lineWidth: 1 })
+            Ctx.polygon(ctx, 4, 2, img.p, this.GRAZE_R * 1.2 * ratio, color, { theta: -this.drawRadian / 12, lineWidth: 1 })
         })
     }
 
