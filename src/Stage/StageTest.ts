@@ -36,7 +36,6 @@ class EnemyBoss extends Enemy {
         this.addScript(() => this.attack(), { loop: Infinity })
     }
 
-    // sway自体が無限ループなので、外側でloop:Infinityにする必要はない
     private *sway() {
         const centerX = this.game.WIDTH / 2
 
@@ -47,8 +46,6 @@ class EnemyBoss extends Enemy {
         }
     }
 
-    // 曲がる向きを左右交互にした広い扇を、一定リズムで撃ち続けるだけの単純な攻撃。
-    // 種類を増やすのではなく、これ1つの密度と幅で勝負する
     private *attack() {
         const curveSpeed = T / 200
         const curveFrames = 50
@@ -59,10 +56,6 @@ class EnemyBoss extends Enemy {
         yield* Array(9)
     }
 
-    // 発射時の向きで避けさせるのではなく、弾自身が飛びながら曲がっていく螺旋弾。
-    // ずっと同じ角速度で曲げ続けると、速度/角速度で決まる半径の円軌道を描いて発生源の周りを
-    // 回り続けるだけになり画面外まで飛ばなくなる。曲がるのは最初の一定フレームだけにし、
-    // その後は直進させることで、フックのように曲がってからちゃんと画面下まで抜けるようにする
     private *fan(dir: 1 | -1, curveSpeed: number, curveFrames: number) {
         yield* remodel(this)
             .colorful(this.frame)
@@ -70,7 +63,7 @@ class EnemyBoss extends Enemy {
             .appearance("ball")
             .r(4)
             .radian(T / 4)
-            .speed(2.6)
+            .speed(2)
             .nway(9, T / 16)
             .g(function* (me) {
                 for (let i = 0; i < curveFrames; i++) {
@@ -82,9 +75,6 @@ class EnemyBoss extends Enemy {
     }
 }
 
-// 親の周りを回りながら外周へ弾を撃つ子機。攻撃の起点を親から離すことで、
-// 親基準では安置に見える位置にも弾を届かせる。ボス本体と同じリズムで撃ち続けるだけで、
-// 別モードには切り替えない
 class EnemySatellite extends Enemy {
     constructor(
         game: Game,
@@ -113,7 +103,7 @@ class EnemySatellite extends Enemy {
             .appearance("donut")
             .r(12)
             .radian(baseAngle)
-            .speed(3.4)
+            .speed(3)
             .nway(3, T / 12)
             .fire(this.game.bullets)
 

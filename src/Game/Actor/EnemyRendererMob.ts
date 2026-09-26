@@ -62,12 +62,12 @@ export class EnemyRendererMob implements IEnemyRenderer {
 
     private drawCore(ctx: CanvasRenderingContext2D, e: Enemy, orbitTheta: number): void {
         Ctx.arc(ctx, e.p, e.r * 1.1, WHITE, {
-            lineWidth: 2,
+            lineWidth: 1,
         })
-        Ctx.arc(ctx, e.p, e.r, e.damaged ? RED : WHITE, { lineWidth: 2 })
+        Ctx.arc(ctx, e.p, e.r, e.damaged ? RED : WHITE, { lineWidth: 1 })
         Ctx.polygon(ctx, 5, 1, e.p, e.r * 0.85, WHITE, {
             theta: orbitTheta,
-            lineWidth: 2,
+            lineWidth: 1,
         })
     }
 }
