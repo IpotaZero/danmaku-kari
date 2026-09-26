@@ -1,7 +1,7 @@
 import { vec, Vec } from "@ipota/vec"
 import { Actor } from "./Actor"
 import { Ease } from "@ipota/functions"
-import { remodel } from "../Remodel"
+import { Remodel, remodel } from "../Remodel"
 import { T } from "../../T"
 import { Game } from "../Game"
 import { IEnemyRenderer } from "./IEnemyRenderer"
@@ -69,22 +69,18 @@ export abstract class Enemy extends Actor {
             .p(this.p.clone())
             .duplicate(63, (me, i) => {
                 me.radian = Math.random() * T
-                me.speed = Math.random() * 4 + 4
+                me.speed = Math.random() * 2 + 2
+                me.r = Math.random() * 4 + 8
                 return me
             })
             .g(function* (me) {
-                const frame = 60
-                for (let i = 1; i < frame + 1; i++) {
-                    me.alpha = 0.5 * (1 - i / frame)
-                    yield
-                }
-                me.life = 0
+                yield* Remodel.fadeout(me, 60)
             })
             .fire(this.game.bullets)
     }
 
     private *hitG() {
-        const bump = this.baseR * 0.15
+        const bump = this.baseR * 0.05
         const frame = 6
 
         for (let i = 1; i < frame + 1; i++) {

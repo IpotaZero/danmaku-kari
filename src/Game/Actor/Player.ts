@@ -67,7 +67,7 @@ export class Player extends Actor {
                 .color("white")
                 .alpha(0.5)
                 .r(this.bulletR)
-                .shift(5, T / 32)
+                .shift(5, 20)
                 .speed(this.bulletSpeed)
                 .fire(this.game.bullets)
         } else {
