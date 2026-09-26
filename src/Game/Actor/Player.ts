@@ -3,6 +3,7 @@ import { Game } from "../Game"
 import { vec, Vec } from "@ipota/vec"
 import { T } from "../../T"
 import { Ctx } from "../../utils/Functions/Ctx"
+import { remodel } from "../Remodel"
 
 export class Player extends Actor {
     readonly GRAZE_R = 16
@@ -15,6 +16,10 @@ export class Player extends Actor {
     private readonly speed = 8
     private readonly slowSpeed = 3
 
+    private readonly fireCooldown = 6
+    private readonly bulletSpeed = 20
+    private readonly bulletR = 3
+
     // クールダウンはジェネレータ内で保持
     private isInvincibleBecauseOfHit = false
 
@@ -22,6 +27,8 @@ export class Player extends Actor {
         super(game)
         this.p = startPosition
         this.life = this.maxLife
+
+        this.addScript(() => this.fireLoop(), { loop: Infinity })
     }
 
     update(): void {
@@ -43,6 +50,40 @@ export class Player extends Actor {
 
     isInvincible() {
         return this.isInvincibleBecauseOfHit
+    }
+
+    private *fireLoop() {
+        if (!this.game.input.isPressed("ok")) {
+            yield
+            return
+        }
+
+        if (this.game.input.isPressed("slow")) {
+            yield* remodel(this)
+                .p(this.p.clone())
+                .radian(-T / 4)
+                .appearance("player")
+                .type("friend")
+                .color("white")
+                .alpha(0.5)
+                .r(this.bulletR)
+                .shift(5, T / 32)
+                .speed(this.bulletSpeed)
+                .fire(this.game.bullets)
+        } else {
+            yield* remodel(this)
+                .p(this.p.clone())
+                .radian(-T / 4)
+                .appearance("player")
+                .type("friend")
+                .color("white")
+                .alpha(0.5)
+                .r(this.bulletR)
+                .nway(5, T / 32)
+                .speed(this.bulletSpeed)
+                .fire(this.game.bullets)
+        }
+        yield* Array(this.fireCooldown)
     }
 
     private move() {
