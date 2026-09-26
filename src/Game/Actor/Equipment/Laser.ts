@@ -1,24 +1,27 @@
 import { vec } from "@ipota/vec"
 import { T } from "../../../T"
-import { remodel } from "../../Remodel"
+import { Remodel, remodel } from "../../Remodel"
+import type { Player } from "../Player"
 import type { MainEquipment } from "./types"
 
 const ビーム本数 = 2
-const ビーム間隔 = 40
+const 通常時間隔 = 180
+const 集中時間隔 = 60
+const 間隔追従率 = 0.1
 const ビーム長さ = 900
-const 通常時太さ = 14
-const 集中時太さ = 5
-const 通常時濃さ = 0.3
-const 集中時濃さ = 0.6
+const 通常時太さ = 3
+const 集中時太さ = 3
+const 通常時濃さ = 0.1
+const 集中時濃さ = 0.1
 const 通常時威力 = 1
-const 集中時威力 = 3
+const 集中時威力 = 1
 
 // 自機の左右2本、細く長いビームを常時出し続ける。自機狙いをせず一直線にしか飛ばないため、
 // 敵の正面に自機を移動させて撃ち合わせないと当たらない
 export const laser: MainEquipment = {
     label: "レーザー",
     description:
-        "自機の左右2本から常時レーザーを出し続ける。通常は幅が広く当てやすい代わりに威力は控えめ、低速時は幅が狭くなる代わりに威力が上がる。自機狙いをしないので、敵の正面に自機を移動させないと当たらない。",
+        "自機の左右2本から常時レーザーを出し続ける。通常は幅が広く当てやすい代わりに威力は控えめ、低速時は幅が狭くなる代わりに威力が上がる。ビームの隙間を球弾とリング弾が補う。自機狙いをしないので、敵の正面に自機を移動させないと当たらない。",
     *fire(player) {
         while (!player.game.isPlaying) yield
 
@@ -40,11 +43,16 @@ export const laser: MainEquipment = {
                 // 2本の間隔はこのオフセット分だけ左右に開く
                 const side = index - (ビーム本数 - 1) / 2
 
-                while (true) {
-                    me.p = player.p.clone().add(vec(side * ビーム間隔, 0))
+                // 間隔はここに向かって毎フレーム少しずつ近づける(スナップさせず滑らかに変化させる)
+                let interval = 通常時間隔
 
+                while (true) {
                     // 低速時は狭く強く、通常時は広く弱くなる
                     const isFocused = player.game.input.isPressed("slow")
+                    const targetInterval = isFocused ? 集中時間隔 : 通常時間隔
+                    interval += (targetInterval - interval) * 間隔追従率
+
+                    me.p = player.p.clone().add(vec(side * interval, 0))
                     me.r = isFocused ? 集中時太さ : 通常時太さ
                     me.alpha = isFocused ? 集中時濃さ : 通常時濃さ
                     me.damage = isFocused ? 集中時威力 : 通常時威力
@@ -54,7 +62,69 @@ export const laser: MainEquipment = {
             })
             .fire(player.game.bullets)
 
+        // ビームだけだと寂しいので、見た目の違う弾を2種類、別のリズムで撃ち続ける
+        player.addScript(() => 球弾を撃ち続ける(player), { loop: Infinity })
+        player.addScript(() => リング弾を撃ち続ける(player), { loop: Infinity })
+
         // ここに戻ってくることはないが、Playerのloop:Infinityによる再実行を防ぐため待ち続ける
         while (true) yield
     },
+}
+
+const 球弾間隔 = 12
+const 球弾速度 = 26
+const 球弾半径 = 3
+const 球弾威力 = 1
+
+// ビームの間(自機の正面)を埋める、速く小さい球弾
+function* 球弾を撃ち続ける(player: Player): Generator<void, void, void> {
+    if (player.game.isGameOver) {
+        yield
+        return
+    }
+
+    yield* remodel(player)
+        .p(player.p.clone())
+        .radian(-T / 4)
+        .type("friend")
+        .color("white")
+        .alpha(0.7)
+        .appearance("ball")
+        .r(球弾半径)
+        .damage(球弾威力)
+        .speed(球弾速度)
+        .fire(player.game.bullets)
+
+    yield* Array(球弾間隔)
+}
+
+const リング弾間隔 = 12
+const リング弾速度 = 10
+const リング弾半径 = 8
+const リング弾威力 = 2
+const リング弾数 = 3
+const リング弾展開角度 = T / 10
+
+// 低速で広がっていく、輪っか状のリング弾。球弾より遅くまとまった見た目にする
+function* リング弾を撃ち続ける(player: Player): Generator<void, void, void> {
+    if (player.game.isGameOver) {
+        yield
+        return
+    }
+
+    yield* remodel(player)
+        .p(player.p.clone())
+        .radian(-T / 4)
+        .type("friend")
+        .color("white")
+        .alpha(0.4)
+        .appearance("arrow")
+        .r(16)
+        .damage(リング弾威力)
+        .speed(0)
+        .shift(リング弾数, 60)
+        .g((me) => Remodel.accel(me, 30, 24))
+        .fire(player.game.bullets)
+
+    yield* Array(6)
 }

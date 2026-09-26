@@ -5,14 +5,14 @@ import type { MainEquipment } from "./types"
 const 連射間隔 = 6
 const 弾速 = 20
 const 弾半径 = 3
-const 弾威力 = 2
+const 弾威力 = 3
 
 // 現状の攻撃の仕方(通常5way、低速時はshift撃ち)
 export const standard: MainEquipment = {
     label: "スタンダード",
     description: "通常時は前方に5way、低速時は正面に並んだ弾を落とす。癖のない汎用的な主装備。",
     *fire(player) {
-        if (!player.game.isPlaying) {
+        if (player.game.isGameOver) {
             yield
             return
         }
@@ -27,7 +27,7 @@ export const standard: MainEquipment = {
                 .alpha(0.5)
                 .r(弾半径)
                 .damage(弾威力)
-                .shift(5, 20)
+                .shift(3, 30)
                 .speed(弾速)
                 .fire(player.game.bullets)
         } else {

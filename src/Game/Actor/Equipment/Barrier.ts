@@ -5,7 +5,7 @@ import type { SubEquipment } from "./types"
 
 const 持続フレーム = 40
 const クールダウンフレーム = 240
-const 半径倍率 = 5
+const 半径倍率 = 12
 
 // actionボタンで自機周囲に一定半径の弾消しバリアを展開する。クールダウン中は再発動しない
 export const barrier: SubEquipment = {
@@ -50,7 +50,7 @@ function* barrierField(player: Player): Generator<void, void, void> {
 
         ctx.save()
         player.game.camera.apply(ctx, player.game.WIDTH, player.game.HEIGHT)
-        ctx.globalAlpha = 1 - progress * 0.5
+        ctx.globalAlpha = 1 - progress
         Ctx.arc(ctx, center, radius, "#7fdfffc0", { lineWidth: 3 })
         Ctx.arc(ctx, center, radius * 0.92, "#ffffff80", { lineWidth: 1 })
         ctx.restore()

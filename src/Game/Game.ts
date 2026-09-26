@@ -34,6 +34,11 @@ export class Game extends IteratorQueue {
         return this.state === "playing"
     }
 
+    // クリア後の演出中も含め、ゲームオーバーでない限り攻撃を続けさせるためのフラグ
+    get isGameOver(): boolean {
+        return this.state === "game-over"
+    }
+
     private score = 0
 
     private bulletDrawer = new BulletDrawer()
