@@ -8,112 +8,114 @@
     display: flex;
     justify-content: center;
     align-items: center;
-}
 
-#main {
-    max-width: 100%;
-    max-height: 100%;
-    min-width: 0;
-    min-height: 0;
-}
+    #main {
+        max-width: 100%;
+        max-height: 100%;
+        min-width: 0;
+        min-height: 0;
 
-.pause-menu {
-    position: absolute;
-    inset: 0;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5em;
-
-    background: #00000080;
-
-    animation: fade-in 0.15s ease-out;
-
-    .menu-title {
-        font-size: 1.4em;
+        background-color: #111;
     }
 
-    .menu-scroll-container {
-        width: 20em;
-        gap: 0.8em;
+    .pause-menu {
+        position: absolute;
+        inset: 0;
 
-        background: #303030f0;
-        border: 0.1em solid #00000030;
-        border-radius: 0.1em;
-        padding: 1.5em 3em;
-    }
-
-    .option-row {
-        width: 100%;
-    }
-
-    .option {
-        font-size: 1.2em;
-        text-align: center;
-        padding: 0.3em 0.6em;
-        border-radius: 0.1em;
-
-        transition: background 0.15s ease-out;
-
-        width: 100%;
-        padding-bottom: 0.4em;
-
-        &.selected {
-            background: #ffffff20;
-        }
-    }
-}
-
-.text-box {
-    display: flex;
-    flex-direction: column;
-
-    position: absolute;
-    top: 1em;
-    left: 1em;
-    width: calc(100% - 2em);
-    height: 8em;
-    background: #303030f0;
-    border-radius: 0.1em;
-    border: 0.1em solid #00000020;
-    padding: 1em;
-    padding-top: 0.5em;
-    pointer-events: none;
-
-    font-size: 1.2em;
-
-    animation: fade-in 0.2s ease-out forwards;
-
-    .name {
-        border-bottom: 0.05em solid #fff4;
-        height: 1.5em;
-    }
-
-    .option {
         display: flex;
-        justify-content: space-around;
+        flex-direction: column;
+        justify-content: center;
         align-items: center;
-        height: 100%;
+        gap: 0.5em;
 
-        .selected {
-            color: yellow;
+        background: #00000080;
 
-            &::before {
-                position: relative;
-                left: 0;
-                content: "→";
+        animation: fade-in 0.15s ease-out;
+
+        .menu-title {
+            font-size: 1.4em;
+        }
+
+        .menu-scroll-container {
+            width: 20em;
+            gap: 0.8em;
+
+            background: #303030f0;
+            border: 0.1em solid #00000030;
+            border-radius: 0.1em;
+            padding: 1.5em 3em;
+        }
+
+        .option-row {
+            width: 100%;
+        }
+
+        .option {
+            font-size: 1.2em;
+            text-align: center;
+            padding: 0.3em 0.6em;
+            border-radius: 0.1em;
+
+            transition: background 0.15s ease-out;
+
+            width: 100%;
+            padding-bottom: 0.4em;
+
+            &.selected {
+                background: #ffffff20;
             }
         }
     }
-}
 
-.text-box--done {
-    .text {
-        &::after {
-            content: "/";
-            animation: blink 1s infinite;
+    .text-box {
+        display: flex;
+        flex-direction: column;
+
+        position: absolute;
+        top: 1em;
+        left: 1em;
+        width: calc(100% - 2em);
+        height: 8em;
+        background: #303030f0;
+        border-radius: 0.1em;
+        border: 0.1em solid #00000020;
+        padding: 1em;
+        padding-top: 0.5em;
+        pointer-events: none;
+
+        font-size: 1.2em;
+
+        animation: fade-in 0.2s ease-out forwards;
+
+        .name {
+            border-bottom: 0.05em solid #fff4;
+            height: 1.5em;
+        }
+
+        .option {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 100%;
+
+            .selected {
+                color: yellow;
+
+                &::before {
+                    position: relative;
+                    left: 0;
+                    content: "→";
+                }
+            }
+        }
+    }
+
+    .text-box--done {
+        .text {
+            &::after {
+                content: "/";
+                animation: blink 1s infinite;
+            }
         }
     }
 }

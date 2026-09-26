@@ -1,8 +1,0 @@
-.gltf-viewer {
-    position: absolute;
-    top: 0;
-    height: 100% !important;
-    width: auto !important;
-
-    animation: fade-in 0.5s ease-in-out;
-}

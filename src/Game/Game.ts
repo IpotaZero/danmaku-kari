@@ -84,8 +84,6 @@ export class Game extends IteratorQueue {
                         if (b.isScorable) {
                             b.life = 0
                         }
-
-                        this.addScript(() => this.drawDamage(b.p, b.damage))
                     }
                 })
         }
@@ -101,8 +99,6 @@ export class Game extends IteratorQueue {
 
                         e.life -= b.damage
                         e.hit()
-
-                        this.addScript(() => this.drawDamage(b.p, b.damage))
                     }
                 })
             })
@@ -135,6 +131,8 @@ export class Game extends IteratorQueue {
 
     private draw(): void {
         const ctx = this.ctx
+        ctx.fillStyle = "#111"
+        ctx.fillRect(0, 0, this.WIDTH, this.HEIGHT)
 
         ctx.save()
         this.camera.apply(ctx, this.WIDTH, this.HEIGHT)
@@ -150,22 +148,5 @@ export class Game extends IteratorQueue {
         this.enemies.forEach((e) => e.draw(ctx))
         this.player.draw(ctx)
         ctx.restore()
-    }
-
-    private *drawDamage(p: Vec, damage: number) {
-        const frame = 30
-
-        const l = p.add(vec(Math.random() * 32, Math.random() * 32)).l
-
-        for (let i = 0; i < frame; i++) {
-            this.ctx.save()
-            this.camera.apply(this.ctx, this.WIDTH, this.HEIGHT)
-            Ctx.text(this.ctx, l, `rgba(255,0,0,${1 - i / frame})`, `${damage}`, {
-                fontSize: 32,
-                fontFamily: "serif",
-            })
-            this.ctx.restore()
-            yield
-        }
     }
 }
