@@ -23,6 +23,21 @@ export class Camera extends Actor {
         this.p = firstPosition
     }
 
+    // 画面全体を揺らす。intensityは最大のずれ幅(px)、frameは減衰しながら続くフレーム数
+    shake(intensity: number, frame: number = 20) {
+        this.addScript(() => this.shakeG(intensity, frame), { id: "shake" })
+    }
+
+    private *shakeG(intensity: number, frame: number): Generator<void, void, void> {
+        for (let i = 0; i < frame; i++) {
+            const attenuation = 1 - i / frame
+            this.shakeP = vec((Math.random() * 2 - 1) * intensity * attenuation, (Math.random() * 2 - 1) * intensity * attenuation)
+            yield
+        }
+
+        this.shakeP = vec(0, 0)
+    }
+
     // ctx をカメラ視点に合わせて変換する
     apply(ctx: CanvasRenderingContext2D, width: number, height: number): void {
         ctx.translate(width / 2, height / 2)

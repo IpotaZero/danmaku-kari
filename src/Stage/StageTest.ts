@@ -12,6 +12,8 @@ export default class extends Stage {
         this.game.enemies.push(new EnemyTest(this.game))
 
         yield* this.waitAllEnemiesDead()
+        this.shake(16, 60)
+        this.flash("#ffffff", 12)
         this.scorenizeAllBullets()
     }
 }

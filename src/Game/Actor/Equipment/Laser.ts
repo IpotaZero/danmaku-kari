@@ -1,5 +1,6 @@
 import { vec } from "@ipota/vec"
 import { T } from "../../../T"
+import { GenUtils } from "../../../utils/Functions/GeneratorUtils"
 import { Remodel, remodel } from "../../Remodel"
 import type { Player } from "../Player"
 import type { MainEquipment } from "./types"
@@ -62,12 +63,11 @@ export const laser: MainEquipment = {
             })
             .fire(player.game.bullets)
 
-        // ビームだけだと寂しいので、見た目の違う弾を2種類、別のリズムで撃ち続ける
-        player.addScript(() => 球弾を撃ち続ける(player), { loop: Infinity })
-        player.addScript(() => リング弾を撃ち続ける(player), { loop: Infinity })
-
-        // ここに戻ってくることはないが、Playerのloop:Infinityによる再実行を防ぐため待ち続ける
-        while (true) yield
+        // ビームだけだと寂しいので、見た目の違う弾を2種類、別のリズムで並行に撃ち続ける
+        yield* GenUtils.all({
+            ball: 球弾を撃ち続ける(player),
+            ring: リング弾を撃ち続ける(player),
+        })
     },
 }
 
@@ -78,27 +78,26 @@ const 球弾威力 = 1
 
 // ビームの間(自機の正面)を埋める、速く小さい球弾
 function* 球弾を撃ち続ける(player: Player): Generator<void, void, void> {
-    if (player.game.isGameOver) {
-        yield
-        return
+    while (true) {
+        if (!player.game.isGameOver) {
+            yield* remodel(player)
+                .p(player.p.clone())
+                .radian(-T / 4)
+                .type("friend")
+                .color("white")
+                .alpha(0.7)
+                .appearance("ball")
+                .r(球弾半径)
+                .damage(球弾威力)
+                .speed(球弾速度)
+                .fire(player.game.bullets)
+        }
+
+        yield* GenUtils.waitFrames(球弾間隔)
     }
-
-    yield* remodel(player)
-        .p(player.p.clone())
-        .radian(-T / 4)
-        .type("friend")
-        .color("white")
-        .alpha(0.7)
-        .appearance("ball")
-        .r(球弾半径)
-        .damage(球弾威力)
-        .speed(球弾速度)
-        .fire(player.game.bullets)
-
-    yield* Array(球弾間隔)
 }
 
-const リング弾間隔 = 12
+const リング弾間隔 = 6
 const リング弾速度 = 10
 const リング弾半径 = 8
 const リング弾威力 = 2
@@ -107,24 +106,23 @@ const リング弾展開角度 = T / 10
 
 // 低速で広がっていく、輪っか状のリング弾。球弾より遅くまとまった見た目にする
 function* リング弾を撃ち続ける(player: Player): Generator<void, void, void> {
-    if (player.game.isGameOver) {
-        yield
-        return
+    while (true) {
+        if (!player.game.isGameOver) {
+            yield* remodel(player)
+                .p(player.p.clone())
+                .radian(-T / 4)
+                .type("friend")
+                .color("white")
+                .alpha(0.4)
+                .appearance("arrow")
+                .r(16)
+                .damage(リング弾威力)
+                .speed(0)
+                .shift(リング弾数, 60)
+                .g((me) => Remodel.accel(me, 30, 24))
+                .fire(player.game.bullets)
+        }
+
+        yield* GenUtils.waitFrames(リング弾間隔)
     }
-
-    yield* remodel(player)
-        .p(player.p.clone())
-        .radian(-T / 4)
-        .type("friend")
-        .color("white")
-        .alpha(0.4)
-        .appearance("arrow")
-        .r(16)
-        .damage(リング弾威力)
-        .speed(0)
-        .shift(リング弾数, 60)
-        .g((me) => Remodel.accel(me, 30, 24))
-        .fire(player.game.bullets)
-
-    yield* Array(6)
 }

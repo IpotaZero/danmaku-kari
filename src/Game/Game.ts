@@ -92,6 +92,7 @@ export class Game extends IteratorQueue {
         if (this.stage.isCleared) this.win()
 
         this.draw()
+        this.stage.drawOverlay(this.ctx, this.WIDTH, this.HEIGHT)
         super.update()
     }
 

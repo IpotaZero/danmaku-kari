@@ -15,6 +15,9 @@ const AFTER_IMAGE_DECAY = 0.08
 
 const WING_FLAP_INTERVAL = 2
 
+const HIT_SHAKE_INTENSITY = 8
+const HIT_SHAKE_FRAME = 20
+
 const [upperWing, lowerWing] = await createWings()
 
 // 上下2枚の羽画像を左右反転で複製し、1枚のcanvasに焼き込んでおく(毎フレームの反転描画コストを避ける)
@@ -133,6 +136,7 @@ export class Player extends Actor {
 
         this.life = Math.max(-1, this.life - damage)
         this.onLifeChange(this.life)
+        this.game.camera.shake(HIT_SHAKE_INTENSITY, HIT_SHAKE_FRAME)
 
         this.addScript(
             function* () {
