@@ -7,6 +7,7 @@ export const input = new DigitalInput({
     right: ["ArrowRight", "KeyD", "gamepad-axis-0-positive"],
     slow: ["ShiftLeft"],
     suicide: ["Escape"],
+    action: ["ControlLeft"],
 
     ok: ["Enter", "KeyZ", "Space", "gamepad-button-0"],
     cancel: ["KeyX", "Escape", "Backspace", "gamepad-button-1"],

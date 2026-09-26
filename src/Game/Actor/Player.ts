@@ -5,13 +5,14 @@ import { T } from "../../T"
 import { Ctx } from "../../utils/Functions/Ctx"
 import { Remodel, remodel } from "../Remodel"
 import { Ease } from "@ipota/functions"
+import { playerData } from "../../Data/PlayerData"
 
 export class Player extends Actor {
     readonly GRAZE_R = 16
 
     override readonly r: number = 2
 
-    private readonly maxLife = 1
+    private readonly maxLife = playerData.getMaxLives()
     private frame = 0
 
     private readonly speed = 8
@@ -29,7 +30,8 @@ export class Player extends Actor {
     constructor(game: Game, startPosition: Vec) {
         super(game)
         this.p = startPosition
-        this.life = this.maxLife
+        // 残機はステージをまたいで引き継ぐ
+        this.life = playerData.getLives()
 
         this.addScript(() => this.fireLoop(), { loop: Infinity })
     }
@@ -64,6 +66,7 @@ export class Player extends Actor {
         if (this.isInvincible()) return
 
         this.life = Math.max(-1, this.life - damage)
+        playerData.setLives(this.life)
 
         this.addScript(
             function* () {
@@ -84,6 +87,7 @@ export class Player extends Actor {
     // 自爆: 無敵時間に関係なく強制的にゲームオーバーにする。被弾と同じ弾処理リングは出す
     selfDestruct() {
         this.life = Math.max(-1, this.life - 1)
+        playerData.setLives(this.life)
 
         this.addScript(() => this.explode(), { id: "explode" })
         this.game.lose()

@@ -1,8 +1,8 @@
 import { DEFAULT_LOADOUT, EquipmentId, Loadout } from "./Equipment"
 
-const INITIAL_LIVES = 8
+const MAX_LIVES = 8
 
-// 残機回復に必要な時間(ms)。回復処理自体は未実装
+// 残機が1回復するのにかかる時間(ms)
 export const LIFE_RECOVERY_INTERVAL_MS = 5 * 60 * 1000
 
 const STORAGE_KEY = "danmaku-kari.playerData"
@@ -11,7 +11,7 @@ type SerializedPlayerData = {
     stageClears: Record<string, EquipmentId[]>
     loadout: Loadout
     lives: number
-    lifeRecoveryElapsedMs: number
+    lastLivesSyncedAt: number
 }
 
 /**
@@ -24,13 +24,14 @@ export class PlayerData {
 
     private loadout: Loadout = DEFAULT_LOADOUT
 
-    private lives = INITIAL_LIVES
+    private lives = MAX_LIVES
 
-    // 次の残機回復までの経過時間(ms)
-    private lifeRecoveryElapsedMs = 0
+    // 残機回復の経過計算の基準時刻(ms epoch)。recoverLivesOverTimeを呼ぶたびに進める
+    private lastLivesSyncedAt = Date.now()
 
     constructor() {
         this.load()
+        this.recoverLivesOverTime()
     }
 
     recordStageClear(stageId: string, mainEquipmentId: EquipmentId) {
@@ -57,21 +58,38 @@ export class PlayerData {
         this.save()
     }
 
+    getMaxLives(): number {
+        return MAX_LIVES
+    }
+
     getLives(): number {
         return this.lives
     }
 
+    // ステージ中の被弾などで残機が変化した際に呼び、値をそのまま引き継げるようにする
     setLives(lives: number) {
-        this.lives = lives
+        this.lives = Math.min(MAX_LIVES, Math.max(0, lives))
         this.save()
     }
 
-    getLifeRecoveryElapsedMs(): number {
-        return this.lifeRecoveryElapsedMs
+    // 次に残機が1回復するまでの残り時間(ms)。満タンなら0
+    getLifeRecoveryRemainingMs(now: number = Date.now()): number {
+        if (this.lives >= MAX_LIVES) return 0
+        return Math.max(0, LIFE_RECOVERY_INTERVAL_MS - (now - this.lastLivesSyncedAt))
     }
 
-    setLifeRecoveryElapsedMs(ms: number) {
-        this.lifeRecoveryElapsedMs = ms
+    // 経過した実時間に応じて残機を回復させる。呼ぶたびに現在時刻を基準に計算し直す
+    recoverLivesOverTime(now: number = Date.now()) {
+        if (this.lives >= MAX_LIVES) {
+            this.lastLivesSyncedAt = now
+            return
+        }
+
+        const recovered = Math.floor((now - this.lastLivesSyncedAt) / LIFE_RECOVERY_INTERVAL_MS)
+        if (recovered <= 0) return
+
+        this.lives = Math.min(MAX_LIVES, this.lives + recovered)
+        this.lastLivesSyncedAt += recovered * LIFE_RECOVERY_INTERVAL_MS
         this.save()
     }
 
@@ -89,7 +107,7 @@ export class PlayerData {
 
             this.loadout = data.loadout
             this.lives = data.lives
-            this.lifeRecoveryElapsedMs = data.lifeRecoveryElapsedMs
+            this.lastLivesSyncedAt = data.lastLivesSyncedAt
         } catch {
             // 保存データが壊れている/存在しない場合は初期値のまま進める
         }
@@ -100,7 +118,7 @@ export class PlayerData {
             stageClears: Object.fromEntries([...this.stageClears].map(([stageId, equipmentIds]) => [stageId, [...equipmentIds]])),
             loadout: this.loadout,
             lives: this.lives,
-            lifeRecoveryElapsedMs: this.lifeRecoveryElapsedMs,
+            lastLivesSyncedAt: this.lastLivesSyncedAt,
         }
 
         try {

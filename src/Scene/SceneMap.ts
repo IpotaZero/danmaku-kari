@@ -21,6 +21,8 @@ export class SceneMap extends Scene {
     private readonly nodeElements = new Map<MapNodeId, HTMLElement>()
     private infoEl!: HTMLElement
     private infoShowTimer?: number
+    private livesEl!: HTMLElement
+    private livesRecoveryEl!: HTMLElement
 
     constructor(selectedId: MapNodeId = mapGraph.startId) {
         super()
@@ -38,6 +40,10 @@ export class SceneMap extends Scene {
                 <div class="map-node-info-label"></div>
                 <div class="map-node-info-description"></div>
             </div>
+            <div class="map-lives">
+                <div class="map-lives-count"></div>
+                <div class="map-lives-recovery"></div>
+            </div>
         `
 
         const nodesEl = this.root.querySelector<HTMLElement>(".map-nodes")!
@@ -54,6 +60,10 @@ export class SceneMap extends Scene {
 
         this.infoEl = this.root.querySelector<HTMLElement>(".map-node-info")!
         this.showInfo()
+
+        this.livesEl = this.root.querySelector<HTMLElement>(".map-lives-count")!
+        this.livesRecoveryEl = this.root.querySelector<HTMLElement>(".map-lives-recovery")!
+        this.updateLivesDisplay()
     }
 
     protected async onEnd(): Promise<void> {
@@ -61,6 +71,9 @@ export class SceneMap extends Scene {
     }
 
     update(): void {
+        playerData.recoverLivesOverTime()
+        this.updateLivesDisplay()
+
         if (input.isRepeatPushed("up", 100, 300)) {
             this.move("up")
         } else if (input.isRepeatPushed("down", 100, 300)) {
@@ -114,6 +127,13 @@ export class SceneMap extends Scene {
         this.infoEl.classList.add("visible")
     }
 
+    private updateLivesDisplay() {
+        this.livesEl.textContent = `残機 ${playerData.getLives()} / ${playerData.getMaxLives()}`
+
+        const remainingMs = playerData.getLifeRecoveryRemainingMs()
+        this.livesRecoveryEl.textContent = remainingMs > 0 ? `次の回復まで ${formatMmSs(remainingMs)}` : ""
+    }
+
     private renderEdge(edge: MapEdge): string {
         const from = getMapNode(edge.from)
         const to = getMapNode(edge.to)
@@ -143,4 +163,11 @@ function pickClosestInDirection(current: MapNode, neighbors: MapNode[], directio
     }
 
     return best
+}
+
+function formatMmSs(ms: number): string {
+    const totalSeconds = Math.ceil(ms / 1000)
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = totalSeconds % 60
+    return `${minutes}:${String(seconds).padStart(2, "0")}`
 }
