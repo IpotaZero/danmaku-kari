@@ -1,13 +1,13 @@
-// 装備システム自体は未実装。現時点では識別用の型と初期値だけ用意しておく。
-
 export type EquipmentId = string
 
 export type Loadout = {
+    // 攻撃の仕方に対応する
     readonly main: EquipmentId
-    readonly subs: readonly [EquipmentId | null, EquipmentId | null, EquipmentId | null]
+    // action入力時の挙動に対応する
+    readonly sub: EquipmentId | null
 }
 
 export const DEFAULT_LOADOUT: Loadout = {
-    main: "default",
-    subs: [null, null, null],
+    main: "standard",
+    sub: "dash",
 }

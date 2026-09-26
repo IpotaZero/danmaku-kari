@@ -5,35 +5,50 @@ import { T } from "../../T"
 import { Ctx } from "../../utils/Functions/Ctx"
 import { Remodel, remodel } from "../Remodel"
 import { Ease } from "@ipota/functions"
-import { playerData } from "../../Data/PlayerData"
+import type { MainEquipment, SubEquipment } from "./PlayerEquipment"
+
+// Player自身はセーブデータ(Data層)を知らない。呼び出し側(Scene層)が
+// playerDataから読んだ値をここに詰めて渡し、被弾等による変化もonLifeChangeで送り返してもらう
+export type PlayerConfig = {
+    readonly initialLife: number
+    readonly maxLife: number
+    readonly mainEquipment: MainEquipment
+    readonly subEquipment: SubEquipment | undefined
+    readonly onLifeChange: (life: number) => void
+}
 
 export class Player extends Actor {
     readonly GRAZE_R = 16
 
     override readonly r: number = 2
 
-    private readonly maxLife = playerData.getMaxLives()
+    private readonly maxLife: number
     private frame = 0
 
     private readonly speed = 8
     private readonly slowSpeed = 3
 
-    private readonly fireCooldown = 6
-    private readonly bulletSpeed = 20
-    private readonly bulletR = 3
+    // 装備(主にsub装備のaction)が移動速度・無敵状態を一時的に変えるためのフック
+    speedMultiplier = 1
+    isActionInvincible = false
 
     // 低速(スニーク)時の見た目まわり
     private drawRadianVelocity = 0
     private drawRadian = 0
     private sneakProgress = 0 // 0.0〜1.0、低速中に1へ近づく
 
-    constructor(game: Game, startPosition: Vec) {
+    private readonly onLifeChange: (life: number) => void
+
+    constructor(game: Game, startPosition: Vec, config: PlayerConfig) {
         super(game)
         this.p = startPosition
-        // 残機はステージをまたいで引き継ぐ
-        this.life = playerData.getLives()
+        // 残機はステージをまたいで引き継ぐ(値の出所はScene層のplayerData)
+        this.life = config.initialLife
+        this.maxLife = config.maxLife
+        this.onLifeChange = config.onLifeChange
 
-        this.addScript(() => this.fireLoop(), { loop: Infinity })
+        this.addScript(() => config.mainEquipment.fire(this), { loop: Infinity })
+        if (config.subEquipment) this.addScript(() => config.subEquipment!.action(this))
     }
 
     update(): void {
@@ -58,7 +73,7 @@ export class Player extends Actor {
     }
 
     isInvincible() {
-        return this.scripts.has("invincible")
+        return this.scripts.has("invincible") || this.isActionInvincible
     }
 
     // 被弾処理: ライフを減らし、しばらく無敵にする
@@ -66,7 +81,7 @@ export class Player extends Actor {
         if (this.isInvincible()) return
 
         this.life = Math.max(-1, this.life - damage)
-        playerData.setLives(this.life)
+        this.onLifeChange(this.life)
 
         this.addScript(
             function* () {
@@ -87,7 +102,7 @@ export class Player extends Actor {
     // 自爆: 無敵時間に関係なく強制的にゲームオーバーにする。被弾と同じ弾処理リングは出す
     selfDestruct() {
         this.life = Math.max(-1, this.life - 1)
-        playerData.setLives(this.life)
+        this.onLifeChange(this.life)
 
         this.addScript(() => this.explode(), { id: "explode" })
         this.game.lose()
@@ -138,45 +153,6 @@ export class Player extends Actor {
         }
     }
 
-    private *fireLoop() {
-        if (!this.game.isPlaying) {
-            yield
-            return
-        }
-
-        // if (!this.game.input.isPressed("ok")) {
-        //     yield
-        //     return
-        // }
-
-        if (this.game.input.isPressed("slow")) {
-            yield* remodel(this)
-                .p(this.p.clone())
-                .radian(-T / 4)
-                .appearance("player")
-                .type("friend")
-                .color("white")
-                .alpha(0.5)
-                .r(this.bulletR)
-                .shift(5, 20)
-                .speed(this.bulletSpeed)
-                .fire(this.game.bullets)
-        } else {
-            yield* remodel(this)
-                .p(this.p.clone())
-                .radian(-T / 4)
-                .appearance("player")
-                .type("friend")
-                .color("white")
-                .alpha(0.5)
-                .r(this.bulletR)
-                .nway(5, T / 32)
-                .speed(this.bulletSpeed)
-                .fire(this.game.bullets)
-        }
-        yield* Array(this.fireCooldown)
-    }
-
     private move() {
         const input = this.game.input
 
@@ -186,8 +162,8 @@ export class Player extends Actor {
         )
         if (dir.magnitude() === 0) return
 
-        const speed = input.isPressed("slow") ? this.slowSpeed : this.speed
-        const next = this.p.add(dir.normalize().scale(speed))
+        const baseSpeed = input.isPressed("slow") ? this.slowSpeed : this.speed
+        const next = this.p.add(dir.normalize().scale(baseSpeed * this.speedMultiplier))
 
         this.p = vec(Math.min(Math.max(next.x, 0), this.game.WIDTH), Math.min(Math.max(next.y, 0), this.game.HEIGHT))
     }

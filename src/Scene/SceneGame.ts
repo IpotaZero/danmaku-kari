@@ -1,5 +1,7 @@
 import { playerData } from "../Data/PlayerData"
 import { Game } from "../Game/Game"
+import { mainEquipments, subEquipments } from "../Game/Actor/PlayerEquipment"
+import type { PlayerConfig } from "../Game/Actor/Player"
 import { input } from "../input"
 import type { MapNode } from "../Map/MapGraph"
 import { sc } from "../sc"
@@ -21,6 +23,7 @@ export class SceneGame extends Scene {
                 this.showResultMenu("--:: 作戦成功 ::--")
             },
             () => this.showResultMenu("--:: 作戦失敗 ::--"),
+            createPlayerConfig(),
         )
     }
 
@@ -77,5 +80,19 @@ export class SceneGame extends Scene {
 
         this.resultMenu.container.classList.add("pause-menu")
         this.root.appendChild(this.resultMenu.container)
+    }
+}
+
+// playerData(セーブデータ)の内容をPlayerConfigへ詰め替える。
+// Player自身はplayerDataを直接参照しないので、この変換をScene層で行う
+function createPlayerConfig(): PlayerConfig {
+    const loadout = playerData.getLoadout()
+
+    return {
+        initialLife: playerData.getLives(),
+        maxLife: playerData.getMaxLives(),
+        mainEquipment: mainEquipments[loadout.main] ?? mainEquipments.standard,
+        subEquipment: loadout.sub ? subEquipments[loadout.sub] : undefined,
+        onLifeChange: (life) => playerData.setLives(life),
     }
 }

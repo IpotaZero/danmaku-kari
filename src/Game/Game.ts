@@ -1,7 +1,7 @@
 import { Camera } from "./Actor/Camera"
 import { DigitalInput } from "@ipota/input"
 import { Vec, vec } from "@ipota/vec"
-import { Player } from "./Actor/Player"
+import { Player, PlayerConfig } from "./Actor/Player"
 import { Enemy } from "./Actor/Enemy"
 import { Bullet } from "./Actor/Bullet"
 import { BulletDrawer } from "./BulletDrawer"
@@ -44,9 +44,12 @@ export class Game extends IteratorQueue {
 
     constructor(
         stage: (game: Game) => Stage,
-        readonly input: DigitalInput.Reader<"right" | "left" | "up" | "down" | "slow" | "suicide" | "ok" | "cancel">,
+        readonly input: DigitalInput.Reader<
+            "right" | "left" | "up" | "down" | "slow" | "suicide" | "action" | "ok" | "cancel"
+        >,
         readonly onWin: () => void,
         readonly onLose: () => void,
+        playerConfig: PlayerConfig,
     ) {
         super()
 
@@ -63,7 +66,7 @@ export class Game extends IteratorQueue {
 
         this.textBox = new TextBox(this.input, () => {})
 
-        this.player = new Player(this, vec(this.WIDTH / 2, this.HEIGHT / 2))
+        this.player = new Player(this, vec(this.WIDTH / 2, this.HEIGHT / 2), playerConfig)
         this.camera = new Camera(this, this.player.p)
     }
 

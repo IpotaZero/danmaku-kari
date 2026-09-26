@@ -5,7 +5,8 @@ const MAX_LIVES = 8
 // 残機が1回復するのにかかる時間(ms)
 export const LIFE_RECOVERY_INTERVAL_MS = 5 * 60 * 1000
 
-const STORAGE_KEY = "danmaku-kari.playerData"
+// v2: Loadoutのsub装備を3枠から1枠に変更したため、古い保存形式と区別するためキーを変えている
+const STORAGE_KEY = "danmaku-kari.playerData.v2"
 
 type SerializedPlayerData = {
     stageClears: Record<string, EquipmentId[]>
@@ -105,7 +106,8 @@ export class PlayerData {
                 this.stageClears.set(stageId, new Set(equipmentIds))
             }
 
-            this.loadout = data.loadout
+            // 将来loadoutの形が変わっても、欠けたフィールドはデフォルトで補う
+            this.loadout = { ...DEFAULT_LOADOUT, ...data.loadout }
             this.lives = data.lives
             this.lastLivesSyncedAt = data.lastLivesSyncedAt
         } catch {
