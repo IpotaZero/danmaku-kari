@@ -58,7 +58,7 @@ export class Bullet extends Actor {
         const diff = target.sub(this.p)
 
         this.radian = diff.radian()
-        this.speed = diff.magnitude() / 6
+        this.speed = Math.max(diff.magnitude() / 12, 2)
 
         yield
     }

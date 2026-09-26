@@ -112,4 +112,19 @@ export abstract class Enemy extends Actor {
             yield
         }
     }
+
+    // 親敵に追従する子敵として振る舞わせる。親が死んだら自分も死ぬ
+    protected setParent(parent: Enemy, position: () => Vec) {
+        this.addScript(() => this.followParent(parent, position), { id: "parent", loop: Infinity })
+    }
+
+    private *followParent(parent: Enemy, position: () => Vec) {
+        if (parent.life <= 0) {
+            this.life = 0
+            return
+        }
+
+        this.p = parent.p.add(position())
+        yield
+    }
 }
