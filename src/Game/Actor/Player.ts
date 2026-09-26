@@ -13,6 +13,37 @@ type AfterImage = { p: Vec; alpha: number }
 const AFTER_IMAGE_MAX = 12
 const AFTER_IMAGE_DECAY = 0.08
 
+const WING_FLAP_INTERVAL = 2
+
+const [upperWing, lowerWing] = await createWings()
+
+// 上下2枚の羽画像を左右反転で複製し、1枚のcanvasに焼き込んでおく(毎フレームの反転描画コストを避ける)
+async function createWings() {
+    const upper = new Image()
+    upper.src = "assets/image/upper-wing.svg"
+    const lower = new Image()
+    lower.src = "assets/image/lower-wing.svg"
+    await Promise.all([upper.decode(), lower.decode()])
+
+    const upperWingCanvas = document.createElement("canvas")
+    upperWingCanvas.width = 512
+    upperWingCanvas.height = 64
+    const upperWingCtx = upperWingCanvas.getContext("2d")!
+    upperWingCtx.drawImage(upper, 256, 0)
+    upperWingCtx.scale(-1, 1)
+    upperWingCtx.drawImage(upper, -256, 0)
+
+    const lowerWingCanvas = document.createElement("canvas")
+    lowerWingCanvas.width = 512
+    lowerWingCanvas.height = 128
+    const lowerWingCtx = lowerWingCanvas.getContext("2d")!
+    lowerWingCtx.drawImage(lower, 256, 0)
+    lowerWingCtx.scale(-1, 1)
+    lowerWingCtx.drawImage(lower, -256, 0)
+
+    return [upperWingCanvas, lowerWingCanvas] as const
+}
+
 // Player自身はセーブデータ(Data層)を知らない。呼び出し側(Scene層)が
 // playerDataから読んだ値をここに詰めて渡し、被弾等による変化もonLifeChangeで送り返してもらう
 export type PlayerConfig = {
@@ -26,7 +57,7 @@ export type PlayerConfig = {
 export class Player extends Actor {
     readonly GRAZE_R = 16
 
-    override readonly r: number = 2
+    override readonly r: number = 3
 
     private readonly maxLife: number
     private frame = 0
@@ -39,6 +70,9 @@ export class Player extends Actor {
     isActionInvincible = false
     // action発動直後が1、クールタイムが明けると0(0の間はクールタイム表示を出さない)
     actionCooldownRemaining = 0
+
+    // 直近フレームの移動速度(羽の傾き等、見た目の計算にのみ使う)
+    private v: Vec = vec(0, 0)
 
     // 低速(スニーク)時の見た目まわり
     private drawRadianVelocity = 0
@@ -84,6 +118,7 @@ export class Player extends Actor {
         this.drawLife(ctx)
         this.drawGrazeBoundary(ctx)
         this.drawCore(ctx)
+        this.drawWings(ctx)
 
         ctx.restore()
     }
@@ -176,10 +211,14 @@ export class Player extends Actor {
             (input.isPressed("right") ? 1 : 0) - (input.isPressed("left") ? 1 : 0),
             (input.isPressed("down") ? 1 : 0) - (input.isPressed("up") ? 1 : 0),
         )
-        if (dir.magnitude() === 0) return
+        if (dir.magnitude() === 0) {
+            this.v = vec(0, 0)
+            return
+        }
 
         const baseSpeed = input.isPressed("slow") ? this.slowSpeed : this.speed
-        const next = this.p.add(dir.normalize().scale(baseSpeed * this.speedMultiplier))
+        this.v = dir.normalize().scale(baseSpeed * this.speedMultiplier)
+        const next = this.p.add(this.v)
 
         this.p = vec(Math.min(Math.max(next.x, 0), this.game.WIDTH), Math.min(Math.max(next.y, 0), this.game.HEIGHT))
 
@@ -351,5 +390,24 @@ export class Player extends Actor {
             const center = this.p.add(vec(this.GRAZE_R * 3.5, 0).rotate(T * (i / this.maxLife) + this.frame / 60))
             Ctx.polygon(ctx, 4, 1, center, this.GRAZE_R, "#ffffff80", { theta: this.frame / 60, lineWidth: 1 })
         }
+    }
+
+    // 上下2枚の羽をWING_FLAP_INTERVALフレームごとに交互に切り替えて羽ばたきに見せる
+    private drawWings(ctx: CanvasRenderingContext2D) {
+        const isUpperFrame = Math.floor(this.frame / WING_FLAP_INTERVAL) % 2 === 0
+        const phase = isUpperFrame ? 1 : -1
+        const offsetY = phase * 3
+        const scaleY = 1 + phase * 0.08
+
+        ctx.save()
+        ctx.translate(this.p.x, this.p.y + offsetY)
+        ctx.scale(1, scaleY)
+        ctx.globalAlpha = 0.6
+        ctx.rotate((this.v.x / 20) * T * 0.02)
+        ctx.translate(-256, -40)
+
+        ctx.drawImage(isUpperFrame ? upperWing : lowerWing, Math.random() - 0.5, Math.random() - 0.5)
+
+        ctx.restore()
     }
 }
