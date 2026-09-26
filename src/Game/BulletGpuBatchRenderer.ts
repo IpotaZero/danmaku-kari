@@ -103,8 +103,12 @@ export class BulletGpuBatchRenderer {
         this.instanceBuffer = this.createBuffer()
         this.vao = this.createVao(this.createQuadBuffer(), this.instanceBuffer)
 
+        // メインのCanvas2D側はglobalCompositeOperation = "lighter"(加算合成)で弾を描いているが、
+        // ここがONE_MINUS_SRC_ALPHA(通常のアルファ合成)のままだと、GPUでまとめ描きした弾同士は
+        // 重なっても明るくならず、Canvas2Dへ直接描くフォールバック分とだけ見た目がずれてしまう。
+        // 加算合成に合わせて重なった弾が明るくなるようにする
         gl.enable(gl.BLEND)
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+        gl.blendFunc(gl.ONE, gl.ONE)
     }
 
     /**

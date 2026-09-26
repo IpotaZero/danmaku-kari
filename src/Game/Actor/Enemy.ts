@@ -8,7 +8,6 @@ import { IEnemyRenderer } from "./IEnemyRenderer"
 import { EnemyRendererMob } from "./EnemyRendererMob"
 
 export abstract class Enemy extends Actor {
-    private shakeP = vec(0, 0)
     private readonly baseR: number
 
     maxLife: number
@@ -29,7 +28,7 @@ export abstract class Enemy extends Actor {
         game: Game,
         life: number,
         r: number,
-        { renderer = new EnemyRendererMob() }: { renderer?: IEnemyRenderer },
+        { renderer = new EnemyRendererMob() }: { renderer?: IEnemyRenderer } = {},
     ) {
         super(game)
         this.p = vec(-100, -100)
@@ -48,18 +47,13 @@ export abstract class Enemy extends Actor {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        ctx.save()
-        ctx.translate(this.shakeP.x, this.shakeP.y)
         this.renderer.draw(ctx, this)
-        ctx.restore()
-
         this.damaged = false
     }
 
     hit() {
         this.damaged = true
         this.addScript(this.hitG.bind(this))
-        this.addScript(this.shakeG.bind(this))
     }
 
     *onDead(): Generator<void, void, void> {
@@ -89,19 +83,6 @@ export abstract class Enemy extends Actor {
         }
 
         this.r = this.baseR
-    }
-
-    private *shakeG() {
-        const frame = 10
-
-        for (let i = 1; i < frame + 1; i++) {
-            const attenuation = 1 - Ease.Out(i / frame)
-            this.shakeP.x = Math.sin(i) * attenuation
-            this.shakeP.y = Math.cos(i * 2) * attenuation
-            yield
-        }
-
-        this.shakeP = vec(0, 0)
     }
 
     protected *moveTo(end: Vec, frame: number) {

@@ -1,9 +1,15 @@
-import { DEFAULT_LOADOUT, DEFAULT_OWNED_MAIN_EQUIPMENT_IDS, DEFAULT_OWNED_SUB_EQUIPMENT_IDS, EquipmentId, Loadout } from "./Equipment"
+import {
+    DEFAULT_LOADOUT,
+    DEFAULT_OWNED_MAIN_EQUIPMENT_IDS,
+    DEFAULT_OWNED_SUB_EQUIPMENT_IDS,
+    EquipmentId,
+    Loadout,
+} from "./Equipment"
 
 const MAX_LIVES = 8
 
 // 残機が1回復するのにかかる時間(ms)
-export const LIFE_RECOVERY_INTERVAL_MS = 5 * 60 * 1000
+export const LIFE_RECOVERY_INTERVAL_MS = 5
 
 // v2: Loadoutのsub装備を3枠から1枠に変更したため、古い保存形式と区別するためキーを変えている
 const STORAGE_KEY = "danmaku-kari.playerData.v2"
@@ -142,7 +148,9 @@ export class PlayerData {
 
     private save() {
         const data: SerializedPlayerData = {
-            stageClears: Object.fromEntries([...this.stageClears].map(([stageId, equipmentIds]) => [stageId, [...equipmentIds]])),
+            stageClears: Object.fromEntries(
+                [...this.stageClears].map(([stageId, equipmentIds]) => [stageId, [...equipmentIds]]),
+            ),
             loadout: this.loadout,
             ownedMainEquipmentIds: [...this.ownedMainEquipmentIds],
             ownedSubEquipmentIds: [...this.ownedSubEquipmentIds],
