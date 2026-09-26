@@ -3,7 +3,7 @@ import { mainEquipments, subEquipments } from "../Game/Actor/PlayerEquipment"
 import { input } from "../input"
 import { getMapNode, getNeighborIds, isMapNodeUnlocked, mapGraph, MapEdge, MapNode, MapNodeId } from "../Map/MapGraph"
 import { sc } from "../sc"
-import { Menu } from "../utils/Menu/Menu"
+import { Menu, MenuOption, MenuOptionBox } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
 
 type Direction = "up" | "down" | "left" | "right"
@@ -141,72 +141,7 @@ export class SceneMap extends Scene {
             {
                 elementId: "equip-root",
                 title: "--:: 装備変更 ::--",
-                options: () => [
-                    [
-                        {
-                            type: "submenu",
-                            label: `主装備: ${mainEquipments[playerData.getLoadout().main]?.label ?? playerData.getLoadout().main}`,
-                            hides: ["equip-root"],
-                            shows: ["equip-main-options"],
-                            onFocus: () => this.hideEquipDescription(),
-                            subMenu: () => ({
-                                elementId: "equip-main-options",
-                                title: "--:: 主装備を選択 ::--",
-                                options: () =>
-                                    Object.keys(mainEquipments).map((id) => [
-                                        {
-                                            type: "select" as const,
-                                            label: mainEquipments[id]?.label ?? id,
-                                            disabled: () => !playerData.getOwnedMainEquipmentIds().has(id),
-                                            onFocus: () => this.showEquipDescription(mainEquipments[id]?.description ?? ""),
-                                            onSelect: () => {
-                                                playerData.setLoadout({ ...playerData.getLoadout(), main: id })
-                                                this.equipMenu?.backToRoot()
-                                            },
-                                        },
-                                    ]),
-                            }),
-                        },
-                    ],
-                    [
-                        {
-                            type: "submenu",
-                            label: `副装備: ${this.getSubEquipmentLabel()}`,
-                            hides: ["equip-root"],
-                            shows: ["equip-sub-options"],
-                            onFocus: () => this.hideEquipDescription(),
-                            subMenu: () => ({
-                                elementId: "equip-sub-options",
-                                title: "--:: 副装備を選択 ::--",
-                                options: () => [
-                                    [
-                                        {
-                                            type: "select" as const,
-                                            label: "なし",
-                                            onFocus: () => this.showEquipDescription("副装備を使用しない。"),
-                                            onSelect: () => {
-                                                playerData.setLoadout({ ...playerData.getLoadout(), sub: null })
-                                                this.equipMenu?.backToRoot()
-                                            },
-                                        },
-                                    ],
-                                    ...Object.keys(subEquipments).map((id) => [
-                                        {
-                                            type: "select" as const,
-                                            label: subEquipments[id]?.label ?? id,
-                                            disabled: () => !playerData.getOwnedSubEquipmentIds().has(id),
-                                            onFocus: () => this.showEquipDescription(subEquipments[id]?.description ?? ""),
-                                            onSelect: () => {
-                                                playerData.setLoadout({ ...playerData.getLoadout(), sub: id })
-                                                this.equipMenu?.backToRoot()
-                                            },
-                                        },
-                                    ]),
-                                ],
-                            }),
-                        },
-                    ],
-                ],
+                options: () => this.buildEquipRootOptions(),
             },
             input,
             {
@@ -228,6 +163,92 @@ export class SceneMap extends Scene {
         this.equipMenu?.container.remove()
         this.equipMenu = undefined
         this.equipDescriptionEl = undefined
+    }
+
+    // ルート: 「主装備: ○○」「副装備: ○○」の2行。それぞれ選ぶとサブメニューが開く
+    private buildEquipRootOptions(): MenuOption[][] {
+        return [
+            [
+                {
+                    type: "submenu",
+                    label: `主装備: ${mainEquipments[playerData.getLoadout().main]?.label ?? playerData.getLoadout().main}`,
+                    hides: ["equip-root"],
+                    shows: ["equip-main-options"],
+                    onFocus: () => this.hideEquipDescription(),
+                    subMenu: () => this.buildMainEquipmentSubMenu(),
+                },
+            ],
+            [
+                {
+                    type: "submenu",
+                    label: `副装備: ${this.getSubEquipmentLabel()}`,
+                    hides: ["equip-root"],
+                    shows: ["equip-sub-options"],
+                    onFocus: () => this.hideEquipDescription(),
+                    subMenu: () => this.buildSubEquipmentSubMenu(),
+                },
+            ],
+        ]
+    }
+
+    private buildMainEquipmentSubMenu(): MenuOptionBox {
+        return {
+            elementId: "equip-main-options",
+            title: "--:: 主装備を選択 ::--",
+            options: () => this.buildMainEquipmentOptions(),
+        }
+    }
+
+    // 所持していない主装備もdisabledとして一覧に出す(存在を知らせつつ選べないようにする)
+    private buildMainEquipmentOptions(): MenuOption[][] {
+        return Object.keys(mainEquipments).map((id) => [
+            {
+                type: "select" as const,
+                label: mainEquipments[id]?.label ?? id,
+                disabled: () => !playerData.getOwnedMainEquipmentIds().has(id),
+                onFocus: () => this.showEquipDescription(mainEquipments[id]?.description ?? ""),
+                onSelect: () => {
+                    playerData.setLoadout({ ...playerData.getLoadout(), main: id })
+                    this.equipMenu?.backToRoot()
+                },
+            },
+        ])
+    }
+
+    private buildSubEquipmentSubMenu(): MenuOptionBox {
+        return {
+            elementId: "equip-sub-options",
+            title: "--:: 副装備を選択 ::--",
+            options: () => this.buildSubEquipmentOptions(),
+        }
+    }
+
+    private buildSubEquipmentOptions(): MenuOption[][] {
+        return [
+            [
+                {
+                    type: "select",
+                    label: "なし",
+                    onFocus: () => this.showEquipDescription("副装備を使用しない。"),
+                    onSelect: () => {
+                        playerData.setLoadout({ ...playerData.getLoadout(), sub: null })
+                        this.equipMenu?.backToRoot()
+                    },
+                },
+            ],
+            ...Object.keys(subEquipments).map((id) => [
+                {
+                    type: "select" as const,
+                    label: subEquipments[id]?.label ?? id,
+                    disabled: () => !playerData.getOwnedSubEquipmentIds().has(id),
+                    onFocus: () => this.showEquipDescription(subEquipments[id]?.description ?? ""),
+                    onSelect: () => {
+                        playerData.setLoadout({ ...playerData.getLoadout(), sub: id })
+                        this.equipMenu?.backToRoot()
+                    },
+                },
+            ]),
+        ]
     }
 
     // 装備選択肢にカーソルが乗っている間、その装備の説明を表示する
