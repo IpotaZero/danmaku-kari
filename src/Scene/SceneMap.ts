@@ -1,7 +1,9 @@
 import { playerData } from "../Data/PlayerData"
+import { mainEquipments, subEquipments } from "../Game/Actor/PlayerEquipment"
 import { input } from "../input"
 import { getMapNode, getNeighborIds, isMapNodeUnlocked, mapGraph, MapEdge, MapNode, MapNodeId } from "../Map/MapGraph"
 import { sc } from "../sc"
+import { Menu } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
 
 type Direction = "up" | "down" | "left" | "right"
@@ -23,6 +25,7 @@ export class SceneMap extends Scene {
     private infoShowTimer?: number
     private livesEl!: HTMLElement
     private livesRecoveryEl!: HTMLElement
+    private equipMenu?: Menu
 
     constructor(selectedId: MapNodeId = mapGraph.startId) {
         super()
@@ -75,6 +78,16 @@ export class SceneMap extends Scene {
         playerData.recoverLivesOverTime()
         this.updateLivesDisplay()
 
+        if (this.equipMenu) {
+            this.equipMenu.update()
+
+            if (input.isPushed("action")) {
+                this.closeEquipMenu()
+            }
+
+            return
+        }
+
         if (input.isRepeatPushed("up", 100, 300)) {
             this.move("up")
         } else if (input.isRepeatPushed("down", 100, 300)) {
@@ -85,6 +98,8 @@ export class SceneMap extends Scene {
             this.move("right")
         } else if (input.isPushed("ok")) {
             this.select()
+        } else if (input.isPushed("action")) {
+            this.openEquipMenu()
         } else if (input.isPushed("cancel")) {
             sc.goto(async () => import("./SceneTitle").then(({ SceneTitle }) => new SceneTitle()))
         }
@@ -109,6 +124,101 @@ export class SceneMap extends Scene {
         if (!isMapNodeUnlocked(node, playerData)) return
 
         sc.goto(async () => import("./SceneGame").then(({ SceneGame }) => new SceneGame(node)))
+    }
+
+    // 所持している主装備・副装備の中から選び直せる、右側に開くモーダル
+    private openEquipMenu() {
+        this.equipMenu = new Menu(
+            `<div id="equip-root"></div>
+             <div id="equip-main-options" class="fadeout"></div>
+             <div id="equip-sub-options" class="fadeout"></div>`,
+            {
+                elementId: "equip-root",
+                title: "--:: 装備変更 ::--",
+                options: () => [
+                    [
+                        {
+                            type: "submenu",
+                            label: `主装備: ${mainEquipments[playerData.getLoadout().main]?.label ?? playerData.getLoadout().main}`,
+                            hides: ["equip-root"],
+                            shows: ["equip-main-options"],
+                            subMenu: () => ({
+                                elementId: "equip-main-options",
+                                title: "--:: 主装備を選択 ::--",
+                                options: () =>
+                                    [...playerData.getOwnedMainEquipmentIds()].map((id) => [
+                                        {
+                                            type: "select",
+                                            label: mainEquipments[id]?.label ?? id,
+                                            onSelect: () => {
+                                                playerData.setLoadout({ ...playerData.getLoadout(), main: id })
+                                                this.equipMenu?.backToRoot()
+                                            },
+                                        },
+                                    ]),
+                            }),
+                        },
+                    ],
+                    [
+                        {
+                            type: "submenu",
+                            label: `副装備: ${this.getSubEquipmentLabel()}`,
+                            hides: ["equip-root"],
+                            shows: ["equip-sub-options"],
+                            subMenu: () => ({
+                                elementId: "equip-sub-options",
+                                title: "--:: 副装備を選択 ::--",
+                                options: () => [
+                                    [
+                                        {
+                                            type: "select" as const,
+                                            label: "なし",
+                                            onSelect: () => {
+                                                playerData.setLoadout({ ...playerData.getLoadout(), sub: null })
+                                                this.equipMenu?.backToRoot()
+                                            },
+                                        },
+                                    ],
+                                    ...[...playerData.getOwnedSubEquipmentIds()].map((id) => [
+                                        {
+                                            type: "select" as const,
+                                            label: subEquipments[id]?.label ?? id,
+                                            onSelect: () => {
+                                                playerData.setLoadout({ ...playerData.getLoadout(), sub: id })
+                                                this.equipMenu?.backToRoot()
+                                            },
+                                        },
+                                    ]),
+                                ],
+                            }),
+                        },
+                    ],
+                ],
+            },
+            input,
+            {
+                playCursor: () => {},
+                playOk: () => {},
+                playCancel: () => {},
+                playDisable: () => {},
+            },
+        )
+
+        this.equipMenu.onBack = () => this.closeEquipMenu()
+        this.equipMenu.container.classList.add("map-equip-modal")
+        this.root.appendChild(this.equipMenu.container)
+    }
+
+    private closeEquipMenu() {
+        this.equipMenu?.container.remove()
+        this.equipMenu = undefined
+    }
+
+    private getSubEquipmentLabel(): string {
+        const subId = playerData.getLoadout().sub
+        if (!subId) return "なし"
+
+        return subEquipments[subId]?.label ?? subId
     }
 
     // 選択移動中は説明の枠を隠し、移動が落ち着いてから改めて表示する
@@ -144,7 +254,11 @@ export class SceneMap extends Scene {
 }
 
 // 現在ノードから見て、押した方向に最も近い(角度が小さい)隣接ノードを選ぶ
-function pickClosestInDirection(current: MapNode, neighbors: MapNode[], direction: { x: number; y: number }): MapNode | undefined {
+function pickClosestInDirection(
+    current: MapNode,
+    neighbors: MapNode[],
+    direction: { x: number; y: number },
+): MapNode | undefined {
     let best: MapNode | undefined
     let bestDot = -Infinity
 

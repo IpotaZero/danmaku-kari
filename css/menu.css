@@ -10,6 +10,13 @@
     gap: 0.5em;
 }
 
+/* pushSubMenuで開かれたレイヤー。フェード中もrootと重ねて表示できるようoverlay配置にする */
+.menu-submenu-layer {
+    padding: 1em;
+    position: absolute;
+    inset: 0;
+}
+
 .menu-title {
     font-size: 1.2em;
     margin-bottom: 0.5em;
@@ -41,6 +48,7 @@
 
     &.selected {
         opacity: 1;
+         box-shadow: 0px 0px 16px 4px rgb(179 167 255 / 35%);
     }
 
     &.disabled {

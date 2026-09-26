@@ -8,11 +8,13 @@ import type { Player } from "./Player"
 
 // 主装備: 攻撃の仕方に対応する
 export type MainEquipment = {
+    readonly label: string
     fire(player: Player): Generator<void, void, void>
 }
 
 // 副装備: action入力時の挙動に対応する
 export type SubEquipment = {
+    readonly label: string
     action(player: Player): Generator<void, void, void>
 }
 
@@ -23,6 +25,7 @@ const STANDARD_BULLET_R = 3
 export const mainEquipments: Record<EquipmentId, MainEquipment> = {
     // 現状の攻撃の仕方(通常5way、低速時はshift撃ち)
     standard: {
+        label: "スタンダード",
         *fire(player) {
             if (!player.game.isPlaying) {
                 yield
@@ -66,6 +69,7 @@ const DASH_SPEED_MULTIPLIER = 5
 export const subEquipments: Record<EquipmentId, SubEquipment> = {
     // actionボタンで短時間ダッシュ(その間は移動速度アップ+無敵)。クールダウン中は再発動しない
     dash: {
+        label: "ダッシュ",
         *action(player) {
             let cooldown = 0
             let burstFramesRemaining = 0

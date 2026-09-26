@@ -119,3 +119,40 @@
     font-size: 0.6em;
     opacity: 0.7;
 }
+
+.map-equip-modal {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 16em;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+
+    padding: 1.5em 1em;
+
+    background: #000000d0;
+    border-left: 0.05em solid #ffffff40;
+
+    animation: fade-in 0.15s ease-out;
+
+    .menu-title {
+        display: flex;
+        margin-bottom: 0.5em;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .option-row {
+        width: 100%;
+    }
+
+    .option {
+        width: 100%;
+        text-align: center;
+        padding: 0.3em 0.5em;
+    }
+}

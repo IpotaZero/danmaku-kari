@@ -79,8 +79,8 @@
             align-items: center;
 
             .menu-title {
-                border-bottom: 1px white double;
-                border-top: 1px white double;
+                border-bottom: 4px #fff8 double;
+                border-top: 4px #fff8 double;
 
                 padding: 0.3em 0.8em;
             }

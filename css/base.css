@@ -59,7 +59,7 @@ body {
     background-image: url("../assets/image/texture.png");
     background-repeat: repeat;
 
-    opacity: 0.05;
+    opacity: 0.03;
     mix-blend-mode: overlay;
     pointer-events: none;
 }

@@ -1,4 +1,4 @@
-import { DEFAULT_LOADOUT, EquipmentId, Loadout } from "./Equipment"
+import { DEFAULT_LOADOUT, DEFAULT_OWNED_MAIN_EQUIPMENT_IDS, DEFAULT_OWNED_SUB_EQUIPMENT_IDS, EquipmentId, Loadout } from "./Equipment"
 
 const MAX_LIVES = 8
 
@@ -11,6 +11,8 @@ const STORAGE_KEY = "danmaku-kari.playerData.v2"
 type SerializedPlayerData = {
     stageClears: Record<string, EquipmentId[]>
     loadout: Loadout
+    ownedMainEquipmentIds?: EquipmentId[]
+    ownedSubEquipmentIds?: EquipmentId[]
     lives: number
     lastLivesSyncedAt: number
 }
@@ -24,6 +26,10 @@ export class PlayerData {
     private readonly stageClears = new Map<string, Set<EquipmentId>>()
 
     private loadout: Loadout = DEFAULT_LOADOUT
+
+    // 所持している装備のID一覧(主装備・副装備で別枠)。現状装備しているものは必ずここに含まれる
+    private readonly ownedMainEquipmentIds = new Set<EquipmentId>(DEFAULT_OWNED_MAIN_EQUIPMENT_IDS)
+    private readonly ownedSubEquipmentIds = new Set<EquipmentId>(DEFAULT_OWNED_SUB_EQUIPMENT_IDS)
 
     private lives = MAX_LIVES
 
@@ -57,6 +63,14 @@ export class PlayerData {
     setLoadout(loadout: Loadout) {
         this.loadout = loadout
         this.save()
+    }
+
+    getOwnedMainEquipmentIds(): ReadonlySet<EquipmentId> {
+        return this.ownedMainEquipmentIds
+    }
+
+    getOwnedSubEquipmentIds(): ReadonlySet<EquipmentId> {
+        return this.ownedSubEquipmentIds
     }
 
     getMaxLives(): number {
@@ -108,6 +122,17 @@ export class PlayerData {
 
             // 将来loadoutの形が変わっても、欠けたフィールドはデフォルトで補う
             this.loadout = { ...DEFAULT_LOADOUT, ...data.loadout }
+
+            // 旧形式の保存データにはこのフィールドが無いので、その場合は初期所持のままにする
+            if (data.ownedMainEquipmentIds) {
+                this.ownedMainEquipmentIds.clear()
+                data.ownedMainEquipmentIds.forEach((id) => this.ownedMainEquipmentIds.add(id))
+            }
+            if (data.ownedSubEquipmentIds) {
+                this.ownedSubEquipmentIds.clear()
+                data.ownedSubEquipmentIds.forEach((id) => this.ownedSubEquipmentIds.add(id))
+            }
+
             this.lives = data.lives
             this.lastLivesSyncedAt = data.lastLivesSyncedAt
         } catch {
@@ -119,6 +144,8 @@ export class PlayerData {
         const data: SerializedPlayerData = {
             stageClears: Object.fromEntries([...this.stageClears].map(([stageId, equipmentIds]) => [stageId, [...equipmentIds]])),
             loadout: this.loadout,
+            ownedMainEquipmentIds: [...this.ownedMainEquipmentIds],
+            ownedSubEquipmentIds: [...this.ownedSubEquipmentIds],
             lives: this.lives,
             lastLivesSyncedAt: this.lastLivesSyncedAt,
         }

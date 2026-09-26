@@ -11,3 +11,7 @@ export const DEFAULT_LOADOUT: Loadout = {
     main: "standard",
     sub: "dash",
 }
+
+// 初期状態で所持している装備
+export const DEFAULT_OWNED_MAIN_EQUIPMENT_IDS: readonly EquipmentId[] = ["standard"]
+export const DEFAULT_OWNED_SUB_EQUIPMENT_IDS: readonly EquipmentId[] = ["dash"]

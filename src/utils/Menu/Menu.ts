@@ -74,6 +74,9 @@ type MenuHoldState = {
     progress: Generator<number, true, void>
 }
 
+// レイヤーの表示/非表示切り替えにかけるフェード時間(ms)
+const TRANSITION_MS = 150
+
 export class Menu {
     readonly container = document.createElement("div")
     private cursor: MenuCursor = { row: 0, col: 0 }
@@ -232,8 +235,24 @@ export class Menu {
         return el
     }
 
+    // opacityをアニメーションさせてから(非表示化時のみ)fadeout(display:none)を切り替える
     private setHidden(elementId: string, hidden: boolean) {
-        this.getElement(elementId).classList.toggle("fadeout", hidden)
+        const el = this.getElement(elementId)
+        el.style.transition = `opacity ${TRANSITION_MS}ms ease-out`
+
+        if (hidden) {
+            el.style.opacity = "0"
+            window.setTimeout(() => {
+                if (el.style.opacity === "0") el.classList.add("fadeout")
+            }, TRANSITION_MS)
+        } else {
+            el.classList.remove("fadeout")
+            el.style.opacity = "0"
+            // fadeoutを外した直後の同フレームでopacityを上げるとtransitionが飛ぶことがあるので次フレームにする
+            requestAnimationFrame(() => {
+                el.style.opacity = "1"
+            })
+        }
     }
 
     // 現在のカーソル位置に選択肢が存在するか
@@ -305,6 +324,8 @@ export class Menu {
         this.layerStack.push({ box: subMenu, options: [] })
         this.cursor = { row: 0, col: 0 }
 
+        // フェード中もrootの表示領域と重ねて表示できるよう、サブメニューは常にoverlay配置にする
+        this.getElement(subMenu.elementId).classList.add("menu-submenu-layer")
         this.setHidden(subMenu.elementId, false)
         this.render()
     }
