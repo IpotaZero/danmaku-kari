@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "esnext",
+        "moduleResolution": "Bundler",
+        "strict": true,
+        "outDir": "dist",
+        "rootDir": "src",
+        "sourceMap": false,
+        "lib": ["ESNext", "DOM"]
+    },
+    "include": ["src/**/*.ts"]
+}

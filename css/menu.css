@@ -1,0 +1,58 @@
+/* utils/Menu/Menu.ts が生成する汎用メニューコンポーネントの見た目。
+   各シーンごとの装飾(.title-menu, .pause-menu など)はここでは定義せず、
+   それぞれのCSSファイル側でこのクラスをより詳細なセレクタで上書きする。 */
+
+.menu {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.menu-title {
+    font-size: 1.2em;
+    margin-bottom: 0.5em;
+}
+
+.menu-scroll-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3em;
+}
+
+.menu-scroll-indicator {
+    font-size: 0.8em;
+    opacity: 0.6;
+}
+
+.option-row {
+    position: relative;
+    display: flex;
+    gap: 1em;
+}
+
+.option {
+    position: relative;
+    width: fit-content;
+    opacity: 0.8;
+    border-radius: 0.1em;
+
+    &.selected {
+        color: yellow;
+        opacity: 1;
+    }
+
+    &.disabled {
+        opacity: 0.3;
+    }
+}
+
+.option-label {
+    position: relative;
+}
+
+.option.selected .option-label::before {
+    opacity: 1;
+}

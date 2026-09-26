@@ -1,0 +1,159 @@
+/* SceneTitle 専用のUI(バージョン表記・コピーライト・ロゴ・メニュー)。 */
+
+.scene-title {
+    position: absolute;
+    inset: 0;
+}
+
+/* タイトルロゴ・バージョン表記・3Dモデルをまとめて1つの塊として扱う。
+   Stages選択時はこの要素ごとスライド+フェードで退場させる(中身を個別に指定しなくて済む) */
+.title-content {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    transition:
+        transform 0.45s ease-out,
+        opacity 0.45s ease-out;
+}
+
+.title-version,
+.title-copyright {
+    position: absolute;
+    top: 0.8em;
+
+    font-family: "Courier New", monospace;
+    font-size: 0.7em;
+    letter-spacing: 0.05em;
+    opacity: 0.8;
+}
+
+.title-version {
+    left: 1em;
+}
+
+.title-copyright {
+    right: 1em;
+}
+
+.title-logo {
+    position: absolute;
+    left: 0;
+    bottom: 0.15em;
+    padding: 0 0.15em;
+
+    font-weight: 900;
+    font-size: clamp(2.5rem, 6vw, 5.5rem);
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+
+    color: #ffffff;
+}
+
+.title-menu {
+    width: 100%;
+    height: 100%;
+    position: relative;
+
+    .menu-scroll-container {
+        gap: 1em;
+    }
+
+    .option-row {
+        width: 100%;
+        height: fit-content;
+    }
+
+    .option {
+        width: 100%;
+        text-align: center;
+        height: fit-content;
+        padding: 0.4em 0 0.5em;
+
+        background: #000000a8;
+
+        transition: background 0.15s ease-out;
+
+        &.selected {
+            background: #000000d0;
+            color: yellow;
+        }
+    }
+
+    .option-label {
+        padding-bottom: 0.1em;
+    }
+}
+
+/* #root(ルートメニュー)と#stages(Stagesサブメニュー)を同じ箱に重ねて、
+   スライドしながらクロスフェードできるようにする。
+   状態判定(:has)もこの箱の中だけで完結するので追いやすい。 */
+.title-menu-stack {
+    position: absolute;
+    inset: 0;
+
+    #root,
+    #stages {
+        position: absolute;
+
+        transition:
+            transform 0.45s ease-out,
+            opacity 0.45s ease-out;
+    }
+
+    #root {
+        width: 12em;
+        right: 1em;
+        bottom: 1em;
+    }
+
+    #stages {
+        right: 1em;
+        bottom: 1em;
+        width: 12em;
+
+        display: flex;
+
+        transform: translateX(30vw);
+        opacity: 0;
+        pointer-events: none;
+
+        /* Menu.tsがsetHiddenで付け外しする.fadeoutは元々display:noneだが、
+           ここではdisplay:noneにするとトランジションできなくなるため、
+           透明度と位置だけで表現し直す */
+        &.fadeout {
+            display: block;
+        }
+
+        .menu-scroll-container {
+            width: 100%;
+        }
+
+        .option {
+            width: 100%;
+            padding: 0.4em 2em 0.5em;
+        }
+    }
+
+    &:has(#stages:not(.fadeout)) {
+        #root {
+            transform: translateX(-30vw);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #stages {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+    }
+}
+
+/* Stagesが選択されている間、タイトルロゴ・3Dモデルを左へスライドさせながら透明にする。
+   見るのは.title-menu-stack自身の状態だけなので、シーン全体を跨ぐ必要がない */
+.scene-title:has(.title-menu-stack #stages:not(.fadeout)) .title-content {
+    transform: translateX(-30vw);
+    opacity: 0;
+    pointer-events: none;
+}
