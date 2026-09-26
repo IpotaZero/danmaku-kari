@@ -112,6 +112,7 @@ export class Menu {
 
         // 初期状態ではoptionsは空配列。直後のrender(true)で評価される
         this.layerStack = [{ box: this.root, options: [] }]
+        this.cursor = root.initialCursor?.() ?? { row: 0, col: 0 }
         this.render(true)
     }
 

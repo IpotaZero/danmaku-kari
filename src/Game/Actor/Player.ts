@@ -211,6 +211,9 @@ export class Player extends Actor {
     }
 
     private move() {
+        // ゲームオーバー後は爆発演出だけ進めればよく、移動もパーティクルも出さない
+        if (this.game.isGameOver) return
+
         const input = this.game.input
 
         const dir = vec(

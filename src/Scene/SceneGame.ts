@@ -63,11 +63,14 @@ export class SceneGame extends Scene {
                             type: "select",
                             label: "Back",
                             onSelect: () => {
-                                sc.goto(async () => import("./SceneMap").then(({ SceneMap }) => new SceneMap(this.node.id)))
+                                sc.goto(async () =>
+                                    import("./SceneMap").then(({ SceneMap }) => new SceneMap(this.node.id)),
+                                )
                             },
                         },
                     ],
                 ],
+                initialCursor: () => ({ row: 0, col: 1 }),
             },
             input,
             {
