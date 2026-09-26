@@ -40,7 +40,6 @@
     border-radius: 0.1em;
 
     &.selected {
-        color: yellow;
         opacity: 1;
     }
 

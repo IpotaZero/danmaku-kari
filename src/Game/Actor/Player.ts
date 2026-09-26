@@ -84,7 +84,7 @@ export class Player extends Actor {
     // 無敵時間と同じくaddScript任せで進行させ、見た目もこの中で完結させて描いてしまう
     // (Playerに専用フィールドを持たせない)
     private *hitField() {
-        const frame = 90
+        const frame = 60
         const center = this.p.clone()
         const ctx = this.game.ctx
 

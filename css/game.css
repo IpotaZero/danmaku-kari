@@ -20,55 +20,6 @@
         border: white 1px solid;
     }
 
-    .pause-menu {
-        position: absolute;
-        inset: 0;
-
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        gap: 0.5em;
-
-        background: #00000080;
-
-        animation: fade-in 0.15s ease-out;
-
-        .menu-title {
-            font-size: 1.4em;
-        }
-
-        .menu-scroll-container {
-            width: 20em;
-            gap: 0.8em;
-
-            background: #303030f0;
-            border: 0.1em solid #00000030;
-            border-radius: 0.1em;
-            padding: 1.5em 3em;
-        }
-
-        .option-row {
-            width: 100%;
-        }
-
-        .option {
-            font-size: 1.2em;
-            text-align: center;
-            padding: 0.3em 0.6em;
-            border-radius: 0.1em;
-
-            transition: background 0.15s ease-out;
-
-            width: 100%;
-            padding-bottom: 0.4em;
-
-            &.selected {
-                background: #ffffff20;
-            }
-        }
-    }
-
     .text-box {
         display: flex;
         flex-direction: column;
@@ -117,6 +68,19 @@
             &::after {
                 content: "/";
                 animation: blink 1s infinite;
+            }
+        }
+    }
+
+    .menu {
+        #root {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            .option {
+                border: white 1px solid;
+                padding: 0.1em 0.5em;
             }
         }
     }

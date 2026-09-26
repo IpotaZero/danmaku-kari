@@ -238,7 +238,7 @@ export class Remodel<Parent extends Actor> {
             .length(length)
             .speed(0)
             .r(12)
-            .appearance("laser")
+            .appearance("beam")
             .collision("laser")
             .isScorable(false)
             .g(function* (me) {

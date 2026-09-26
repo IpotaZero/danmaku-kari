@@ -2,6 +2,7 @@ type Color =
     | ColorName
     // | HexColorCode
     | `hsl(${number},${number}%,${number}%)`
+    | `#${string}`
 // | `hsla(${number},${number}%,${number}%,${number})`
 // | `rgb(${number},${number},${number})`
 // | `rgba(${number},${number},${number},${number})`

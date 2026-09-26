@@ -13,7 +13,7 @@ export class BulletDrawer {
                 return bullet.r
 
             case "donut":
-                // case "score":
+            case "score":
                 return bullet.r * 2
 
             case "arrow":
@@ -34,8 +34,8 @@ export class BulletDrawer {
     public draw(bullet: Bullet, ctx: CanvasRenderingContext2D): void {
         if (Math.floor(bullet.r) === 0 || bullet.alpha === 0) return
 
-        // Beamはキャッシュせず直接描画（特殊ケース）
-        if (bullet.appearance === "laser") {
+        // BeamとLaserはキャッシュせず直接描画（特殊ケース）
+        if (bullet.appearance === "beam" || bullet.appearance === "laser") {
             this.drawBeamDirectly(bullet, ctx)
             return
         }
@@ -98,8 +98,8 @@ export class BulletDrawer {
         switch (bullet.appearance) {
             case "donut":
                 return this.drawDonut(bullet, halfCanvasSize)
-            // case "score":
-            //     return this.drawScore(bullet, halfCanvasSize)
+            case "score":
+                return this.drawScore(bullet, halfCanvasSize)
             case "arrow":
                 return this.drawArrow(bullet, halfCanvasSize)
             case "line":
@@ -133,15 +133,100 @@ export class BulletDrawer {
         ctx.translate(bullet.p.x, bullet.p.y)
         ctx.rotate(bullet.radian)
 
-        ctx.shadowBlur = bullet.r
+        const isBeam = bullet.appearance === "beam"
+
+        // 本体
+        ctx.shadowBlur = isBeam ? bullet.r : 0
         ctx.shadowColor = bullet.color
         ctx.fillStyle = bullet.color
         ctx.fillRect(0, -bullet.r, bullet.length, bullet.r * 2)
 
-        ctx.shadowBlur = bullet.r
+        // 白い芯
+        ctx.shadowBlur = isBeam ? bullet.r : 0
         ctx.shadowColor = "white"
         ctx.fillStyle = "white"
         ctx.fillRect(0, -bullet.r * 0.8, bullet.length, bullet.r * 1.6)
+
+        if (isBeam) {
+            ctx.globalCompositeOperation = "lighter"
+
+            const t = performance.now() * 0.01
+            const fluctuation = Math.sin(t * 2.0) * 0.08
+
+            ctx.globalAlpha = bullet.alpha * (0.9 + fluctuation)
+
+            const coneLength = bullet.r * 12
+            const coneWidth = bullet.r * 8
+
+            // 外側のぼんやりした光
+            const outer = ctx.createLinearGradient(0, 0, coneLength, 0)
+
+            outer.addColorStop(0, "rgba(0, 255, 255, 0.22)")
+            outer.addColorStop(0.25, "rgba(0, 255, 255, 0.12)")
+            outer.addColorStop(0.65, "rgba(0, 255, 255, 0.04)")
+            outer.addColorStop(1, "transparent")
+
+            ctx.fillStyle = outer
+            ctx.beginPath()
+            ctx.moveTo(0, -bullet.r * 1.2)
+            ctx.lineTo(coneLength, -coneWidth)
+            ctx.lineTo(coneLength, coneWidth)
+            ctx.lineTo(0, bullet.r * 1.2)
+            ctx.closePath()
+            ctx.fill()
+
+            // メインの光
+            const cone = ctx.createLinearGradient(0, 0, coneLength, 0)
+
+            cone.addColorStop(0, "rgba(255, 255, 255, 0.9)")
+            cone.addColorStop(0.12, "rgba(0, 255, 255, 0.65)")
+            cone.addColorStop(0.4, "rgba(0, 255, 255, 0.25)")
+            cone.addColorStop(0.75, "rgba(0, 255, 255, 0.06)")
+            cone.addColorStop(1, "transparent")
+
+            ctx.fillStyle = cone
+            ctx.beginPath()
+            ctx.moveTo(0, -bullet.r * 0.65)
+            ctx.lineTo(coneLength, -coneWidth * 0.75)
+            ctx.lineTo(coneLength, coneWidth * 0.75)
+            ctx.lineTo(0, bullet.r * 0.65)
+            ctx.closePath()
+            ctx.fill()
+
+            // 中心の柔らかい光
+            const coreLength = bullet.r * 10
+
+            const core = ctx.createLinearGradient(0, 0, coreLength, 0)
+
+            core.addColorStop(0, "rgba(255,255,255,0.95)")
+            core.addColorStop(0.2, "rgba(255,255,255,0.8)")
+            core.addColorStop(0.5, "rgba(200,255,255,0.25)")
+            core.addColorStop(1, "transparent")
+
+            ctx.fillStyle = core
+            ctx.beginPath()
+            ctx.moveTo(0, -bullet.r * 0.28)
+            ctx.lineTo(coreLength, 0)
+            ctx.lineTo(0, bullet.r * 0.28)
+            ctx.closePath()
+            ctx.fill()
+
+            // 根元
+            const flare = ctx.createRadialGradient(0, 0, bullet.r * 0.2, 0, 0, bullet.r * 3)
+
+            flare.addColorStop(0, "rgba(255,255,255,0.95)")
+            flare.addColorStop(0.25, "rgba(255,255,255,0.7)")
+            flare.addColorStop(0.55, "rgba(0,255,255,0.25)")
+            flare.addColorStop(1, "transparent")
+
+            ctx.fillStyle = flare
+            ctx.beginPath()
+            ctx.arc(0, 0, bullet.r * 3, 0, Math.PI * 2)
+            ctx.fill()
+
+            ctx.globalCompositeOperation = "source-over"
+            ctx.globalAlpha = bullet.alpha
+        }
 
         ctx.restore()
     }

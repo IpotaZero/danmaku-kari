@@ -15,8 +15,8 @@ export class SceneGame extends Scene {
         this.game = new Game(
             (game) => new StageTest(game),
             input,
-            () => this.showResultMenu("Stage Clear!"),
-            () => this.showResultMenu("Game Over"),
+            () => this.showResultMenu("--:: 作戦成功 ::--"),
+            () => this.showResultMenu("--:: 作戦失敗 ::--"),
         )
     }
 
@@ -47,7 +47,14 @@ export class SceneGame extends Scene {
                     [
                         {
                             type: "select",
-                            label: "タイトルへ戻る",
+                            label: "Retry",
+                            onSelect: () => {
+                                sc.goto(async () => new SceneGame())
+                            },
+                        },
+                        {
+                            type: "select",
+                            label: "Back",
                             onSelect: () => {
                                 sc.goto(async () => import("./SceneTitle").then(({ SceneTitle }) => new SceneTitle()))
                             },

@@ -157,3 +157,7 @@
     opacity: 0;
     pointer-events: none;
 }
+
+.title-logo {
+    font-weight: 100;
+}

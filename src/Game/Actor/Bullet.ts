@@ -9,7 +9,7 @@ export class Bullet extends Actor {
     delay: number = 0
     isScorable: boolean = true
 
-    appearance: "donut" | "ball" | "line" | "arrow" | "laser" | "player" = "donut"
+    appearance: "donut" | "ball" | "line" | "arrow" | "laser" | "beam" | "player" | "score" = "donut"
     collision: "ball" | "line" | "arrow" | "laser" = "ball"
     type: "friend" | "enemy" | "neutral" | "effect" | "score" = "enemy"
     color: Color = "black"
@@ -41,9 +41,10 @@ export class Bullet extends Actor {
     // scoreタイプに変え、自機へのホーミングを開始する
     scorenize() {
         this.type = "score"
+        this.appearance = "score"
         this.r = 8
-        this.alpha = 1
-        this.color = "cyan"
+        this.alpha = 0.8
+        this.color = "#befff7"
         this.isScorable = false
 
         this.clearScripts()

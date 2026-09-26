@@ -54,6 +54,7 @@ export class Game extends IteratorQueue {
         const ctx = this.canvas.getContext("2d")
         if (!ctx) throw new Error("2D context is not available")
         this.ctx = ctx
+        this.ctx.globalCompositeOperation = "lighter"
 
         this.textBox = new TextBox(this.input, () => {})
 

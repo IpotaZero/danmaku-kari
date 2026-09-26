@@ -1,9 +1,15 @@
+@font-face {
+    font-family: "dot";
+    src: url("../assets/fonts/KH-Dot-Hibiya-32.ttf") format("truetype");
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 
     font-size: 20pt;
+    font-family: "dot", serif;
 
     user-select: none;
     touch-action: manipulation;
