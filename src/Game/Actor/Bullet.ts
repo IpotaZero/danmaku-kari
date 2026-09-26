@@ -11,7 +11,7 @@ export class Bullet extends Actor {
 
     appearance: "donut" | "ball" | "line" | "arrow" | "laser" | "player" = "donut"
     collision: "ball" | "line" | "arrow" | "laser" = "ball"
-    type: "friend" | "enemy" | "neutral" | "effect" = "enemy"
+    type: "friend" | "enemy" | "neutral" | "effect" | "score" = "enemy"
     color: Color = "black"
     alpha: number = 1
 

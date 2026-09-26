@@ -4,6 +4,7 @@ import { vec, Vec } from "@ipota/vec"
 import { T } from "../../T"
 import { Ctx } from "../../utils/Functions/Ctx"
 import { remodel } from "../Remodel"
+import { Ease } from "@ipota/functions"
 
 export class Player extends Actor {
     readonly GRAZE_R = 16
@@ -72,8 +73,40 @@ export class Player extends Actor {
             { id: "invincible" },
         )
 
+        this.addScript(() => this.hitField(), { id: "hitField" })
+
         if (this.life <= 0) {
             this.game.lose()
+        }
+    }
+
+    // 被弾した瞬間に自機を中心としたリングを広げ、触れた敵弾をスコアに変える。
+    // 無敵時間と同じくaddScript任せで進行させ、見た目もこの中で完結させて描いてしまう
+    // (Playerに専用フィールドを持たせない)
+    private *hitField() {
+        const frame = 90
+        const center = this.p.clone()
+        const ctx = this.game.ctx
+
+        for (let i = 1; i < frame + 1; i++) {
+            const radius = Ease.Out(i / frame) * this.game.WIDTH
+            const alpha = 1 - i / frame
+
+            this.game.bullets
+                .filter((b) => b.type === "enemy")
+                .filter((b) => b.isScorable)
+                .filter((b) => b.p.sub(center).magnitude() <= radius)
+                .forEach((b) => {
+                    b.life = 0
+                    this.game.score++
+                })
+
+            ctx.save()
+            this.game.camera.apply(ctx, this.game.WIDTH, this.game.HEIGHT)
+            Ctx.arc(ctx, center, radius, `rgba(255, 255, 255, ${alpha})`, { lineWidth: 2 })
+            ctx.restore()
+
+            yield
         }
     }
 

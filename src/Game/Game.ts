@@ -15,7 +15,7 @@ import { TextBox } from "../utils/TextBox"
  */
 export class Game extends IteratorQueue {
     readonly canvas: HTMLCanvasElement
-    private readonly ctx: CanvasRenderingContext2D
+    readonly ctx: CanvasRenderingContext2D
 
     readonly stage: Stage
 
@@ -27,8 +27,9 @@ export class Game extends IteratorQueue {
 
     readonly textBox: TextBox
 
-    isCleared = false
-    isGameOver = false
+    state: "playing" | "game-over" | "cleared" = "playing"
+
+    score = 0
 
     private bulletDrawer = new BulletDrawer()
     private bulletCollision = new BulletCollision()
@@ -63,7 +64,6 @@ export class Game extends IteratorQueue {
     update(): void {
         this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT)
 
-        super.update()
         this.stage.update()
         this.updateBulletAndEnemy()
         this.updatePlayer()
@@ -72,19 +72,18 @@ export class Game extends IteratorQueue {
         if (this.stage.isCleared) this.win()
 
         this.draw()
+        super.update()
     }
 
     // ステージクリア。何度呼ばれてもonWinは1度だけ発火する
     win() {
-        if (this.isCleared) return
-        this.isCleared = true
+        this.state = "cleared"
         this.onWin()
     }
 
     // ゲームオーバー。何度呼ばれてもonLoseは1度だけ発火する
     lose() {
-        if (this.isGameOver) return
-        this.isGameOver = true
+        this.state = "game-over"
         this.onLose()
     }
 
@@ -159,7 +158,7 @@ export class Game extends IteratorQueue {
         ctx.save()
         this.camera.apply(ctx, this.WIDTH, this.HEIGHT)
         this.enemies.forEach((e) => e.draw(ctx))
-        if (!this.isGameOver) this.player.draw(ctx)
+        if (this.state !== "game-over") this.player.draw(ctx)
         ctx.restore()
     }
 }
