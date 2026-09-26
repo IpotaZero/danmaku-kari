@@ -3,6 +3,7 @@ import { Enemy } from "../Game/Actor/Enemy"
 import { Game } from "../Game/Game"
 import { remodel } from "../Game/Remodel"
 import { Stage } from "./Stage"
+import { EnemyRendererCore } from "../Game/Actor/EnemyRendererCore"
 
 export default class extends Stage {
     *G() {
@@ -14,7 +15,7 @@ export default class extends Stage {
 
 class EnemyTest extends Enemy {
     constructor(game: Game) {
-        super(game, 100, 32)
+        super(game, 100, 48, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.move())
     }
@@ -26,7 +27,13 @@ class EnemyTest extends Enemy {
     }
 
     private *G() {
-        yield* remodel(this).p(this.p.clone()).aim(this.game.player.p).fire(this.game.bullets)
+        yield* remodel(this)
+            .colorful(this.frame)
+            .p(this.p.clone())
+            .aim(this.game.player.p)
+            .ex(31)
+            .fire(this.game.bullets)
+
         yield* Array(30)
     }
 }

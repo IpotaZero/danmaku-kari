@@ -28,6 +28,7 @@ export class Remodel<Parent extends Actor> {
         private readonly e: Parent,
     ) {}
 
+    // 発射
     *fire(bullets: Bullet[]) {
         this.bullets.forEach((b) => {
             b.init()
@@ -47,6 +48,7 @@ export class Remodel<Parent extends Actor> {
         }
     }
 
+    // 数フレームの間追尾する
     static *homing(me: Bullet, p: Vec, frame: number) {
         for (let i = 0; i < frame; i++) {
             me.radian = p.sub(me.p).radian()
@@ -54,12 +56,14 @@ export class Remodel<Parent extends Actor> {
         }
     }
 
+    // 数フレームかけて現れる
     static *appear(me: Bullet, frame: number = 30) {
         const r = me.r
         me.r = 0
         yield* this.ease(me, "r", r, frame, Ease.Out)
     }
 
+    // 数フレームかけて停止し、数フレーム何もせず、数フレームかけて加速する
     static *reaccel(
         me: Bullet & { speed: number },
         stopFrame: number,
@@ -73,20 +77,24 @@ export class Remodel<Parent extends Actor> {
         yield* this.accel(me, accelFrame, finalSpeed ?? initialSpeed)
     }
 
+    // 数フレームかけて停止する
     static *stop(me: Bullet, stopFrame: number) {
         yield* this.accel(me, stopFrame, 0)
     }
 
+    // 数フレームかけて加速する
     static *accel(me: Bullet, frame: number, finalSpeed: number) {
         yield* this.ease(me, "speed", finalSpeed, frame, Ease.Linear)
     }
 
+    // 数フレームかけて消える。始まった時点で当たり判定は消える
     static *fadeout(me: Bullet, frame: number) {
         me.type = "neutral"
         yield* this.ease(me, "alpha", 0, frame, Ease.Linear)
         me.life = 0
     }
 
+    // 数フレームかけて値を変化させる
     static *ease(
         me: Bullet,
         key: NumberKeys<Bullet>,
@@ -110,6 +118,7 @@ export class Remodel<Parent extends Actor> {
         }
     }
 
+    // 出現を遅らせる
     delayByIndex() {
         this.forEach((b, index) => {
             b.delay = index
@@ -117,16 +126,19 @@ export class Remodel<Parent extends Actor> {
         return this
     }
 
+    // 色を変える
     colorful(seed: number) {
         return this.set("color", `hsl(${seed % 360},100%,50%)`)
     }
 
+    // 弾の向きを指定した座標に向ける
     aim(target: Vec) {
         return this.forEach((b) => {
             b.radian = target.sub(b.p).radian()
         })
     }
 
+    // min から max の間の速度の弾を num 発生成する
     sim(num: number, min: number, max: number) {
         return this.duplicate(num, (b, i) => {
             b.speed = (max - min) * (i / (num - 1)) + min
@@ -134,6 +146,7 @@ export class Remodel<Parent extends Actor> {
         })
     }
 
+    // n-way 弾を生成する。angle は弾の間の角度
     nway(num: number, angle: number) {
         return this.duplicate(num, (b, i) => {
             b.radian += angle * (i - (num - 1) / 2)
@@ -142,6 +155,7 @@ export class Remodel<Parent extends Actor> {
         })
     }
 
+    // shift だけずらした弾を生成する
     shift(num: number, shift: number) {
         return this.duplicate(num, (b, i) => {
             const shiftVec = vec.arg(b.radian + T / 4).scale(shift * (i - (num - 1) / 2))
@@ -150,6 +164,7 @@ export class Remodel<Parent extends Actor> {
         })
     }
 
+    // 弾を複製する。map で複製した弾のプロパティを変更できる
     duplicate(num: number, map: (me: Bullet, index: number) => Bullet): Mod<Parent> {
         const result: Bullet[] = []
 
@@ -168,6 +183,7 @@ export class Remodel<Parent extends Actor> {
         return this as unknown as Mod<Parent>
     }
 
+    // 弾を円形に配置する。direction は弾の向きの方向を指定する
     circle(distance: number, radius: number, { direction = "none" }: { direction?: "inner" | "outer" | "none" } = {}) {
         const num = Math.ceil((T * radius) / distance)
         return this.duplicate(num, (b, i) => {
@@ -184,6 +200,7 @@ export class Remodel<Parent extends Actor> {
         })
     }
 
+    // 弾を中心から放射状に配置する
     ex(num: number) {
         return this.duplicate(num, (b, i) => {
             b.radian = b.radian + Math.PI * 2 * (i / num)
@@ -192,6 +209,7 @@ export class Remodel<Parent extends Actor> {
         })
     }
 
+    // 弾を壁に当たったら跳ね返るようにする
     bounce(count: number, width: number, height: number) {
         let c = count
 
@@ -212,6 +230,7 @@ export class Remodel<Parent extends Actor> {
         })
     }
 
+    // ビームを生成する。length はビームの長さ
     beam(length: number) {
         const e = this.e
 
@@ -242,6 +261,7 @@ export class Remodel<Parent extends Actor> {
             })
     }
 
+    // レーザーを生成する。waitFrame は予告があってからレーザーが出るまでの時間、existsFrame はレーザーが存在する時間、length はレーザーの長さ
     laser(waitFrame: number, existsFrame: number, length: number) {
         return (this as unknown as Mod<Parent>)
             .length(length)
@@ -269,6 +289,7 @@ export class Remodel<Parent extends Actor> {
             })
     }
 
+    // 指定したフレーム後に消える
     delete(frame: number = 0) {
         return this.g(function* (b) {
             for (let i = 0; i < frame; i++) yield
@@ -276,6 +297,7 @@ export class Remodel<Parent extends Actor> {
         })
     }
 
+    // 挙動を追加する。g の this は Remodel を呼び出した Actor になる
     g(g: (this: Parent, me: Bullet, index: number) => Generator, config: { loop?: number; margin?: number } = {}) {
         const e = this.e
 
@@ -291,11 +313,13 @@ export class Remodel<Parent extends Actor> {
         return this
     }
 
+    // 弾に対して処理を行う。
     forEach(handler: (me: Bullet, index: number) => void) {
         this.bullets.forEach(handler)
         return this
     }
 
+    // 弾のプロパティを一括で変更する
     set<K extends keyof Bullet, V extends Bullet[K]>(key: K, value: V) {
         this.bullets.forEach((b) => {
             b[key] = value

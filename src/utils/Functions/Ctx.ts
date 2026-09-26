@@ -94,8 +94,8 @@ export class Ctx {
 
     static rect(
         ctx: CanvasRenderingContext2D,
-        [x, y]: [number, number],
-        [w, h]: [number, number],
+        { x, y }: { x: number; y: number },
+        { x: w, y: h }: { x: number; y: number },
         color: string,
         {
             lineWidth = 0,
@@ -134,7 +134,7 @@ export class Ctx {
 
     static text(
         ctx: CanvasRenderingContext2D,
-        [x, y]: [number, number],
+        { x, y }: { x: number; y: number },
         color: string,
         text: string,
         {

@@ -4,20 +4,33 @@ import { Ease } from "@ipota/functions"
 import { remodel } from "../Remodel"
 import { T } from "../../T"
 import { Game } from "../Game"
-import { Ctx } from "../../utils/Functions/Ctx"
+import { IEnemyRenderer } from "./IEnemyRenderer"
+import { EnemyRendererMob } from "./EnemyRendererMob"
 
 export abstract class Enemy extends Actor {
     private shakeP = vec(0, 0)
-    private maxLife: number
     private readonly baseR: number
-    private frame = 0
-    private damaged = false
+
+    maxLife: number
+    frame = 0
+    damaged = false
+
+    // 充電攻撃を行わない敵では常に0のまま。レンダラーはこれを見てHPバー/充電バーを切り替える
+    chargeRemaining = 0
+    chargeMax = 0
 
     protected isBoss = false
 
     isInvincible = false
 
-    constructor(game: Game, life: number, r: number) {
+    readonly renderer: IEnemyRenderer
+
+    constructor(
+        game: Game,
+        life: number,
+        r: number,
+        { renderer = new EnemyRendererMob() }: { renderer?: IEnemyRenderer },
+    ) {
         super(game)
         this.p = vec(-100, -100)
         this.life = life
@@ -25,6 +38,8 @@ export abstract class Enemy extends Actor {
 
         this.r = r
         this.baseR = r
+
+        this.renderer = renderer
     }
 
     update(): void {
@@ -33,30 +48,12 @@ export abstract class Enemy extends Actor {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        const drawP = this.p.add(this.shakeP)
-        const pulse = 1 + Math.sin(this.frame / 12) * 0.05
-        const color = this.damaged ? "rgba(255, 90, 90, 0.9)" : "#ffffffc0"
-
-        this.drawHpBar(ctx)
-
-        Ctx.arc(ctx, drawP, this.r * pulse, color, { lineWidth: 1 })
-        Ctx.polygon(ctx, 7, 2, drawP, this.r * 0.75 * pulse, color, {
-            theta: this.frame / 40,
-            lineWidth: 1,
-        })
+        ctx.save()
+        ctx.translate(this.shakeP.x, this.shakeP.y)
+        this.renderer.draw(ctx, this)
+        ctx.restore()
 
         this.damaged = false
-    }
-
-    private drawHpBar(ctx: CanvasRenderingContext2D) {
-        const barW = this.r * 2.4
-        const barH = 6
-        const barPos = this.p.add(vec(-barW / 2, -this.r - 20))
-        const hpRatio = Math.max(0, this.life / this.maxLife)
-        const mainColor = this.damaged ? "rgba(255, 90, 90, 0.9)" : "#ffffffc0"
-
-        Ctx.rect(ctx, barPos.l, [barW, barH], "rgba(255, 255, 255, 0.15)", { lineWidth: 1 })
-        Ctx.rect(ctx, barPos.l, [barW * hpRatio, barH], mainColor)
     }
 
     hit() {
