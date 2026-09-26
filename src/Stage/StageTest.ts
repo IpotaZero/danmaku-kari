@@ -22,40 +22,9 @@ export default class extends Stage {
     }
 }
 
-class EnemyTest extends Enemy {
-    constructor(game: Game) {
-        super(game, 1000, 48, { renderer: new EnemyRendererCore() })
-
-        this.addScript(() => this.move())
-    }
-
-    private *move() {
-        yield* this.moveTo(vec(this.game.WIDTH / 2, this.game.HEIGHT / 4), 150)
-
-        this.addScript(() => this.G(), { loop: Infinity })
-    }
-
-    private *G() {
-        yield* remodel(this)
-            .colorful(this.frame)
-            .p(this.p.clone())
-            .aim(this.game.player.p)
-            .ex(31)
-            .delayByIndex()
-            .g((me, i) => Remodel.reaccel(me, 30, 30 - i, 30))
-            .fire(this.game.bullets)
-
-        yield* Array(30)
-    }
-}
-
-// 「別の攻撃に切り替える」方式は、撃った瞬間と着弾する瞬間がずれるせいで
-// 前の攻撃の弾が残ったまま次の攻撃が始まり、画面がごちゃついてしまっていた(Spiral/Crossfireの反省)。
-// このボスは最初から最後まで同じ1つの攻撃だけを回し続け、密度と幅だけで見応えを作る。
-// 自機狙いはせず、発生源を左右にゆっくり揺らして扇の向きを変え続けることで安置を作らせない
 class EnemyBoss extends Enemy {
     constructor(game: Game) {
-        super(game, 2000, 48, { renderer: new EnemyRendererCore() })
+        super(game, 1200, 48, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.move())
     }
@@ -71,8 +40,9 @@ class EnemyBoss extends Enemy {
     private *sway() {
         const centerX = this.game.WIDTH / 2
 
+        let i = 0
         while (true) {
-            this.p.x = centerX + Math.sin(this.frame / 90) * 60
+            this.p.x = centerX + Math.sin(i++ / 90) * 60
             yield
         }
     }
@@ -98,7 +68,7 @@ class EnemyBoss extends Enemy {
             .colorful(this.frame)
             .p(this.p.clone())
             .appearance("ball")
-            .r(6)
+            .r(4)
             .radian(T / 4)
             .speed(2.6)
             .nway(9, T / 16)
@@ -121,9 +91,9 @@ class EnemySatellite extends Enemy {
         parent: Enemy,
         private readonly side: 1 | -1,
     ) {
-        super(game, 300, 20)
+        super(game, 600, 20)
 
-        this.setParent(parent, () => vec(Math.cos(this.frame / 240) * 140 * this.side, Math.sin(this.frame / 240) * 60))
+        this.setParent(parent, () => vec(Math.cos(this.frame / 720) * 140 * this.side, Math.sin(this.frame / 720) * 60))
 
         this.addScript(() => this.startAttack())
     }
@@ -138,7 +108,7 @@ class EnemySatellite extends Enemy {
         const baseAngle = T / 4 + Math.sin(this.frame / 50) * (T / 10)
 
         yield* remodel(this)
-            .colorful(this.frame * 5)
+            .colorful(this.frame)
             .p(this.p.clone())
             .appearance("donut")
             .r(12)

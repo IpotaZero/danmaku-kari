@@ -146,6 +146,31 @@ export class Remodel<Parent extends Actor> {
         })
     }
 
+    // ばらつきを持たせて num 発複製する。数値プロパティは [min, max] の範囲でランダムに割り振り、
+    // p だけは特別扱いして、その場所を中心に半径 p 以内の円の中へ一様分布でランダムに散らす
+    // (単純に半径だけ乱数にすると中心付近に偏るため、sqrtで面積が一様になるよう補正している)
+    scatter(num: number, ranges: Partial<Record<NumberKeys<Bullet>, [number, number]>> & { p?: number }) {
+        return this.duplicate(num, (b) => {
+            for (const key in ranges) {
+                if (key === "p") continue
+
+                const range = ranges[key as NumberKeys<Bullet>]
+                if (!range) continue
+
+                const [min, max] = range
+                ;(b[key as NumberKeys<Bullet>] as number) = min + Math.random() * (max - min)
+            }
+
+            if (ranges.p !== undefined) {
+                const radius = ranges.p * Math.sqrt(Math.random())
+                const angle = Math.random() * T
+                b.p = b.p.add(vec.arg(angle).scale(radius))
+            }
+
+            return b
+        })
+    }
+
     // n-way 弾を生成する。angle は弾の間の角度
     nway(num: number, angle: number) {
         return this.duplicate(num, (b, i) => {
