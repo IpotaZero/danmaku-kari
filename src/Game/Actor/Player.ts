@@ -20,6 +20,11 @@ export class Player extends Actor {
     private readonly bulletSpeed = 20
     private readonly bulletR = 3
 
+    // 低速(スニーク)時の見た目まわり
+    private drawRadianVelocity = 0
+    private drawRadian = 0
+    private sneakProgress = 0 // 0.0〜1.0、低速中に1へ近づく
+
     // クールダウンはジェネレータ内で保持
     private isInvincibleBecauseOfHit = false
 
@@ -35,12 +40,16 @@ export class Player extends Actor {
         super.update()
         this.frame++
         this.move()
+        this.updateDrawRadian()
+        this.updateSneakProgress()
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
         ctx.save()
         ctx.globalAlpha = this.isInvincible() ? 0.5 : 1
 
+        this.drawSneakEffect(ctx)
+        this.drawNormalEffect(ctx)
         this.drawLife(ctx)
         this.drawGrazeBoundary(ctx)
         this.drawCore(ctx)
@@ -101,16 +110,61 @@ export class Player extends Actor {
         this.p = vec(Math.min(Math.max(next.x, 0), this.game.WIDTH), Math.min(Math.max(next.y, 0), this.game.HEIGHT))
     }
 
+    // 左右移動に応じてゆっくり回転する角度(スニーク時の多角形の回転に使う)
+    private updateDrawRadian() {
+        const input = this.game.input
+
+        if (input.isPressed("right")) this.drawRadianVelocity = 10
+        if (input.isPressed("left")) this.drawRadianVelocity = -10
+
+        if (this.drawRadianVelocity > 0) {
+            this.drawRadian += this.drawRadianVelocity
+            this.drawRadianVelocity--
+        } else if (this.drawRadianVelocity < 0) {
+            this.drawRadian += this.drawRadianVelocity
+            this.drawRadianVelocity++
+        }
+    }
+
+    private updateSneakProgress() {
+        const target = this.game.input.isPressed("slow") ? 1 : 0
+        this.sneakProgress += (target - this.sneakProgress) * 0.15
+        if (Math.abs(this.sneakProgress - target) < 0.001) this.sneakProgress = target
+    }
+
+    private drawSneakEffect(ctx: CanvasRenderingContext2D) {
+        const ratio = this.sneakProgress
+        if (ratio < 0.001) return
+
+        Ctx.arc(ctx, this.p, this.GRAZE_R * 3 * ratio, "#ffffff80", { lineWidth: 2 })
+        Ctx.arc(ctx, this.p, this.GRAZE_R * 2.8 * ratio, "#ffffff80", { lineWidth: 2 })
+        Ctx.polygon(ctx, 13, 2, this.p, this.GRAZE_R * 2.7 * ratio, "#ffffff80", {
+            theta: this.drawRadian / 72,
+            lineWidth: 2,
+        })
+        Ctx.polygon(ctx, 11, 2, this.p, this.GRAZE_R * 2 * ratio, "#ffffff80", {
+            theta: this.drawRadian / 144,
+            lineWidth: 2,
+        })
+    }
+
+    // 通常時の見た目。スニーク中はその分だけ縮んで消え、スニーク解除で元の大きさへ戻る
+    private drawNormalEffect(ctx: CanvasRenderingContext2D) {
+        const ratio = 1 - this.sneakProgress
+        if (ratio < 0.001) return
+
+        Ctx.polygon(ctx, 8, 2, this.p, this.GRAZE_R * 2.5 * ratio, "#ffffff40", {
+            theta: -this.frame / 48,
+            lineWidth: 1,
+        })
+    }
+
     private drawCore(ctx: CanvasRenderingContext2D) {
         Ctx.arc(ctx, this.p, this.r, "red", { lineWidth: 0 })
     }
 
     private drawGrazeBoundary(ctx: CanvasRenderingContext2D) {
         Ctx.arc(ctx, this.p, this.GRAZE_R, "#ffffff60", { lineWidth: 2 })
-        Ctx.polygon(ctx, 8, 2, this.p, this.GRAZE_R * 2.5, "#ffffff40", {
-            theta: -this.frame / 48,
-            lineWidth: 1,
-        })
     }
 
     private drawLife(ctx: CanvasRenderingContext2D) {
