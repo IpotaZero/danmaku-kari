@@ -19,6 +19,7 @@ export abstract class Enemy extends Actor {
 
     constructor(game: Game, life: number, r: number) {
         super(game)
+        this.p = vec(-100, -100)
         this.life = life
         this.maxLife = life
 
@@ -38,13 +39,10 @@ export abstract class Enemy extends Actor {
 
         this.drawHpBar(ctx)
 
-        Ctx.arc(ctx, drawP, this.r * pulse, color, { lineWidth: 2 })
-        Ctx.polygon(ctx, 6, 1, drawP, this.r * 0.75 * pulse, color, {
+        Ctx.arc(ctx, drawP, this.r * pulse, color, { lineWidth: 1 })
+        Ctx.polygon(ctx, 7, 2, drawP, this.r * 0.75 * pulse, color, {
             theta: this.frame / 40,
-            lineWidth: 2,
-        })
-        Ctx.arc(ctx, drawP, this.r * 0.3, this.isInvincible ? "rgba(255, 220, 80, 0.9)" : "rgba(255, 255, 255, 0.6)", {
-            lineWidth: 0,
+            lineWidth: 1,
         })
 
         this.damaged = false

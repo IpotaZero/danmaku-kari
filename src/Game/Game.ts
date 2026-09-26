@@ -6,7 +6,6 @@ import { Enemy } from "./Actor/Enemy"
 import { Bullet } from "./Actor/Bullet"
 import { BulletDrawer } from "./BulletDrawer"
 import { BulletCollision } from "./BulletCollision"
-import { Ctx } from "../utils/Functions/Ctx"
 import { IteratorQueue } from "./IteratorQueue"
 import { Stage } from "../Stage/Stage"
 import { TextBox } from "../utils/TextBox"
@@ -31,8 +30,8 @@ export class Game extends IteratorQueue {
     private bulletDrawer = new BulletDrawer()
     private bulletCollision = new BulletCollision()
 
-    readonly WIDTH = 32 * 30
-    readonly HEIGHT = 32 * 40
+    readonly WIDTH = 32 * 18
+    readonly HEIGHT = 32 * 24
 
     constructor(
         stage: (game: Game) => Stage,
@@ -59,8 +58,7 @@ export class Game extends IteratorQueue {
     }
 
     update(): void {
-        this.ctx.fillStyle = "#fcfcfc"
-        this.ctx.fillRect(0, 0, this.WIDTH, this.HEIGHT)
+        this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT)
 
         super.update()
         this.stage.update()
@@ -129,8 +127,6 @@ export class Game extends IteratorQueue {
 
     private draw(): void {
         const ctx = this.ctx
-        ctx.fillStyle = "#111"
-        ctx.fillRect(0, 0, this.WIDTH, this.HEIGHT)
 
         ctx.save()
         this.camera.apply(ctx, this.WIDTH, this.HEIGHT)

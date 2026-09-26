@@ -12,6 +12,9 @@ export class Player extends Actor {
     private readonly maxLife = 8
     private frame = 0
 
+    private readonly speed = 8
+    private readonly slowSpeed = 3
+
     // クールダウンはジェネレータ内で保持
     private isInvincibleBecauseOfHit = false
 
@@ -24,6 +27,7 @@ export class Player extends Actor {
     update(): void {
         super.update()
         this.frame++
+        this.move()
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
@@ -39,6 +43,21 @@ export class Player extends Actor {
 
     isInvincible() {
         return this.isInvincibleBecauseOfHit
+    }
+
+    private move() {
+        const input = this.game.input
+
+        const dir = vec(
+            (input.isPressed("right") ? 1 : 0) - (input.isPressed("left") ? 1 : 0),
+            (input.isPressed("down") ? 1 : 0) - (input.isPressed("up") ? 1 : 0),
+        )
+        if (dir.magnitude() === 0) return
+
+        const speed = input.isPressed("slow") ? this.slowSpeed : this.speed
+        const next = this.p.add(dir.normalize().scale(speed))
+
+        this.p = vec(Math.min(Math.max(next.x, 0), this.game.WIDTH), Math.min(Math.max(next.y, 0), this.game.HEIGHT))
     }
 
     private drawCore(ctx: CanvasRenderingContext2D) {

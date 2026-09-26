@@ -15,7 +15,9 @@
         min-width: 0;
         min-height: 0;
 
-        background-color: #111;
+        background-color: black;
+
+        border: white 1px solid;
     }
 
     .pause-menu {

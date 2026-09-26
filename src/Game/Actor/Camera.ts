@@ -12,7 +12,9 @@ export type CameraTransform = {
 export class Camera extends Actor {
     p: Vec
     angle = 0
-    scale = 1.5
+    // 1にすることで、ワールド座標の [0, WIDTH] x [0, HEIGHT] が画面にちょうど収まる
+    // (Player.move() のクランプ範囲と一致させ、自機が画面外に出ないようにするため)
+    scale = 1
 
     private shakeP = vec(0, 0)
 

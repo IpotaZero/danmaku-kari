@@ -1,8 +1,9 @@
 import { Actor } from "./Actor"
 
 export class Bullet extends Actor {
+    r: number = 12
     radian: number = 0
-    speed: number = 14
+    speed: number = 6
     length: number = 0
     damage: number = 1
     delay: number = 0
