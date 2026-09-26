@@ -36,9 +36,7 @@ export class Game extends IteratorQueue {
 
     constructor(
         stage: (game: Game) => Stage,
-        readonly input: DigitalInput.Reader<
-            "right" | "left" | "up" | "down" | "jump" | "fire" | "ok" | "cancel" | "slash"
-        >,
+        readonly input: DigitalInput.Reader<"right" | "left" | "up" | "down" | "slow" | "ok" | "cancel">,
         readonly onWin: () => void,
         readonly onLose: () => void,
     ) {

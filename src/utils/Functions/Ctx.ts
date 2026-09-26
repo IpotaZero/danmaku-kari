@@ -3,7 +3,7 @@ const gcd = (x: number, y: number): number => (x % y ? gcd(y, x % y) : y)
 export class Ctx {
     static arc(
         ctx: CanvasRenderingContext2D,
-        [x, y]: [number, number],
+        { x, y }: { x: number; y: number },
         r: number,
         color: string,
         {
@@ -35,7 +35,7 @@ export class Ctx {
         ctx: CanvasRenderingContext2D,
         vertices: number,
         density: number,
-        [x, y]: [number, number],
+        { x, y }: { x: number; y: number },
         r: number,
         color: string,
         {
@@ -70,18 +70,14 @@ export class Ctx {
             const groupSin = Math.sin(groupAngle)
             const groupCos = Math.cos(groupAngle)
 
-            let firstX =
-                x + r * (cosCache[0] * groupCos - sinCache[0] * groupSin)
-            let firstY =
-                y + r * (sinCache[0] * groupCos + cosCache[0] * groupSin)
+            let firstX = x + r * (cosCache[0] * groupCos - sinCache[0] * groupSin)
+            let firstY = y + r * (sinCache[0] * groupCos + cosCache[0] * groupSin)
 
             ctx.moveTo(firstX, firstY)
 
             for (let i = 1; i <= reducedVertices; i++) {
-                const pointX =
-                    x + r * (cosCache[i] * groupCos - sinCache[i] * groupSin)
-                const pointY =
-                    y + r * (sinCache[i] * groupCos + cosCache[i] * groupSin)
+                const pointX = x + r * (cosCache[i] * groupCos - sinCache[i] * groupSin)
+                const pointY = y + r * (sinCache[i] * groupCos + cosCache[i] * groupSin)
                 ctx.lineTo(pointX, pointY)
             }
         }
@@ -121,8 +117,8 @@ export class Ctx {
 
     static calligraphicStroke(
         ctx: CanvasRenderingContext2D,
-        [x1, y1]: [number, number],
-        [x2, y2]: [number, number],
+        { x: x1, y: y1 }: { x: number; y: number },
+        { x: x2, y: y2 }: { x: number; y: number },
         color: string,
         maxLineWidth: number,
         divisions: number,
@@ -132,7 +128,7 @@ export class Ctx {
             const x = x1 + (x2 - x1) * progress
             const y = y1 + (y2 - y1) * progress
             const r = 1 + maxLineWidth * Math.sin(Math.PI * progress)
-            this.arc(ctx, [x, y], r, color)
+            this.arc(ctx, { x, y }, r, color)
         }
     }
 
