@@ -1,7 +1,7 @@
 import { vec } from "@ipota/vec"
 import { Enemy } from "../Game/Actor/Enemy"
 import { Game } from "../Game/Game"
-import { remodel } from "../Game/Remodel"
+import { Remodel, remodel } from "../Game/Remodel"
 import { Stage } from "./Stage"
 import { EnemyRendererCore } from "../Game/Actor/EnemyRendererCore"
 
@@ -32,6 +32,8 @@ class EnemyTest extends Enemy {
             .p(this.p.clone())
             .aim(this.game.player.p)
             .ex(31)
+            .delayByIndex()
+            .g((me, i) => Remodel.reaccel(me, 30, 30 - i, 30))
             .fire(this.game.bullets)
 
         yield* Array(30)
