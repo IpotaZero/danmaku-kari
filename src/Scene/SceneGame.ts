@@ -1,7 +1,7 @@
 import { Game } from "../Game/Game"
 import { input } from "../input"
+import type { MapNode } from "../Map/MapGraph"
 import { sc } from "../sc"
-import StageTest from "../Stage/StageTest"
 import { Menu } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
 
@@ -9,11 +9,11 @@ export class SceneGame extends Scene {
     private readonly game: Game
     private resultMenu?: Menu
 
-    constructor() {
+    constructor(private readonly node: MapNode) {
         super()
 
         this.game = new Game(
-            (game) => new StageTest(game),
+            this.node.stage,
             input,
             () => this.showResultMenu("--:: 作戦成功 ::--"),
             () => this.showResultMenu("--:: 作戦失敗 ::--"),
@@ -49,14 +49,14 @@ export class SceneGame extends Scene {
                             type: "select",
                             label: "Retry",
                             onSelect: () => {
-                                sc.goto(async () => new SceneGame())
+                                sc.goto(async () => new SceneGame(this.node))
                             },
                         },
                         {
                             type: "select",
                             label: "Back",
                             onSelect: () => {
-                                sc.goto(async () => import("./SceneTitle").then(({ SceneTitle }) => new SceneTitle()))
+                                sc.goto(async () => import("./SceneMap").then(({ SceneMap }) => new SceneMap(this.node.id)))
                             },
                         },
                     ],
