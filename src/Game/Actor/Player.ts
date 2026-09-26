@@ -34,9 +34,11 @@ export class Player extends Actor {
     private readonly speed = 8
     private readonly slowSpeed = 3
 
-    // 装備(主にsub装備のaction)が移動速度・無敵状態を一時的に変えるためのフック
+    // 装備(主にsub装備のaction)が移動速度・無敵状態・クールタイムを一時的に変えるためのフック
     speedMultiplier = 1
     isActionInvincible = false
+    // action発動直後が1、クールタイムが明けると0(0の間はクールタイム表示を出さない)
+    actionCooldownRemaining = 0
 
     // 低速(スニーク)時の見た目まわり
     private drawRadianVelocity = 0
@@ -78,6 +80,7 @@ export class Player extends Actor {
         this.drawSneakEffect(ctx)
         this.drawNormalEffect(ctx)
         this.drawDashEffect(ctx)
+        this.drawActionCooldown(ctx)
         this.drawLife(ctx)
         this.drawGrazeBoundary(ctx)
         this.drawCore(ctx)
@@ -260,6 +263,14 @@ export class Player extends Actor {
         Ctx.polygon(ctx, 4, 2, this.p, this.GRAZE_R * 2.2 * ratio, cyan, { theta: -r / 12, lineWidth: 2 })
         Ctx.polygon(ctx, 3, 2, this.p, this.GRAZE_R * 1.6 * ratio, white, { theta: -r / 6, lineWidth: 1 })
         Ctx.polygon(ctx, 4, 2, this.p, this.GRAZE_R * 0.9 * ratio, cyan, { theta: r / 4, lineWidth: 1 })
+    }
+
+    // actionのクールタイム表示: 明けるまでの残り割合ぶん円弧を伸ばしていく
+    private drawActionCooldown(ctx: CanvasRenderingContext2D) {
+        if (this.actionCooldownRemaining <= 0) return
+
+        const progress = T - T * this.actionCooldownRemaining
+        Ctx.arc(ctx, this.p, this.GRAZE_R / 2, "rgb(255, 255, 127)", { lineWidth: 2, start: 0, end: progress })
     }
 
     private drawAfterImages(ctx: CanvasRenderingContext2D) {

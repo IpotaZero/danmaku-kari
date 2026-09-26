@@ -1,4 +1,5 @@
 import { vec } from "@ipota/vec"
+import { Ease } from "@ipota/functions"
 import { T } from "../../T"
 import { EquipmentId } from "../../Data/Equipment"
 import { Ctx } from "../../utils/Functions/Ctx"
@@ -59,46 +60,83 @@ export const mainEquipments: Record<EquipmentId, MainEquipment> = {
 }
 
 const DASH_FRAME = 30
-const DASH_COOLDOWN_FRAME = 60
+const DASH_COOLDOWN_FRAME = 120
 const DASH_SPEED_MULTIPLIER = 5
+const DASH_PARTICLES_PER_FRAME = 2
 
 export const subEquipments: Record<EquipmentId, SubEquipment> = {
     // actionボタンで短時間ダッシュ(その間は移動速度アップ+無敵)。クールダウン中は再発動しない
     dash: {
         *action(player) {
             let cooldown = 0
+            let burstFramesRemaining = 0
 
             while (true) {
-                if (cooldown > 0) cooldown--
+                // クールタイムはダッシュ中も含め毎フレーム進める
+                if (cooldown > 0) {
+                    cooldown--
+                    player.actionCooldownRemaining = cooldown / DASH_COOLDOWN_FRAME
 
-                if (cooldown === 0 && player.game.input.isPushed("action")) {
-                    cooldown = DASH_COOLDOWN_FRAME
-                    yield* dashBurst(player)
-                } else {
-                    yield
+                    if (cooldown === 0) {
+                        player.addScript(() => actionReadyEffect(player), { id: crypto.randomUUID() })
+                    }
                 }
+
+                if (burstFramesRemaining > 0) {
+                    burstFramesRemaining--
+                    for (let i = 0; i < DASH_PARTICLES_PER_FRAME; i++) {
+                        player.addScript(() => dashParticle(player), { id: crypto.randomUUID() })
+                    }
+
+                    if (burstFramesRemaining === 0) {
+                        player.speedMultiplier = 1
+                        player.isActionInvincible = false
+                    }
+                } else if (cooldown === 0 && player.game.input.isPushed("action")) {
+                    cooldown = DASH_COOLDOWN_FRAME
+                    burstFramesRemaining = DASH_FRAME
+                    player.actionCooldownRemaining = 1
+                    player.speedMultiplier = DASH_SPEED_MULTIPLIER
+                    player.isActionInvincible = true
+                }
+
+                yield
             }
         },
     },
 }
 
-const DASH_PARTICLES_PER_FRAME = 2
-const DASH_PARTICLE_FRAME = 30
+const ACTION_READY_EFFECT_FRAME = 45
 
-function* dashBurst(player: Player): Generator<void, void, void> {
-    player.speedMultiplier = DASH_SPEED_MULTIPLIER
-    player.isActionInvincible = true
+// クールタイムが明けた瞬間に、広がるリングと"CHARGED"の文字を表示する
+function* actionReadyEffect(player: Player): Generator<void, void, void> {
+    const ctx = player.game.ctx
 
-    for (let i = 0; i < DASH_FRAME; i++) {
-        for (let j = 0; j < DASH_PARTICLES_PER_FRAME; j++) {
-            player.addScript(() => dashParticle(player), { id: crypto.randomUUID() })
-        }
+    for (let i = 1; i <= ACTION_READY_EFFECT_FRAME; i++) {
+        const progress = i / ACTION_READY_EFFECT_FRAME
+        const alpha = 1 - progress
+        const r = Ease.Out(progress) * player.GRAZE_R * 5
+
+        ctx.save()
+        player.game.camera.apply(ctx, player.game.WIDTH, player.game.HEIGHT)
+        ctx.globalAlpha = alpha
+
+        Ctx.arc(ctx, player.p, r, "#ffffffc0", { lineWidth: 2 })
+        Ctx.arc(ctx, player.p, r + player.GRAZE_R * 0.3, "#ffffffc0", { lineWidth: 2 })
+        Ctx.arc(ctx, player.p, r / 2, "#ffffffc0", { lineWidth: 2 })
+
+        const text = [..."CHARGED"]
+        text.forEach((c, index) => {
+            const charP = player.p.add(vec.arg(T * (index / text.length)).scale(player.GRAZE_R * 3))
+            Ctx.text(ctx, charP, "#ffffff80", c, { fontFamily: "dot", fontSize: player.GRAZE_R })
+        })
+
+        ctx.restore()
         yield
     }
-
-    player.speedMultiplier = 1
-    player.isActionInvincible = false
 }
+
+const DASH_PARTICLE_FRAME = 30
 
 // ダッシュ中に自機の周りへ撒き散らす、縮小しながら消えていく三角形の粒子
 function* dashParticle(player: Player): Generator<void, void, void> {
