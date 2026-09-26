@@ -73,7 +73,7 @@ export class Player extends Actor {
         )
 
         if (this.life <= 0) {
-            this.game.onLose()
+            this.game.lose()
         }
     }
 

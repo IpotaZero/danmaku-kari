@@ -27,6 +27,9 @@ export class Game extends IteratorQueue {
 
     readonly textBox: TextBox
 
+    isCleared = false
+    isGameOver = false
+
     private bulletDrawer = new BulletDrawer()
     private bulletCollision = new BulletCollision()
 
@@ -66,7 +69,23 @@ export class Game extends IteratorQueue {
         this.updatePlayer()
         this.updateCamera()
 
+        if (this.stage.isCleared) this.win()
+
         this.draw()
+    }
+
+    // ステージクリア。何度呼ばれてもonWinは1度だけ発火する
+    win() {
+        if (this.isCleared) return
+        this.isCleared = true
+        this.onWin()
+    }
+
+    // ゲームオーバー。何度呼ばれてもonLoseは1度だけ発火する
+    lose() {
+        if (this.isGameOver) return
+        this.isGameOver = true
+        this.onLose()
     }
 
     private updateBulletAndEnemy() {
@@ -140,7 +159,7 @@ export class Game extends IteratorQueue {
         ctx.save()
         this.camera.apply(ctx, this.WIDTH, this.HEIGHT)
         this.enemies.forEach((e) => e.draw(ctx))
-        this.player.draw(ctx)
+        if (!this.isGameOver) this.player.draw(ctx)
         ctx.restore()
     }
 }

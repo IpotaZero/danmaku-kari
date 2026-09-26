@@ -10,6 +10,8 @@ export default class extends Stage {
         yield* this.game.textBox.say(["...."])
 
         this.game.enemies.push(new EnemyTest(this.game))
+
+        yield* this.waitAllEnemiesDead()
     }
 }
 
