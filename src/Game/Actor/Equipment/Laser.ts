@@ -20,7 +20,7 @@ const 集中時威力 = 1
 // 自機の左右2本、細く長いビームを常時出し続ける。自機狙いをせず一直線にしか飛ばないため、
 // 敵の正面に自機を移動させて撃ち合わせないと当たらない
 export const laser: MainEquipment = {
-    label: "レーザー",
+    label: "光線",
     description:
         "自機の左右2本から常時レーザーを出し続ける。通常は幅が広く当てやすい代わりに威力は控えめ、低速時は幅が狭くなる代わりに威力が上がる。ビームの隙間を球弾とリング弾が補う。自機狙いをしないので、敵の正面に自機を移動させないと当たらない。",
     *fire(player) {
@@ -53,7 +53,9 @@ export const laser: MainEquipment = {
                     const targetInterval = isFocused ? 集中時間隔 : 通常時間隔
                     interval += (targetInterval - interval) * 間隔追従率
 
-                    me.p = player.p.clone().add(vec(side * interval, 0))
+                    // 画面外に出ると弾のboundary判定で消えてしまうため、画面内に収まる位置にクランプする
+                    const x = Math.max(0, Math.min(player.game.WIDTH, player.p.x + side * interval))
+                    me.p = vec(x, player.p.y)
                     me.r = isFocused ? 集中時太さ : 通常時太さ
                     me.alpha = isFocused ? 集中時濃さ : 通常時濃さ
                     me.damage = isFocused ? 集中時威力 : 通常時威力

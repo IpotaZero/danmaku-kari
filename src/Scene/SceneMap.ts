@@ -49,8 +49,8 @@ export class SceneMap extends Scene {
                 <div class="map-lives-recovery"></div>
             </div>
             <div class="map-controls">
-                <div>cancel: タイトルへ戻る</div>
-                <div>action: 装備変更</div>
+                <div>cancel(X): タイトルへ戻る</div>
+                <div>action(Ctrl): 装備変更</div>
             </div>
             <div class="texture-overlay"></div>
         `
@@ -172,7 +172,7 @@ export class SceneMap extends Scene {
                 {
                     type: "submenu",
                     label: `主装備: ${mainEquipments[playerData.getLoadout().main]?.label ?? playerData.getLoadout().main}`,
-                    hides: ["equip-root"],
+                    hides: [],
                     shows: ["equip-main-options"],
                     onFocus: () => this.hideEquipDescription(),
                     subMenu: () => this.buildMainEquipmentSubMenu(),
@@ -182,7 +182,7 @@ export class SceneMap extends Scene {
                 {
                     type: "submenu",
                     label: `副装備: ${this.getSubEquipmentLabel()}`,
-                    hides: ["equip-root"],
+                    hides: [],
                     shows: ["equip-sub-options"],
                     onFocus: () => this.hideEquipDescription(),
                     subMenu: () => this.buildSubEquipmentSubMenu(),
@@ -196,6 +196,11 @@ export class SceneMap extends Scene {
             elementId: "equip-main-options",
             title: "--:: 主装備を選択 ::--",
             options: () => this.buildMainEquipmentOptions(),
+            // 開いた瞬間、現在装備している主装備にカーソルを合わせる
+            initialCursor: () => {
+                const row = Object.keys(mainEquipments).indexOf(playerData.getLoadout().main)
+                return { row: Math.max(row, 0), col: 0 }
+            },
         }
     }
 
@@ -220,6 +225,12 @@ export class SceneMap extends Scene {
             elementId: "equip-sub-options",
             title: "--:: 副装備を選択 ::--",
             options: () => this.buildSubEquipmentOptions(),
+            // 開いた瞬間、現在装備している副装備にカーソルを合わせる(「なし」は先頭行)
+            initialCursor: () => {
+                const subId = playerData.getLoadout().sub
+                const row = subId === null ? 0 : 1 + Object.keys(subEquipments).indexOf(subId)
+                return { row: Math.max(row, 0), col: 0 }
+            },
         }
     }
 

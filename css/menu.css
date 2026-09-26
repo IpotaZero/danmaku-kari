@@ -13,7 +13,6 @@
 /* pushSubMenuで開かれたレイヤー。フェード中もrootと重ねて表示できるようoverlay配置にする */
 .menu-submenu-layer {
     padding: 1.5em;
-    position: absolute;
     inset: 0;
 }
 

@@ -7,8 +7,8 @@ const 速度倍率 = 5
 
 // actionボタンで短時間ダッシュ(その間は移動速度アップ+無敵)。クールダウン中は再発動しない
 export const dash: SubEquipment = {
-    label: "ダッシュ",
-    description: "actionボタンで短時間ダッシュする。ダッシュ中は移動速度が上がり、無敵になる。",
+    label: "高速移動",
+    description: "actionボタンで短時間高速移動する。高速移動中は移動速度が上がり、無敵になる。",
     *action(player) {
         let cooldown = 0
         let burstFramesRemaining = 0

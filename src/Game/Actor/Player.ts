@@ -15,8 +15,8 @@ const AFTER_IMAGE_DECAY = 0.08
 
 const WING_FLAP_INTERVAL = 2
 
-const HIT_SHAKE_INTENSITY = 8
-const HIT_SHAKE_FRAME = 20
+const HIT_SHAKE_INTENSITY = 12
+const HIT_SHAKE_FRAME = 60
 
 const [upperWing, lowerWing] = await createWings()
 
@@ -158,6 +158,8 @@ export class Player extends Actor {
     selfDestruct() {
         this.life = Math.max(-1, this.life - 1)
         this.onLifeChange(this.life)
+
+        this.game.camera.shake(HIT_SHAKE_INTENSITY, HIT_SHAKE_FRAME)
 
         this.addScript(() => this.explode(), { id: "explode" })
         this.game.lose()

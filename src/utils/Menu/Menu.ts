@@ -51,13 +51,15 @@ export type MenuOptionBox = {
     title?: string
     // 一度に表示する最大行数。指定時、それを超える分は疑似スクロール（表示範囲の入れ替えと▲▼インジケーター）で扱う
     maxVisibleRows?: number
+    // このボックスが開かれた瞬間のカーソル位置。省略時は{row: 0, col: 0}
+    initialCursor?: () => MenuCursor
 }
 
 /**Menuで使うアクション（DigitalInput用） */
 export type ActionMenu = "ok" | "cancel" | "up" | "down" | "left" | "right"
 
 /** 現在選択中の位置。row=何行目、col=行の中の何列目 */
-type MenuCursor = { row: number; col: number }
+export type MenuCursor = { row: number; col: number }
 
 type MenuInput = DigitalInput.Reader<ActionMenu>
 
@@ -322,7 +324,7 @@ export class Menu {
         this.showsStack.push(shows)
 
         this.layerStack.push({ box: subMenu, options: [] })
-        this.cursor = { row: 0, col: 0 }
+        this.cursor = subMenu.initialCursor?.() ?? { row: 0, col: 0 }
 
         // フェード中もrootの表示領域と重ねて表示できるよう、サブメニューは常にoverlay配置にする
         this.getElement(subMenu.elementId).classList.add("menu-submenu-layer")

@@ -9,7 +9,7 @@ const 半径倍率 = 12
 
 // actionボタンで自機周囲に一定半径の弾消しバリアを展開する。クールダウン中は再発動しない
 export const barrier: SubEquipment = {
-    label: "バリア",
+    label: "障壁",
     description: "actionボタンで自機周囲に弾消しバリアを展開する。範囲内にある敵弾をスコアに変える。",
     *action(player) {
         let cooldown = 0
