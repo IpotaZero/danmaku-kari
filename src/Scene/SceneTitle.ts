@@ -11,8 +11,8 @@ export class SceneTitle extends Scene {
         this.root.innerHTML = `
             <div class="title-content">
                 <div class="title-version">ver. dev</div>
-                <div class="title-copyright">&copy; Ipota</div>
-                <div class="title-logo">The Vectorized<br />Days!</div>
+                <div class="title-copyright">&copy; ososikirackets</div>
+                <div class="title-logo">The<br />Vectorized<br />Days!</div>
             </div>
         `
 
@@ -26,9 +26,7 @@ export class SceneTitle extends Scene {
                             type: "select",
                             label: "はじめる",
                             onSelect: () => {
-                                sc.goto(async () =>
-                                    import("./SceneGame").then(({ SceneGame }) => new SceneGame()),
-                                )
+                                sc.goto(async () => import("./SceneGame").then(({ SceneGame }) => new SceneGame()))
                             },
                         },
                     ],

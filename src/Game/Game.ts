@@ -27,9 +27,9 @@ export class Game extends IteratorQueue {
 
     readonly textBox: TextBox
 
-    state: "playing" | "game-over" | "cleared" = "playing"
+    private state: "playing" | "game-over" | "cleared" = "playing"
 
-    score = 0
+    private score = 0
 
     private bulletDrawer = new BulletDrawer()
     private bulletCollision = new BulletCollision()
@@ -89,7 +89,7 @@ export class Game extends IteratorQueue {
     }
 
     private updateBulletAndEnemy() {
-        if (!this.player.isInvincible()) {
+        if (!this.player.isInvincible() && this.state === "playing") {
             this.bullets
                 .filter((b) => b.type === "enemy")
                 .forEach((b) => {

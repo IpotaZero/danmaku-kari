@@ -108,10 +108,10 @@ export class Player extends Actor {
     }
 
     private *fireLoop() {
-        if (!this.game.input.isPressed("ok")) {
-            yield
-            return
-        }
+        // if (!this.game.input.isPressed("ok")) {
+        //     yield
+        //     return
+        // }
 
         if (this.game.input.isPressed("slow")) {
             yield* remodel(this)
