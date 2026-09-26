@@ -133,7 +133,8 @@ export class Game extends IteratorQueue {
                     if (e.isInvincible) return
 
                     if (this.bulletCollision.isColliding(b, e)) {
-                        b.life = 0
+                        // レーザーは貫通させ、当たった敵ごとに消えず触れている間ずっと削り続ける
+                        if (b.collision !== "laser") b.life = 0
 
                         e.life -= b.damage
                         e.hit()
