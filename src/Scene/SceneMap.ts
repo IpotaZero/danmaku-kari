@@ -44,6 +44,7 @@ export class SceneMap extends Scene {
                 <div class="map-lives-count"></div>
                 <div class="map-lives-recovery"></div>
             </div>
+            <div class="texture-overlay"></div>
         `
 
         const nodesEl = this.root.querySelector<HTMLElement>(".map-nodes")!

@@ -74,7 +74,7 @@ export abstract class Enemy extends Actor {
                 return me
             })
             .g(function* (me) {
-                yield* Remodel.fadeout(me, 60)
+                yield* Remodel.fadeout(me, 120)
             })
             .fire(this.game.bullets)
     }

@@ -21,6 +21,6 @@ export abstract class Stage extends IteratorQueue {
     }
 
     protected scorenizeAllBullets() {
-        this.game.bullets.forEach((b) => b.scorenize())
+        this.game.bullets.filter((b) => b.type === "enemy").forEach((b) => b.scorenize())
     }
 }

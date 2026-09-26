@@ -24,7 +24,7 @@ class EnemyTest extends Enemy {
     }
 
     private *move() {
-        yield* this.moveTo(vec(this.game.WIDTH / 2, this.game.HEIGHT / 4), 60)
+        yield* this.moveTo(vec(this.game.WIDTH / 2, this.game.HEIGHT / 4), 150)
 
         this.addScript(() => this.G(), { loop: Infinity })
     }

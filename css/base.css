@@ -51,6 +51,19 @@ body {
     display: none !important;
 }
 
+/* SceneTitle/SceneMapなど、画面全面にざらついた質感を重ねたいシーンで使う */
+.texture-overlay {
+    position: absolute;
+    inset: 0;
+
+    background-image: url("../assets/image/texture.png");
+    background-repeat: repeat;
+
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+}
+
 .fadeout {
     display: none;
 }

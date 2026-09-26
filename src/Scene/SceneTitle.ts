@@ -43,6 +43,10 @@ export class SceneTitle extends Scene {
 
         this.menu.container.classList.add("title-menu")
         this.root.appendChild(this.menu.container)
+
+        const textureOverlay = document.createElement("div")
+        textureOverlay.className = "texture-overlay"
+        this.root.appendChild(textureOverlay)
     }
 
     protected async onEnd(): Promise<void> {}

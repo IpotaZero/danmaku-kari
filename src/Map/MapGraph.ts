@@ -29,11 +29,19 @@ export type MapGraph = {
     readonly edges: readonly MapEdge[]
 }
 
+// 仮のマップ
 // とりあえず全ノードをStageTestに紐づけておく。requiredMainEquipmentIdの値も仮
 export const mapGraph: MapGraph = {
     startId: "start",
     nodes: [
-        { id: "start", label: "start", description: "はじまりの地点", x: 20, y: 50, stage: (game) => new StageTest(game) },
+        {
+            id: "start",
+            label: "start",
+            description: "はじまりの地点",
+            x: 20,
+            y: 50,
+            stage: (game) => new StageTest(game),
+        },
         { id: "a", label: "A", description: "分岐A", x: 50, y: 25, stage: (game) => new StageTest(game) },
         { id: "b", label: "B", description: "分岐B", x: 50, y: 75, stage: (game) => new StageTest(game) },
         { id: "goal", label: "goal", description: "最終地点", x: 80, y: 50, stage: (game) => new StageTest(game) },

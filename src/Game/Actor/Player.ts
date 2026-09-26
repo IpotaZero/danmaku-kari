@@ -250,7 +250,7 @@ export class Player extends Actor {
         const ctx = this.game.ctx
 
         for (let i = 0; i < maxFrame; i++) {
-            const alpha = (1 - i / maxFrame) * 0.35
+            const alpha = (1 - i / maxFrame) * 0.15
 
             ctx.save()
             this.game.camera.apply(ctx, this.game.WIDTH, this.game.HEIGHT)
