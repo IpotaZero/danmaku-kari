@@ -15,7 +15,7 @@ import { TextBox } from "../utils/TextBox"
  * ゲーム本体をカプセル化したクラス。
  */
 export class Game extends IteratorQueue {
-    private readonly canvas: HTMLCanvasElement
+    readonly canvas: HTMLCanvasElement
     private readonly ctx: CanvasRenderingContext2D
 
     readonly stage: Stage
@@ -65,6 +65,7 @@ export class Game extends IteratorQueue {
         this.ctx.fillRect(0, 0, this.WIDTH, this.HEIGHT)
 
         super.update()
+        this.stage.update()
         this.updateBulletAndEnemy()
         this.updatePlayer()
         this.updateCamera()
@@ -137,11 +138,17 @@ export class Game extends IteratorQueue {
 
         ctx.save()
         this.camera.apply(ctx, this.WIDTH, this.HEIGHT)
-
         this.bullets.forEach((b) => this.bulletDrawer.draw(b, ctx))
+        ctx.restore()
+
+        // GPUでまとめて描いた弾は、カメラ変換込みの画面座標で焼き込まれているため
+        // ctxのtransformを掛けていない状態（Camera.apply()の外）で合成する
+        this.bulletDrawer.flush(ctx, this.camera.getTransform(), this.WIDTH, this.HEIGHT)
+
+        ctx.save()
+        this.camera.apply(ctx, this.WIDTH, this.HEIGHT)
         this.enemies.forEach((e) => e.draw(ctx))
         this.player.draw(ctx)
-
         ctx.restore()
     }
 

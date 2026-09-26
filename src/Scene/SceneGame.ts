@@ -17,8 +17,15 @@ export class SceneGame extends Scene {
         )
     }
 
-    protected async onStart(): Promise<void> {}
+    protected async onStart(): Promise<void> {
+        this.root.classList.add("scene-game")
+        this.game.canvas.id = "main"
+        this.root.append(this.game.canvas, this.game.textBox.box)
+    }
+
     protected async onEnd(): Promise<void> {}
 
-    update(): void {}
+    update(): void {
+        this.game.update()
+    }
 }
