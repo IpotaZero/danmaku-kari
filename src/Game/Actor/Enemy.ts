@@ -102,6 +102,9 @@ export abstract class Enemy extends Actor {
     private *followParent(parent: Enemy, position: () => Vec) {
         if (parent.life <= 0) {
             this.life = 0
+            // ここでyieldせずreturnすると、addScriptのloop:Infinityが
+            // 一度もyieldしないまま呼び出しを回し続けてタブがフリーズする
+            yield
             return
         }
 
