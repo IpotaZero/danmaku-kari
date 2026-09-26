@@ -9,6 +9,7 @@ import { BulletCollision } from "./BulletCollision"
 import { IteratorQueue } from "./IteratorQueue"
 import { Stage } from "../Stage/Stage"
 import { TextBox } from "../utils/TextBox"
+import { remodel } from "./Remodel"
 
 /**
  * ゲーム本体をカプセル化したクラス。
@@ -29,6 +30,10 @@ export class Game extends IteratorQueue {
 
     private state: "playing" | "game-over" | "cleared" = "playing"
 
+    get isPlaying(): boolean {
+        return this.state === "playing"
+    }
+
     private score = 0
 
     private bulletDrawer = new BulletDrawer()
@@ -39,7 +44,7 @@ export class Game extends IteratorQueue {
 
     constructor(
         stage: (game: Game) => Stage,
-        readonly input: DigitalInput.Reader<"right" | "left" | "up" | "down" | "slow" | "ok" | "cancel">,
+        readonly input: DigitalInput.Reader<"right" | "left" | "up" | "down" | "slow" | "suicide" | "ok" | "cancel">,
         readonly onWin: () => void,
         readonly onLose: () => void,
     ) {
@@ -63,11 +68,17 @@ export class Game extends IteratorQueue {
     }
 
     update(): void {
+        if (this.state === "playing" && this.input.isPushed("suicide")) {
+            this.player.selfDestruct()
+        }
+
         this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT)
 
         this.stage.update()
         this.updateBulletAndEnemy()
+
         this.updatePlayer()
+
         this.updateCamera()
 
         if (this.stage.isCleared) this.win()

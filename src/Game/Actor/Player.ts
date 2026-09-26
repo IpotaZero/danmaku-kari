@@ -3,7 +3,7 @@ import { Game } from "../Game"
 import { vec, Vec } from "@ipota/vec"
 import { T } from "../../T"
 import { Ctx } from "../../utils/Functions/Ctx"
-import { remodel } from "../Remodel"
+import { Remodel, remodel } from "../Remodel"
 import { Ease } from "@ipota/functions"
 
 export class Player extends Actor {
@@ -11,7 +11,7 @@ export class Player extends Actor {
 
     override readonly r: number = 2
 
-    private readonly maxLife = 8
+    private readonly maxLife = 1
     private frame = 0
 
     private readonly speed = 8
@@ -63,7 +63,7 @@ export class Player extends Actor {
     hit(damage: number) {
         if (this.isInvincible()) return
 
-        this.life = Math.max(0, this.life - damage)
+        this.life = Math.max(-1, this.life - damage)
 
         this.addScript(
             function* () {
@@ -73,11 +73,38 @@ export class Player extends Actor {
             { id: "invincible" },
         )
 
-        this.addScript(() => this.hitField(), { id: "hitField" })
-
-        if (this.life <= 0) {
+        if (this.life < 0) {
             this.game.lose()
+            this.addScript(() => this.explode(), { id: "explode" })
+        } else {
+            this.addScript(() => this.hitField(), { id: "hitField" })
         }
+    }
+
+    // 自爆: 無敵時間に関係なく強制的にゲームオーバーにする。被弾と同じ弾処理リングは出す
+    selfDestruct() {
+        this.life = Math.max(-1, this.life - 1)
+
+        this.addScript(() => this.explode(), { id: "explode" })
+        this.game.lose()
+    }
+
+    // 自爆時に三角形の破片を撒き散らす。当たり判定を持たないeffect弾として実装
+    private *explode() {
+        yield* remodel(this)
+            .p(this.p.clone())
+            .type("effect")
+            .appearance("triangle")
+            .color("white")
+            .alpha(0.5)
+            .duplicate(16, (b) => {
+                b.r = Math.random() * 8 + 8
+                b.speed = Math.random() * 2 + 2
+                b.radian = Math.random() * T
+                return b
+            })
+            .g((me) => Remodel.fadeout(me, 60))
+            .fire(this.game.bullets)
     }
 
     // 被弾した瞬間に自機を中心としたリングを広げ、触れた敵弾をスコアに変える。
@@ -108,6 +135,11 @@ export class Player extends Actor {
     }
 
     private *fireLoop() {
+        if (!this.game.isPlaying) {
+            yield
+            return
+        }
+
         // if (!this.game.input.isPressed("ok")) {
         //     yield
         //     return

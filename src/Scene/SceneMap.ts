@@ -5,6 +5,9 @@ import { Scene } from "../utils/Scene/Scene"
 
 type Direction = "up" | "down" | "left" | "right"
 
+// 説明の枠のopacity遷移(css側のtransition時間と合わせる)にかける時間
+const INFO_FADE_MS = 150
+
 const DIRECTION_VECTORS: Record<Direction, { x: number; y: number }> = {
     up: { x: 0, y: -1 },
     down: { x: 0, y: 1 },
@@ -15,6 +18,8 @@ const DIRECTION_VECTORS: Record<Direction, { x: number; y: number }> = {
 export class SceneMap extends Scene {
     private selectedId: MapNodeId
     private readonly nodeElements = new Map<MapNodeId, HTMLElement>()
+    private infoEl!: HTMLElement
+    private infoShowTimer?: number
 
     constructor(selectedId: MapNodeId = mapGraph.nodes[0]!.id) {
         super()
@@ -28,6 +33,10 @@ export class SceneMap extends Scene {
                 ${mapGraph.edges.map(([fromId, toId]) => this.renderEdge(fromId, toId)).join("")}
             </svg>
             <div class="map-nodes"></div>
+            <div class="map-node-info">
+                <div class="map-node-info-label"></div>
+                <div class="map-node-info-description"></div>
+            </div>
         `
 
         const nodesEl = this.root.querySelector<HTMLElement>(".map-nodes")!
@@ -36,16 +45,18 @@ export class SceneMap extends Scene {
             el.className = "map-node"
             el.style.left = `${node.x}%`
             el.style.top = `${node.y}%`
-            el.textContent = node.label
 
             nodesEl.appendChild(el)
             this.nodeElements.set(node.id, el)
         }
 
-        this.updateSelectedClass()
+        this.infoEl = this.root.querySelector<HTMLElement>(".map-node-info")!
+        this.showInfo()
     }
 
-    protected async onEnd(): Promise<void> {}
+    protected async onEnd(): Promise<void> {
+        clearTimeout(this.infoShowTimer)
+    }
 
     update(): void {
         if (input.isRepeatPushed("up", 100, 300)) {
@@ -70,7 +81,8 @@ export class SceneMap extends Scene {
         if (!next) return
 
         this.selectedId = next.id
-        this.updateSelectedClass()
+        this.nodeElements.forEach((el, id) => el.classList.toggle("selected", id === this.selectedId))
+        this.hideInfo()
     }
 
     private select() {
@@ -92,8 +104,21 @@ export class SceneMap extends Scene {
         })
     }
 
-    private updateSelectedClass() {
-        this.nodeElements.forEach((el, id) => el.classList.toggle("selected", id === this.selectedId))
+    // 選択移動中は説明の枠を隠し、移動が落ち着いてから改めて表示する
+    private hideInfo() {
+        this.infoEl.classList.remove("visible")
+
+        clearTimeout(this.infoShowTimer)
+        this.infoShowTimer = window.setTimeout(() => this.showInfo(), INFO_FADE_MS)
+    }
+
+    private showInfo() {
+        const node = this.getNode(this.selectedId)
+        this.infoEl.style.left = `${node.x}%`
+        this.infoEl.style.top = `${node.y}%`
+        this.infoEl.querySelector(".map-node-info-label")!.textContent = node.label
+        this.infoEl.querySelector(".map-node-info-description")!.textContent = node.description
+        this.infoEl.classList.add("visible")
     }
 
     private renderEdge(fromId: MapNodeId, toId: MapNodeId): string {

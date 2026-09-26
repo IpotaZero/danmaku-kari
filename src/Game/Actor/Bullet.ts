@@ -9,7 +9,7 @@ export class Bullet extends Actor {
     delay: number = 0
     isScorable: boolean = true
 
-    appearance: "donut" | "ball" | "line" | "arrow" | "laser" | "beam" | "player" | "score" = "donut"
+    appearance: "donut" | "ball" | "line" | "arrow" | "laser" | "beam" | "player" | "score" | "triangle" = "donut"
     collision: "ball" | "line" | "arrow" | "laser" = "ball"
     type: "friend" | "enemy" | "neutral" | "effect" | "score" = "enemy"
     color: Color = "black"

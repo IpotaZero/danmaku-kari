@@ -106,6 +106,8 @@ export class BulletDrawer {
                 return this.drawLine(bullet, halfCanvasSize)
             case "ball":
                 return this.drawBall(bullet, halfCanvasSize)
+            case "triangle":
+                return this.drawTriangle(bullet, halfCanvasSize)
             default:
                 return this.drawPlayer(bullet, halfCanvasSize)
         }
@@ -308,6 +310,29 @@ export class BulletDrawer {
         ctx.shadowBlur = 0
         ctx.strokeStyle = "white"
         ctx.lineWidth = 2
+        ctx.stroke()
+        return canvas
+    }
+
+    private drawTriangle(bullet: Bullet, halfCanvasSize: number) {
+        const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
+
+        if (!isSmartPhone) {
+            ctx.shadowColor = bullet.color
+            ctx.shadowBlur = bullet.r
+        }
+
+        ctx.beginPath()
+        for (let i = 0; i < 3; i++) {
+            const angle = -Math.PI / 2 + (i * Math.PI * 2) / 3
+            const x = center + Math.cos(angle) * bullet.r
+            const y = center + Math.sin(angle) * bullet.r
+            if (i === 0) ctx.moveTo(x, y)
+            else ctx.lineTo(x, y)
+        }
+        ctx.closePath()
+
+        ctx.strokeStyle = bullet.color
         ctx.stroke()
         return canvas
     }
