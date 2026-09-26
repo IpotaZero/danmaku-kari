@@ -1,5 +1,6 @@
+import { playerData } from "../Data/PlayerData"
 import { input } from "../input"
-import { mapGraph, MapNode, MapNodeId } from "../Map/MapGraph"
+import { getMapNode, getNeighborIds, isMapNodeUnlocked, mapGraph, MapEdge, MapNode, MapNodeId } from "../Map/MapGraph"
 import { sc } from "../sc"
 import { Scene } from "../utils/Scene/Scene"
 
@@ -21,7 +22,7 @@ export class SceneMap extends Scene {
     private infoEl!: HTMLElement
     private infoShowTimer?: number
 
-    constructor(selectedId: MapNodeId = mapGraph.nodes[0]!.id) {
+    constructor(selectedId: MapNodeId = mapGraph.startId) {
         super()
         this.selectedId = selectedId
     }
@@ -30,7 +31,7 @@ export class SceneMap extends Scene {
         this.root.classList.add("scene-map")
         this.root.innerHTML = `
             <svg class="map-edges" viewBox="0 0 100 100" preserveAspectRatio="none">
-                ${mapGraph.edges.map(([fromId, toId]) => this.renderEdge(fromId, toId)).join("")}
+                ${mapGraph.edges.map((edge) => this.renderEdge(edge)).join("")}
             </svg>
             <div class="map-nodes"></div>
             <div class="map-node-info">
@@ -43,6 +44,7 @@ export class SceneMap extends Scene {
         for (const node of mapGraph.nodes) {
             const el = document.createElement("div")
             el.className = "map-node"
+            el.classList.toggle("locked", !isMapNodeUnlocked(node, playerData))
             el.style.left = `${node.x}%`
             el.style.top = `${node.y}%`
 
@@ -75,8 +77,11 @@ export class SceneMap extends Scene {
     }
 
     private move(direction: Direction) {
-        const current = this.getNode(this.selectedId)
-        const neighbors = this.getNeighborIds(current.id).map((id) => this.getNode(id))
+        const current = getMapNode(this.selectedId)
+        const neighbors = getNeighborIds(current.id)
+            .map((id) => getMapNode(id))
+            .filter((node) => isMapNodeUnlocked(node, playerData))
+
         const next = pickClosestInDirection(current, neighbors, DIRECTION_VECTORS[direction])
         if (!next) return
 
@@ -86,22 +91,10 @@ export class SceneMap extends Scene {
     }
 
     private select() {
-        const node = this.getNode(this.selectedId)
+        const node = getMapNode(this.selectedId)
+        if (!isMapNodeUnlocked(node, playerData)) return
+
         sc.goto(async () => import("./SceneGame").then(({ SceneGame }) => new SceneGame(node)))
-    }
-
-    private getNode(id: MapNodeId): MapNode {
-        const node = mapGraph.nodes.find((n) => n.id === id)
-        if (!node) throw new Error(`ノードが見つかりません: ${id}`)
-        return node
-    }
-
-    private getNeighborIds(id: MapNodeId): MapNodeId[] {
-        return mapGraph.edges.flatMap(([fromId, toId]) => {
-            if (fromId === id) return [toId]
-            if (toId === id) return [fromId]
-            return []
-        })
     }
 
     // 選択移動中は説明の枠を隠し、移動が落ち着いてから改めて表示する
@@ -113,7 +106,7 @@ export class SceneMap extends Scene {
     }
 
     private showInfo() {
-        const node = this.getNode(this.selectedId)
+        const node = getMapNode(this.selectedId)
         this.infoEl.style.left = `${node.x}%`
         this.infoEl.style.top = `${node.y}%`
         this.infoEl.querySelector(".map-node-info-label")!.textContent = node.label
@@ -121,10 +114,11 @@ export class SceneMap extends Scene {
         this.infoEl.classList.add("visible")
     }
 
-    private renderEdge(fromId: MapNodeId, toId: MapNodeId): string {
-        const from = this.getNode(fromId)
-        const to = this.getNode(toId)
-        return `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" />`
+    private renderEdge(edge: MapEdge): string {
+        const from = getMapNode(edge.from)
+        const to = getMapNode(edge.to)
+        const locked = !isMapNodeUnlocked(from, playerData) || !isMapNodeUnlocked(to, playerData)
+        return `<line class="${locked ? "locked" : ""}" x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" />`
     }
 }
 

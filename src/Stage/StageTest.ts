@@ -18,7 +18,7 @@ export default class extends Stage {
 
 class EnemyTest extends Enemy {
     constructor(game: Game) {
-        super(game, 1000, 48, { renderer: new EnemyRendererCore() })
+        super(game, 100, 48, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.move())
     }

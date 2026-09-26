@@ -1,3 +1,4 @@
+import { playerData } from "../Data/PlayerData"
 import { Game } from "../Game/Game"
 import { input } from "../input"
 import type { MapNode } from "../Map/MapGraph"
@@ -15,7 +16,10 @@ export class SceneGame extends Scene {
         this.game = new Game(
             this.node.stage,
             input,
-            () => this.showResultMenu("--:: 作戦成功 ::--"),
+            () => {
+                playerData.recordStageClear(this.node.id, playerData.getLoadout().main)
+                this.showResultMenu("--:: 作戦成功 ::--")
+            },
             () => this.showResultMenu("--:: 作戦失敗 ::--"),
         )
     }
