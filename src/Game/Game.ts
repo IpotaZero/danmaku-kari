@@ -58,7 +58,10 @@ export class Game extends IteratorQueue {
     private bulletCollision = new BulletCollision()
 
     readonly WIDTH = 32 * 16
-    readonly HEIGHT: number
+    // 画面回転やスマホのアドレスバー表示/非表示で画面比が変わった際、resizeCanvas()が更新する
+    HEIGHT: number
+
+    private readonly handleResize = () => this.resizeCanvas()
 
     constructor(
         stage: (game: Game) => Stage,
@@ -71,12 +74,7 @@ export class Game extends IteratorQueue {
 
         this.stage = stage(this)
 
-        // 画面比に合わせてフィールドの高さを決める。ただしwidth:heightが1:2より横長にはしない
-        // (縦長のスマホ画面ではそのまま画面比に追従させる。横長のPC画面ではフィールドが
-        // 潰れて遊べなくなるのを防ぐため、常に最低でも縦長2倍(1:2)の比を保つ)
-        const minWidthToHeightRatio = 1 / 2
-        const viewportAspect = window.innerWidth / window.innerHeight
-        this.HEIGHT = Math.round(this.WIDTH / Math.min(viewportAspect, minWidthToHeightRatio))
+        this.HEIGHT = this.computeHeight()
 
         this.canvas = document.createElement("canvas")
         this.canvas.width = this.WIDTH
@@ -90,6 +88,8 @@ export class Game extends IteratorQueue {
         this.ctx = ctx
         this.ctx.globalCompositeOperation = "lighter"
 
+        window.addEventListener("resize", this.handleResize)
+
         this.touchControls = new TouchControls(baseInput, this.canvas)
         this.input = this.touchControls
 
@@ -97,6 +97,29 @@ export class Game extends IteratorQueue {
 
         this.player = new Player(this, vec(this.WIDTH / 2, this.HEIGHT / 2), playerConfig)
         this.camera = new Camera(this, this.player.p)
+    }
+
+    // 画面比に合わせてフィールドの高さを決める。ただしwidth:heightが1:2より横長にはしない
+    // (縦長のスマホ画面ではそのまま画面比に追従させる。横長のPC画面ではフィールドが
+    // 潰れて遊べなくなるのを防ぐため、常に最低でも縦長2倍(1:2)の比を保つ)
+    private computeHeight(): number {
+        const minWidthToHeightRatio = 1 / 2
+        const viewportAspect = window.innerWidth / window.innerHeight
+        return Math.round(this.WIDTH / Math.min(viewportAspect, minWidthToHeightRatio))
+    }
+
+    private resizeCanvas() {
+        const height = this.computeHeight()
+        if (height === this.HEIGHT) return
+
+        this.HEIGHT = height
+        // canvasの幅/高さ属性への代入はキャンバスの内容と描画状態を初期化するため、都度張り直す
+        this.canvas.height = this.HEIGHT
+        this.ctx.globalCompositeOperation = "lighter"
+    }
+
+    dispose() {
+        window.removeEventListener("resize", this.handleResize)
     }
 
     update(): void {

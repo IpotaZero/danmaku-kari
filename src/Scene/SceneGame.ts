@@ -33,7 +33,9 @@ export class SceneGame extends Scene {
         this.root.append(this.game.canvas, this.game.textBox.box)
     }
 
-    protected async onEnd(): Promise<void> {}
+    protected async onEnd(): Promise<void> {
+        this.game.dispose()
+    }
 
     update(): void {
         // クリア/ゲームオーバー後もGame自体の更新(敵・弾・カメラなど)は続ける
