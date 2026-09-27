@@ -6,6 +6,7 @@ import { Stage } from "./Stage"
 import { EnemyRendererCore } from "../Game/Actor/EnemyRendererCore"
 import { T } from "../T"
 import { GenUtils } from "../utils/Functions/GeneratorUtils"
+import { Curves } from "../utils/Functions/Curves"
 
 // ボスの登場演出にかかるフレーム数。衛星もこれだけ待ってから合わせて動き出す
 const ENTRANCE_FRAMES = 150
@@ -33,6 +34,8 @@ export default class extends Stage {
 }
 
 class EnemyBoss extends Enemy {
+    private readonly path = Curves.lissajous(this.game.WIDTH * 0.8, this.game.HEIGHT * 0.4, 3, 4)
+
     constructor(game: Game) {
         super(game, 1500, 48, { renderer: new EnemyRendererCore() })
 
@@ -47,7 +50,7 @@ class EnemyBoss extends Enemy {
     }
 
     private *move() {
-        this.p.x = this.game.WIDTH / 2 + Math.sin((this.frame - ENTRANCE_FRAMES) / 90) * 60
+        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 900).add(vec(this.game.WIDTH / 2, this.game.HEIGHT / 4))
         yield
     }
 
