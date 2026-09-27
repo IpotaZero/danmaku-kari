@@ -93,6 +93,7 @@ export class Menu {
         this.container.className = "menu"
         this.container.innerHTML = baseHtml
         this.container.addEventListener("click", (e) => this.handleContainerClick(e))
+        this.container.addEventListener("mouseover", (e) => this.handleContainerHover(e))
 
         // 初期状態ではoptionsは空配列。直後のrender(true)で評価される
         this.layerStack = [{ box: this.root, options: [] }]
@@ -123,25 +124,40 @@ export class Menu {
         this.updateDisabledClasses()
     }
 
-    // タップ操作用。containerに1つだけ張ったリスナーからイベント委譲で呼ばれる
-    private handleContainerClick(e: MouseEvent) {
+    // タップ/ホバー操作用。containerに1つだけ張ったリスナーからイベント委譲で呼ばれる
+    private findOptionCell(e: Event): MenuCursor | undefined {
         const optionEl = (e.target as HTMLElement).closest<HTMLElement>(".option")
-        if (!optionEl) return
+        if (!optionEl) return undefined
 
         for (let r = 0; r < this.optionElements.length; r++) {
             const c = this.optionElements[r]?.indexOf(optionEl) ?? -1
-            if (c !== -1) {
-                this.handleOptionClick(r, c)
-                return
-            }
+            if (c !== -1) return { row: r, col: c }
         }
+        return undefined
     }
 
-    private handleOptionClick(row: number, col: number) {
+    private handleContainerClick(e: MouseEvent) {
+        const cell = this.findOptionCell(e)
+        if (!cell) return
+
+        this.moveCursorTo(cell.row, cell.col)
+        this.select()
+    }
+
+    private handleContainerHover(e: MouseEvent) {
+        const cell = this.findOptionCell(e)
+        if (!cell) return
+
+        this.moveCursorTo(cell.row, cell.col)
+    }
+
+    // 既にカーソルが乗っている場合は何もしない(選択枠再描画やonFocus再発火を防ぐ)
+    private moveCursorTo(row: number, col: number) {
+        if (this.cursor.row === row && this.cursor.col === col) return
+
         this.cursor = { row, col }
         this.updateSelectedClass()
         this.getCurrentOption()?.onFocus?.()
-        this.select()
     }
 
     private playSound(sound: MenuSoundPattern | undefined) {
