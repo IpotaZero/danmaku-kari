@@ -1,4 +1,4 @@
-import type { Player } from "../Player"
+import type { Player } from "../Actor/Player"
 
 // 主装備: 攻撃の仕方に対応する
 export type MainEquipment = {

@@ -1,9 +1,9 @@
 import { EquipmentId } from "../../Data/Equipment"
-import { barrier } from "./Equipment/Barrier"
-import { dash } from "./Equipment/Dash"
-import { laser } from "./Equipment/Laser"
-import { standard } from "./Equipment/Standard"
-import type { MainEquipment, SubEquipment } from "./Equipment/types"
+import { barrier } from "./Barrier"
+import { dash } from "./Dash"
+import { laser } from "./Laser"
+import { standard } from "./Standard"
+import type { MainEquipment, SubEquipment } from "./types"
 
 export type { MainEquipment, SubEquipment }
 

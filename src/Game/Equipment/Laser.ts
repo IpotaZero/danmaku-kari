@@ -1,8 +1,8 @@
 import { vec } from "@ipota/vec"
-import { T } from "../../../T"
-import { GenUtils } from "../../../utils/Functions/GeneratorUtils"
-import { Remodel, remodel } from "../../Remodel"
-import type { Player } from "../Player"
+import { T } from "../../T"
+import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { Remodel, remodel } from "../Remodel"
+import type { Player } from "../Actor/Player"
 import type { MainEquipment } from "./types"
 
 const ビーム本数 = 2

@@ -1,10 +1,10 @@
 import { Vec } from "@ipota/vec"
-import { T } from "../../../T"
-import { GenUtils } from "../../../utils/Functions/GeneratorUtils"
-import { remodel } from "../../Remodel"
-import type { Bullet } from "../Bullet"
-import type { Enemy } from "../Enemy"
-import type { Player } from "../Player"
+import { T } from "../../T"
+import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { remodel } from "../Remodel"
+import type { Bullet } from "../Actor/Bullet"
+import type { Enemy } from "../Actor/Enemy"
+import type { Player } from "../Actor/Player"
 import type { MainEquipment } from "./types"
 
 const 連射間隔 = 6

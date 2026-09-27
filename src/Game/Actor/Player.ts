@@ -5,7 +5,7 @@ import { T } from "../../T"
 import { Ctx } from "../../utils/Functions/Ctx"
 import { Remodel, remodel } from "../Remodel"
 import { Ease } from "@ipota/functions"
-import type { MainEquipment, SubEquipment } from "./PlayerEquipment"
+import type { MainEquipment, SubEquipment } from "../Equipment/PlayerEquipment"
 
 // 残像1コマ分のスナップショット
 type AfterImage = { p: Vec; alpha: number }
@@ -229,7 +229,9 @@ export class Player extends Actor {
             this.v =
                 dir.magnitude() === 0
                     ? vec(0, 0)
-                    : dir.normalize().scale((input.isPressed("slow") ? this.slowSpeed : this.speed) * this.speedMultiplier)
+                    : dir
+                          .normalize()
+                          .scale((input.isPressed("slow") ? this.slowSpeed : this.speed) * this.speedMultiplier)
         }
 
         if (this.v.magnitude() === 0) return

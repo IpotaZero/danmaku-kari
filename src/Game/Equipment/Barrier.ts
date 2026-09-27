@@ -1,5 +1,5 @@
-import { Ctx } from "../../../utils/Functions/Ctx"
-import type { Player } from "../Player"
+import { Ctx } from "../../utils/Functions/Ctx"
+import type { Player } from "../Actor/Player"
 import { actionReadyEffect } from "./ActionReadyEffect"
 import type { SubEquipment } from "./types"
 

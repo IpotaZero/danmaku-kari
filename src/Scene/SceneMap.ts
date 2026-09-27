@@ -1,5 +1,5 @@
 import { playerData } from "../Data/PlayerData"
-import { mainEquipments, subEquipments } from "../Game/Actor/PlayerEquipment"
+import { mainEquipments, subEquipments } from "../Game/Equipment/PlayerEquipment"
 import { input } from "../input"
 import { getMapNode, getNeighborIds, isMapNodeUnlocked, mapGraph, MapEdge, MapNode, MapNodeId } from "../Map/MapGraph"
 import { sc } from "../sc"
