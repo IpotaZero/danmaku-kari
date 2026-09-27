@@ -76,7 +76,7 @@ class EnemyBoss extends Enemy {
             .speed(8)
             .color("#ffffff")
             .aim(this.game.player.p.clone())
-            .nway(13, T / 60)
+            .nway(13, T / 120)
             .delayByIndex()
             .g(function* (me, i) {
                 yield* Remodel.reaccel(me, stopFrames, waitFrames - i, accelFrames, launchSpeed)

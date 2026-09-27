@@ -44,6 +44,8 @@
         font-size: 0.8em;
         text-align: center;
 
+        cursor: pointer;
+
         transition:
             background 0.15s ease-out,
             border-color 0.15s ease-out,
@@ -58,6 +60,11 @@
 
         &.locked {
             opacity: 0.35;
+            cursor: default;
+        }
+
+        &:hover{
+            box-shadow: 0px 0px 8px 2px rgb(183 171 255 / 82%);
         }
     }
 
@@ -70,6 +77,8 @@
         gap: 0.2em;
 
         min-width: 8em;
+        /* ノードが画面端寄りにあっても、中央寄せのまま画面外にはみ出しすぎないように制限する */
+        max-width: min(16em, 80vw);
         padding: 0.5em 0.8em;
 
         background: #000000d0;
@@ -78,7 +87,6 @@
 
         color: yellow;
         text-align: center;
-        white-space: nowrap;
 
         opacity: 0;
         pointer-events: none;
@@ -106,6 +114,8 @@
         top: 0.8em;
         left: 1em;
 
+        font-size: 1.4em;
+
         font-family: "Courier New", monospace;
         letter-spacing: 0.05em;
     }
@@ -123,31 +133,61 @@
         position: absolute;
         bottom: 0.8em;
         left: 1em;
+        /* leftからさらに画面外へはみ出さないよう明示的に上限を決める(displayをflexにした
+           子要素の折返し崩れで、暗黙のshrink-to-fitに頼るとはみ出すことがあるため) */
+        max-width: calc(100vw - 2em);
 
         display: flex;
         flex-direction: column;
-        gap: 0.2em;
+        gap: 0.4em;
 
         font-family: "Courier New", monospace;
         font-size: 0.6em;
         letter-spacing: 0.05em;
-        opacity: 0.7;
+
+        > div {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            /* 文の途中(「戻る」等)で改行されないようにする。それでも入りきらない場合は
+               このspanの手前(和文の区切り)で改行される */
+            .nowrap {
+                white-space: nowrap;
+            }
+
+            cursor: pointer;
+            padding: 0.5em 0.5em;
+            /* 折り返して2行になるボタンとならないボタンとで高さが不揃いにならないようにする */
+            text-align: center;
+
+            background: #000000a8;
+            border: 0.05em solid #ffffff60;
+            border-radius: 0.1em;
+
+            opacity: 0.9;
+
+            &:hover{
+                box-shadow: 0px 0px 8px 2px rgb(183 171 255 / 82%);
+            }
+        }
     }
 
     #equip-root {
         width: 100%;
+        flex-direction: column;
     }
 
     #equip-main-options {
+        flex-direction: column;
         width: 100%;
         padding-top: 0.5em;
-        border-top: 0.05em solid #fffc;
     }
 
     #equip-sub-options {
+        flex-direction: column;
         width: 100%;
         padding-top: 0.5em;
-        border-top: 0.05em solid #fffc;
     }
 
     .equip-description {
@@ -179,12 +219,14 @@
         top: 0;
         right: 0;
         height: 100%;
-        width: 20em;
+        width: 100%;
+        max-width: 20em;
 
         display: flex;
         flex-direction: column;
+        justify-content: start;
         align-items: center;
-        gap: 0.5em;
+        gap: 2em;
 
         padding: 1.5em 2em;
 
@@ -198,6 +240,7 @@
             margin-bottom: 0.5em;
             width: 100%;
             justify-content: center;
+            white-space: nowrap;
         }
 
         .option-row {
@@ -208,6 +251,9 @@
             width: 100%;
             text-align: center;
             padding: 0.3em 0.5em;
+
+            background: #000000a8;
+            border: 0.05em solid #ffffff40;
         }
     }
 }

@@ -66,6 +66,12 @@ body {
     pointer-events: none;
 }
 
+div,
+span {
+    display: flex;
+    justify-content: center;
+}
+
 .fadeout {
     display: none;
 }

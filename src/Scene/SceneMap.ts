@@ -49,8 +49,8 @@ export class SceneMap extends Scene {
                 <div class="map-lives-recovery"></div>
             </div>
             <div class="map-controls">
-                <div>cancel(X): タイトルへ戻る</div>
-                <div>action(Ctrl): 装備変更</div>
+                <div data-control="open-equip">action(Ctrl): <span class="nowrap">装備変更</span></div>
+                <div data-control="back-to-title">cancel(X): <span class="nowrap">タイトルへ戻る</span></div>
             </div>
             <div class="texture-overlay"></div>
         `
@@ -62,10 +62,22 @@ export class SceneMap extends Scene {
             el.classList.toggle("locked", !isMapNodeUnlocked(node, playerData))
             el.style.left = `${node.x}%`
             el.style.top = `${node.y}%`
+            el.addEventListener("click", () => this.handleNodeTap(node.id))
 
             nodesEl.appendChild(el)
             this.nodeElements.set(node.id, el)
         }
+        // 初期選択ノードにも見た目上selectedを反映しておく(そうしないと最初の移動まで枠が出ない)
+        this.nodeElements.get(this.selectedId)?.classList.add("selected")
+
+        this.root.querySelector<HTMLElement>('[data-control="back-to-title"]')?.addEventListener("click", () => {
+            if (this.equipMenu) return
+            sc.goto(async () => import("./SceneTitle").then(({ SceneTitle }) => new SceneTitle()))
+        })
+        this.root.querySelector<HTMLElement>('[data-control="open-equip"]')?.addEventListener("click", () => {
+            if (this.equipMenu) return
+            this.openEquipMenu()
+        })
 
         this.infoEl = this.root.querySelector<HTMLElement>(".map-node-info")!
         this.showInfo()
@@ -119,9 +131,27 @@ export class SceneMap extends Scene {
         const next = pickClosestInDirection(current, neighbors, DIRECTION_VECTORS[direction])
         if (!next) return
 
-        this.selectedId = next.id
-        this.nodeElements.forEach((el, id) => el.classList.toggle("selected", id === this.selectedId))
+        this.selectNode(next.id)
+    }
+
+    private selectNode(id: MapNodeId) {
+        this.selectedId = id
+        this.nodeElements.forEach((el, nodeId) => el.classList.toggle("selected", nodeId === this.selectedId))
         this.hideInfo()
+    }
+
+    // タップ操作用。既に選択中のノードをもう一度タップしたら決定(keyboardのok相当)、
+    // そうでなければまずカーソルを合わせるだけ(keyboardの方向キー相当)にとどめる
+    private handleNodeTap(id: MapNodeId) {
+        if (this.equipMenu) return
+        if (!isMapNodeUnlocked(getMapNode(id), playerData)) return
+
+        if (id === this.selectedId) {
+            this.select()
+            return
+        }
+
+        this.selectNode(id)
     }
 
     private select() {
@@ -190,6 +220,7 @@ export class SceneMap extends Scene {
                 {
                     type: "select",
                     label: `戻る`,
+                    onFocus: () => this.hideEquipDescription(),
                     onSelect: () => {
                         this.equipMenu?.back(1)
                     },
@@ -230,6 +261,7 @@ export class SceneMap extends Scene {
                 {
                     type: "select",
                     label: `戻る`,
+                    onFocus: () => this.hideEquipDescription(),
                     onSelect: () => {
                         this.equipMenu?.back(1)
                     },
@@ -281,6 +313,7 @@ export class SceneMap extends Scene {
                 {
                     type: "select",
                     label: `戻る`,
+                    onFocus: () => this.hideEquipDescription(),
                     onSelect: () => {
                         this.equipMenu?.back(1)
                     },
@@ -322,6 +355,24 @@ export class SceneMap extends Scene {
         this.infoEl.querySelector(".map-node-info-label")!.textContent = node.label
         this.infoEl.querySelector(".map-node-info-description")!.textContent = node.description
         this.infoEl.classList.add("visible")
+
+        this.keepInfoOnScreen()
+    }
+
+    // 中央寄せ(CSSのtransform: translate(-50%, ...))のままだと、端寄りのノードや長い説明文で
+    // 画面外にはみ出すことがあるため、実際の描画幅を見てその分だけ左右にずらす
+    private keepInfoOnScreen() {
+        const margin = 8
+        this.infoEl.style.transform = ""
+
+        const rect = this.infoEl.getBoundingClientRect()
+        let shiftX = 0
+        if (rect.left < margin) shiftX = margin - rect.left
+        else if (rect.right > window.innerWidth - margin) shiftX = window.innerWidth - margin - rect.right
+
+        if (shiftX !== 0) {
+            this.infoEl.style.transform = `translate(calc(-50% + ${shiftX}px), calc(-100% - 1.6em))`
+        }
     }
 
     private updateLivesDisplay() {

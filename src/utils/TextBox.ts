@@ -46,6 +46,9 @@ export class TextBox {
     private readonly option: HTMLElement
     private readonly timer: HTMLElement
 
+    // boxをクリック/タップした瞬間を、「ok」が1回押されたのと同じ扱いにするためのフラグ
+    private boxClickPending = false
+
     constructor(
         private readonly input: DigitalInput.Reader<"ok" | "cancel" | "up" | "down" | "right" | "left">,
         private readonly playSe: () => void,
@@ -61,6 +64,21 @@ export class TextBox {
         this.option = this.box.querySelector(".option") as HTMLElement
         this.timer = this.box.querySelector(".timer-fill") as HTMLElement
         this.box.classList.add("hidden", "text-box")
+        this.box.addEventListener("click", () => {
+            this.boxClickPending = true
+        })
+    }
+
+    // 「ok」が押されたか(boxのクリック待ちも1回分の押下として合成する)
+    private isOkPushed(): boolean {
+        if (this.input.isPushed("ok")) return true
+
+        if (this.boxClickPending) {
+            this.boxClickPending = false
+            return true
+        }
+
+        return false
     }
 
     dispose() {
@@ -140,7 +158,7 @@ export class TextBox {
         yield
 
         while (true) {
-            if (this.input.isPushed("ok")) {
+            if (this.isOkPushed()) {
                 this.playSe()
                 return { type: "select", index: index as LessThan<Length> }
             }
@@ -232,7 +250,7 @@ export class TextBox {
             for (let f = 0; f < interval; f++) {
                 yield
 
-                if (canSkip && (this.input.isPushed("ok") || this.input.isPushed("cancel"))) {
+                if (canSkip && (this.isOkPushed() || this.input.isPushed("cancel"))) {
                     this.text.innerHTML = text
                     yield
                     return
@@ -242,7 +260,7 @@ export class TextBox {
     }
 
     private *wait() {
-        while (!(this.input.isPushed("ok") || this.input.isPushed("cancel"))) yield
+        while (!(this.isOkPushed() || this.input.isPushed("cancel"))) yield
         yield
     }
 

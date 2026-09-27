@@ -57,7 +57,7 @@ export class Game extends IteratorQueue {
     private bulletDrawer = new BulletDrawer()
     private bulletCollision = new BulletCollision()
 
-    readonly WIDTH = 32 * 20
+    readonly WIDTH = 32 * 16
     readonly HEIGHT: number
 
     constructor(
