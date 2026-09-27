@@ -92,6 +92,7 @@ export class Menu {
     ) {
         this.container.className = "menu"
         this.container.innerHTML = baseHtml
+        this.container.addEventListener("click", (e) => this.handleContainerClick(e))
 
         // 初期状態ではoptionsは空配列。直後のrender(true)で評価される
         this.layerStack = [{ box: this.root, options: [] }]
@@ -120,6 +121,27 @@ export class Menu {
         }
 
         this.updateDisabledClasses()
+    }
+
+    // タップ操作用。containerに1つだけ張ったリスナーからイベント委譲で呼ばれる
+    private handleContainerClick(e: MouseEvent) {
+        const optionEl = (e.target as HTMLElement).closest<HTMLElement>(".option")
+        if (!optionEl) return
+
+        for (let r = 0; r < this.optionElements.length; r++) {
+            const c = this.optionElements[r]?.indexOf(optionEl) ?? -1
+            if (c !== -1) {
+                this.handleOptionClick(r, c)
+                return
+            }
+        }
+    }
+
+    private handleOptionClick(row: number, col: number) {
+        this.cursor = { row, col }
+        this.updateSelectedClass()
+        this.getCurrentOption()?.onFocus?.()
+        this.select()
     }
 
     private playSound(sound: MenuSoundPattern | undefined) {
