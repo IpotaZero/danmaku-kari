@@ -173,7 +173,6 @@ export class SceneMap extends Scene {
                     type: "submenu",
                     label: `主装備: ${mainEquipments[playerData.getLoadout().main]?.label ?? playerData.getLoadout().main}`,
                     hides: [],
-                    shows: ["equip-main-options"],
                     onFocus: () => this.hideEquipDescription(),
                     subMenu: () => this.buildMainEquipmentSubMenu(),
                 },
@@ -183,9 +182,17 @@ export class SceneMap extends Scene {
                     type: "submenu",
                     label: `副装備: ${this.getSubEquipmentLabel()}`,
                     hides: [],
-                    shows: ["equip-sub-options"],
                     onFocus: () => this.hideEquipDescription(),
                     subMenu: () => this.buildSubEquipmentSubMenu(),
+                },
+            ],
+            [
+                {
+                    type: "select",
+                    label: `戻る`,
+                    onSelect: () => {
+                        this.equipMenu?.back(1)
+                    },
                 },
             ],
         ]
@@ -206,18 +213,29 @@ export class SceneMap extends Scene {
 
     // 所持していない主装備もdisabledとして一覧に出す(存在を知らせつつ選べないようにする)
     private buildMainEquipmentOptions(): MenuOption[][] {
-        return Object.keys(mainEquipments).map((id) => [
-            {
-                type: "select" as const,
-                label: mainEquipments[id]?.label ?? id,
-                disabled: () => !playerData.getOwnedMainEquipmentIds().has(id),
-                onFocus: () => this.showEquipDescription(mainEquipments[id]?.description ?? ""),
-                onSelect: () => {
-                    playerData.setLoadout({ ...playerData.getLoadout(), main: id })
-                    this.equipMenu?.backToRoot()
+        return [
+            ...Object.keys(mainEquipments).map((id) => [
+                {
+                    type: "select" as const,
+                    label: mainEquipments[id]?.label ?? id,
+                    disabled: () => !playerData.getOwnedMainEquipmentIds().has(id),
+                    onFocus: () => this.showEquipDescription(mainEquipments[id]?.description ?? ""),
+                    onSelect: () => {
+                        playerData.setLoadout({ ...playerData.getLoadout(), main: id })
+                        this.equipMenu?.backToRoot()
+                    },
                 },
-            },
-        ])
+            ]),
+            [
+                {
+                    type: "select",
+                    label: `戻る`,
+                    onSelect: () => {
+                        this.equipMenu?.back(1)
+                    },
+                },
+            ],
+        ]
     }
 
     private buildSubEquipmentSubMenu(): MenuOptionBox {
@@ -259,6 +277,15 @@ export class SceneMap extends Scene {
                     },
                 },
             ]),
+            [
+                {
+                    type: "select",
+                    label: `戻る`,
+                    onSelect: () => {
+                        this.equipMenu?.back(1)
+                    },
+                },
+            ],
         ]
     }
 
