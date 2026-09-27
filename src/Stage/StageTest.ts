@@ -106,26 +106,6 @@ class EnemySatellite extends Enemy {
         this.addScript(() => this.attack(), { margin: ENTRANCE_FRAMES, loop: Infinity })
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
-        this.drawTether(ctx)
-        super.draw(ctx)
-    }
-
-    // 親機とのつながりを示す、ゆっくり明滅する線
-    private drawTether(ctx: CanvasRenderingContext2D) {
-        const alpha = 0.15 + 0.25 * (Math.sin(this.frame / 60) + 1)
-
-        ctx.save()
-        ctx.globalAlpha = alpha
-        ctx.strokeStyle = "#ff3366"
-        ctx.lineWidth = 2
-        ctx.beginPath()
-        ctx.moveTo(this.p.x, this.p.y)
-        ctx.lineTo(this.parent.p.x, this.parent.p.y)
-        ctx.stroke()
-        ctx.restore()
-    }
-
     // ボスを一切見ず、ボスと全く同じフレーム数だけ待つことで結果的に同時発射になる
     private *attack() {
         yield* GenUtils.all({
