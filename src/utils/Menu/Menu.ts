@@ -1,5 +1,4 @@
 import type { DigitalInput } from "@ipota/input"
-import { holdProgress } from "./holdProgress"
 
 export type MenuSoundPattern = "ok" | "cancel" | "none"
 
@@ -29,17 +28,7 @@ type MenuOption_Submenu = BaseMenuOption & {
     subMenu: () => MenuOptionBox
 }
 
-type MenuOption_Hold = BaseMenuOption & {
-    type: "hold"
-    /** 「ok」を押し続けている割合(0〜1)を毎フレーム受け取る。離すと0に戻る */
-    onHold: (ratio: number) => void
-    /** holdMs経過して長押しが完了した時に発火 */
-    onConfirm: () => void
-    /** 確定に必要な長押し時間(ms)。*/
-    holdMs: number
-}
-
-export type MenuOption = MenuOption_Select | MenuOption_Submenu | MenuOption_Hold
+export type MenuOption = MenuOption_Select | MenuOption_Submenu
 
 export type MenuOptionBox = {
     // 選択肢を表示する要素のID。
@@ -71,18 +60,12 @@ type MenuLayer = {
     options: MenuOption[][]
 }
 
-type MenuHoldState = {
-    option: MenuOption_Hold
-    progress: Generator<number, true, void>
-}
-
 // レイヤーの表示/非表示切り替えにかけるフェード時間(ms)
 const TRANSITION_MS = 150
 
 export class Menu {
     readonly container = document.createElement("div")
     private cursor: MenuCursor = { row: 0, col: 0 }
-    private holdState: MenuHoldState | undefined
 
     // カーソルのスタック
     private history: MenuCursor[] = []
@@ -136,44 +119,7 @@ export class Menu {
             this.back(1)
         }
 
-        this.updateHold()
         this.updateDisabledClasses()
-    }
-
-    private updateHold() {
-        const option = this.getCurrentOption()
-
-        // 現状が変化しているならアップデート
-        if (option !== this.holdState?.option) {
-            if (option?.type === "hold") {
-                this.holdState = {
-                    option,
-                    progress: holdProgress(option.holdMs!, () => this.input.isPressed("ok"), {
-                        disabled: option.disabled,
-                        onFailed: () => {
-                            this.se.playCancel()
-                        },
-                    }),
-                }
-            } else {
-                this.holdState = undefined
-            }
-        }
-
-        // 待ち状態じゃないなら帰る
-        if (!this.holdState) return
-
-        const { option: holdOption, progress } = this.holdState
-        const result = progress.next()
-
-        if (result.done) {
-            this.holdState = undefined
-            holdOption.onHold(0)
-            holdOption.onConfirm()
-            this.playSound(option?.sound)
-        } else {
-            holdOption.onHold(result.value)
-        }
     }
 
     private playSound(sound: MenuSoundPattern | undefined) {
@@ -194,9 +140,6 @@ export class Menu {
             this.se.playDisable()
             return
         }
-
-        // 長押し確定用オプションは単押しのokでは何もしない(updateHoldが処理する)
-        if (option.type === "hold") return
 
         this.playSound(option.sound)
 
