@@ -10,6 +10,16 @@ import { IteratorQueue } from "./IteratorQueue"
 import { Stage } from "../Stage/Stage"
 import { TextBox } from "../utils/TextBox"
 import { remodel } from "./Remodel"
+import { TouchControls } from "./TouchControls"
+import { isSmartPhone } from "../utils/Functions/isSmartPhone"
+
+export type GameAction = "right" | "left" | "up" | "down" | "slow" | "suicide" | "action" | "ok" | "cancel"
+
+// タッチドラッグ時、方向キーの代わりに移動量(ワールド座標のベクトル)を直接渡すための拡張。
+// TouchControls以外(キーボード/ゲームパッド)は実装しないため、未実装を許すoptionalにしている
+export type GameInput = DigitalInput.Reader<GameAction> & {
+    getTouchMoveVector?(): Vec | undefined
+}
 
 /**
  * ゲーム本体をカプセル化したクラス。
@@ -27,6 +37,9 @@ export class Game extends IteratorQueue {
     bullets: Bullet[] = []
 
     readonly textBox: TextBox
+    readonly input: GameInput
+
+    private readonly touchControls: TouchControls
 
     private state: "playing" | "game-over" | "cleared" = "playing"
 
@@ -45,13 +58,11 @@ export class Game extends IteratorQueue {
     private bulletCollision = new BulletCollision()
 
     readonly WIDTH = 32 * 20
-    readonly HEIGHT = 32 * 24
+    readonly HEIGHT: number
 
     constructor(
         stage: (game: Game) => Stage,
-        readonly input: DigitalInput.Reader<
-            "right" | "left" | "up" | "down" | "slow" | "suicide" | "action" | "ok" | "cancel"
-        >,
+        baseInput: DigitalInput.Reader<GameAction>,
         readonly onWin: () => void,
         readonly onLose: () => void,
         playerConfig: PlayerConfig,
@@ -60,14 +71,27 @@ export class Game extends IteratorQueue {
 
         this.stage = stage(this)
 
+        // 画面比に合わせてフィールドの高さを決める。ただしwidth:heightが1:2より横長にはしない
+        // (縦長のスマホ画面ではそのまま画面比に追従させる。横長のPC画面ではフィールドが
+        // 潰れて遊べなくなるのを防ぐため、常に最低でも縦長2倍(1:2)の比を保つ)
+        const minWidthToHeightRatio = 1 / 2
+        const viewportAspect = window.innerWidth / window.innerHeight
+        this.HEIGHT = Math.round(this.WIDTH / Math.min(viewportAspect, minWidthToHeightRatio))
+
         this.canvas = document.createElement("canvas")
         this.canvas.width = this.WIDTH
         this.canvas.height = this.HEIGHT
+        // スマホでは画面比にHEIGHTを合わせてあるので、max-width/max-height中央寄せ(≒ズレの余地がある)
+        // ではなく明示的にwidth/height:100%で画面端まで詰める
+        if (isSmartPhone) this.canvas.classList.add("fill-viewport")
 
         const ctx = this.canvas.getContext("2d")
         if (!ctx) throw new Error("2D context is not available")
         this.ctx = ctx
         this.ctx.globalCompositeOperation = "lighter"
+
+        this.touchControls = new TouchControls(baseInput, this.canvas)
+        this.input = this.touchControls
 
         this.textBox = new TextBox(this.input, () => {})
 
@@ -76,6 +100,8 @@ export class Game extends IteratorQueue {
     }
 
     update(): void {
+        this.touchControls.update()
+
         if (this.state === "playing" && this.input.isPushed("suicide")) {
             this.player.selfDestruct()
         }

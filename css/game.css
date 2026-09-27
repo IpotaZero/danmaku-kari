@@ -15,9 +15,19 @@
         min-width: 0;
         min-height: 0;
 
+        touch-action: none;
+
         background-color: black;
 
         border: white 1px solid;
+
+        /* スマホではHEIGHTを画面比に合わせてあるので、中央寄せに頼らず画面端まで明示的に詰める */
+        &.fill-viewport {
+            width: 100%;
+            height: 100%;
+            max-width: none;
+            max-height: none;
+        }
     }
 
     .text-box {

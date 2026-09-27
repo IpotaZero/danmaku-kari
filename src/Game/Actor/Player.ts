@@ -216,17 +216,24 @@ export class Player extends Actor {
 
         const input = this.game.input
 
-        const dir = vec(
-            (input.isPressed("right") ? 1 : 0) - (input.isPressed("left") ? 1 : 0),
-            (input.isPressed("down") ? 1 : 0) - (input.isPressed("up") ? 1 : 0),
-        )
-        if (dir.magnitude() === 0) {
-            this.v = vec(0, 0)
-            return
+        // タッチドラッグ中は、指の移動量(ワールド座標のベクトル)をそのまま速度として使う
+        const touchMoveVector = input.getTouchMoveVector?.()
+
+        if (touchMoveVector) {
+            this.v = touchMoveVector
+        } else {
+            const dir = vec(
+                (input.isPressed("right") ? 1 : 0) - (input.isPressed("left") ? 1 : 0),
+                (input.isPressed("down") ? 1 : 0) - (input.isPressed("up") ? 1 : 0),
+            )
+            this.v =
+                dir.magnitude() === 0
+                    ? vec(0, 0)
+                    : dir.normalize().scale((input.isPressed("slow") ? this.slowSpeed : this.speed) * this.speedMultiplier)
         }
 
-        const baseSpeed = input.isPressed("slow") ? this.slowSpeed : this.speed
-        this.v = dir.normalize().scale(baseSpeed * this.speedMultiplier)
+        if (this.v.magnitude() === 0) return
+
         const next = this.p.add(this.v)
 
         this.p = vec(Math.min(Math.max(next.x, 0), this.game.WIDTH), Math.min(Math.max(next.y, 0), this.game.HEIGHT))
