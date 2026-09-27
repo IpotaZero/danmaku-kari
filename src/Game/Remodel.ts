@@ -119,9 +119,9 @@ export class Remodel<Parent extends Actor> {
     }
 
     // 出現を遅らせる
-    delayByIndex() {
+    delayByIndex(scalar: number = 1) {
         this.forEach((b, index) => {
-            b.delay = index
+            b.delay = index * scalar
         })
         return this
     }

@@ -11,15 +11,19 @@ export namespace GenUtils {
      * })
      */
     export function* all<T, K extends string>(
-        gens: Record<K, Generator<void, T, void>>,
+        gens: Record<K, Generator<void, T, void> | Iterable<void>>,
     ): Generator<void, Record<K, T>, void> {
         const keys = Object.keys(gens) as K[]
         const results = {} as Record<K, T>
         const activeKeys = new Set(keys)
+        const iterators = Object.fromEntries(keys.map((key) => [key, gens[key][Symbol.iterator]()])) as Record<
+            K,
+            Iterator<void, T, void>
+        >
 
         while (activeKeys.size > 0) {
             for (const key of activeKeys) {
-                const step = gens[key].next()
+                const step = iterators[key].next()
                 if (step.done) {
                     results[key] = step.value
                     activeKeys.delete(key)

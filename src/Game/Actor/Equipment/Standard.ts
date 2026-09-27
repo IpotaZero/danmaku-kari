@@ -13,11 +13,11 @@ const 弾半径 = 3
 const 弾威力 = 3
 
 const ホーミング間隔 = 40
-const ホーミング弾数 = 2
+const ホーミング弾数 = 4
 const ホーミング弾半径 = 4
 const ホーミング弾速 = 18
-const ホーミング弾威力 = 2
-const ホーミング展開角度 = T / 4
+const ホーミング弾威力 = 1
+const ホーミング展開角度 = T / 8
 const 追尾開始待機フレーム = 10
 const 追尾継続フレーム = 50
 const 角加速度 = T / 150
@@ -83,7 +83,7 @@ function* homingShotLoop(player: Player): Generator<void, void, void> {
                 .appearance("arrow")
                 .type("friend")
                 .color("white")
-                .alpha(0.5)
+                .alpha(0.2)
                 .r(20)
                 .damage(ホーミング弾威力)
                 .speed(ホーミング弾速)

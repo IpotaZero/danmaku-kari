@@ -7,7 +7,7 @@ import type { MainEquipment } from "./types"
 
 const ビーム本数 = 2
 const 通常時間隔 = 180
-const 集中時間隔 = 60
+const 集中時間隔 = 30
 const 間隔追従率 = 0.1
 const ビーム長さ = 900
 const 通常時太さ = 3
@@ -22,7 +22,7 @@ const 集中時威力 = 1
 export const laser: MainEquipment = {
     label: "光線",
     description:
-        "自機の左右2本から常時レーザーを出し続ける。通常は幅が広く当てやすい代わりに威力は控えめ、低速時は幅が狭くなる代わりに威力が上がる。ビームの隙間を球弾とリング弾が補う。自機狙いをしないので、敵の正面に自機を移動させないと当たらない。",
+        "自機の左右から常時レーザーを出し続ける。低速時は幅が狭くなる。自機狙いをしないので、敵の正面に自機を移動させないと当たらない。",
     *fire(player) {
         while (!player.game.isPlaying) yield
 

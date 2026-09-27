@@ -36,8 +36,8 @@ export const mapGraph: MapGraph = {
     nodes: [
         {
             id: "start",
-            label: "start",
-            description: "はじまりの地点",
+            label: "難しさとは",
+            description: "集中と混乱のこと",
             x: 20,
             y: 50,
             stage: (game) => new StageTest(game),

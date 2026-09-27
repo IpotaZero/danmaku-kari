@@ -327,8 +327,6 @@ export class Menu {
         this.layerStack.push({ box: subMenu, options: [] })
         this.cursor = subMenu.initialCursor?.() ?? { row: 0, col: 0 }
 
-        // フェード中もrootの表示領域と重ねて表示できるよう、サブメニューは常にoverlay配置にする
-        this.getElement(subMenu.elementId).classList.add("menu-submenu-layer")
         this.setHidden(subMenu.elementId, false)
         this.render()
     }

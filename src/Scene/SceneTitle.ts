@@ -12,7 +12,7 @@ export class SceneTitle extends Scene {
             <div class="title-content">
                 <div class="title-version">ver. dev</div>
                 <div class="title-copyright">&copy; ososikirackets</div>
-                <div class="title-logo">The<br />Vectorized<br />Days!</div>
+                <div class="title-logo">The<br />(仮)<br />Days!</div>
             </div>
         `
 

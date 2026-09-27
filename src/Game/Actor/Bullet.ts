@@ -3,7 +3,7 @@ import { Actor } from "./Actor"
 export class Bullet extends Actor {
     r: number = 12
     radian: number = 0
-    speed: number = 6
+    speed: number = 1
     length: number = 0
     damage: number = 1
     delay: number = 0
@@ -77,7 +77,12 @@ export class Bullet extends Actor {
     }
 
     private *boundary() {
-        if (this.p.x < 0 || this.game.WIDTH < this.p.x || this.p.y < 0 || this.game.HEIGHT < this.p.y) {
+        if (
+            this.p.x < -this.r ||
+            this.game.WIDTH + this.r < this.p.x ||
+            this.p.y < -this.r ||
+            this.game.HEIGHT + this.r < this.p.y
+        ) {
             this.life = 0
         }
         yield

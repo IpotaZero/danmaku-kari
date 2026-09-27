@@ -61,14 +61,14 @@ export abstract class Enemy extends Actor {
             .type("effect")
             .alpha(0.5)
             .p(this.p.clone())
-            .duplicate(63, (me, i) => {
+            .duplicate(31, (me, i) => {
                 me.radian = Math.random() * T
                 me.speed = Math.random() * 2 + 2
                 me.r = Math.random() * 4 + 8
                 return me
             })
             .g(function* (me) {
-                yield* Remodel.fadeout(me, 120)
+                yield* Remodel.fadeout(me, 80)
             })
             .fire(this.game.bullets)
     }
