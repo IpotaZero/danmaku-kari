@@ -29,7 +29,7 @@ const 最大角速度 = T / 50
 // メインの弾とは別の間隔で添える
 export const standard: MainEquipment = {
     label: "拡散弾",
-    description: "前方にn-way。ホーミング弾を添えた汎用的な主装備。",
+    description: "前方に打ち込み。追尾弾を添えた汎用的な流派。",
     *fire(player) {
         // メインの弾とホーミング弾は間隔が違うので、別々のループとして並行に走らせる
         yield* GenUtils.all({

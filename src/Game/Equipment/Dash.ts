@@ -10,7 +10,7 @@ const 速度倍率 = 5
 
 export const dash: SubEquipment = {
     label: "高速移動",
-    description: "actionボタンで一瞬だけ高速移動する。高速移動中は無敵になる。再使用までが短い。",
+    description: "一瞬だけ高速移動する。高速移動中は無敵になる。再使用までが短い。",
     *action(player) {
         let cooldown = 0
         let burstFramesRemaining = 0

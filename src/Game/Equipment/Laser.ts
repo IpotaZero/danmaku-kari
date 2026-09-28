@@ -21,7 +21,7 @@ const 集中時威力 = 1
 // 敵の正面に自機を移動させて撃ち合わせないと当たらない
 export const laser: MainEquipment = {
     label: "貫通弾",
-    description: "自機の左右から常時レーザーを出し続ける。低速時は幅が狭くなる。",
+    description: "自機の左右から常時光線を出し続ける。低速時は幅が狭くなる。",
     *fire(player) {
         while (!player.game.isPlaying) yield
 

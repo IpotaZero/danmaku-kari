@@ -16,7 +16,7 @@ const 半径倍率 = 12
 
 export const barrier: SubEquipment = {
     label: "障壁",
-    description: "actionボタンでその場に結界を張る。結界は2秒間その位置に留まり、中に入った敵弾をスコアに変える。",
+    description: "その場に結界を張る。結界は2秒間その位置に留まり、中に入った敵弾を銭に変える。",
     *action(player) {
         let cooldown = 0
 
