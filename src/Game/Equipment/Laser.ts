@@ -111,7 +111,7 @@ function* リング弾を撃ち続ける(player: Player): Generator<void, void, 
     while (true) {
         if (!player.game.isGameOver) {
             yield* remodel(player)
-                .p(player.p.clone())
+                .p(player.p.add(vec(0, -24)))
                 .radian(-T / 4)
                 .type("friend")
                 .color("white")

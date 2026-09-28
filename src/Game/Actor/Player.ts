@@ -249,7 +249,7 @@ export class Player extends Actor {
         const count = isBoosted ? 2 : 1
 
         for (let i = 0; i < count; i++) {
-            this.addScript(() => this.moveParticle(isBoosted), { id: crypto.randomUUID() })
+            this.addScript(() => this.moveParticle(isBoosted))
         }
     }
 

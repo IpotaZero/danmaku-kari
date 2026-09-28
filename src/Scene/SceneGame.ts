@@ -9,37 +9,43 @@ import { Menu } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
 
 export class SceneGame extends Scene {
-    private readonly game: Game
+    private game?: Game
     private resultMenu?: Menu
 
     constructor(private readonly node: MapNode) {
         super()
-
-        this.game = new Game(
-            this.node.stage,
-            input,
-            () => {
-                playerData.recordStageClear(this.node.id, playerData.getLoadout().main)
-                this.showResultMenu("--:: 作戦成功 ::--")
-            },
-            () => this.showResultMenu("--:: 作戦失敗 ::--"),
-            createPlayerConfig(),
-        )
     }
 
     protected async onStart(): Promise<void> {
+        console.log(`SceneGame: ${this.node.id}`)
+
+        this.game = await Game.create(
+            this.node.stage,
+            input,
+            (score) => {
+                playerData.recordStageClear(this.node.id, playerData.getLoadout().main)
+                playerData.addScore(score)
+                this.showResultMenu("--:: 作戦成功 ::--")
+            },
+            (score) => {
+                playerData.addScore(score)
+                this.showResultMenu("--:: 作戦失敗 ::--")
+            },
+            createPlayerConfig(),
+        )
+
         this.root.classList.add("scene-game")
         this.game.canvas.id = "main"
         this.root.append(this.game.canvas, this.game.textBox.box)
     }
 
     protected async onEnd(): Promise<void> {
-        this.game.dispose()
+        this.game?.dispose()
     }
 
     update(): void {
         // クリア/ゲームオーバー後もGame自体の更新(敵・弾・カメラなど)は続ける
-        this.game.update()
+        this.game?.update()
         this.resultMenu?.update()
     }
 

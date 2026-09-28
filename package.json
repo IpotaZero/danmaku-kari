@@ -11,8 +11,5 @@
     },
     "scripts": {
         "build": "npx vite build --watch"
-    },
-    "devDependencies": {
-        "@types/three": "^0.185.1"
     }
 }

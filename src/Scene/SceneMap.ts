@@ -11,6 +11,12 @@ type Direction = "up" | "down" | "left" | "right"
 // 説明の枠のopacity遷移(css側のtransition時間と合わせる)にかける時間
 const INFO_FADE_MS = 150
 
+// これ以上動かしたらタップではなくスワイプ(ドラッグ)とみなす閾値(px)
+const DRAG_THRESHOLD = 6
+
+// ノード選択時、そのノードが画面中央に来るまでのカメラ移動にかける時間
+const CAMERA_PAN_MS = 250
+
 const DIRECTION_VECTORS: Record<Direction, { x: number; y: number }> = {
     up: { x: 0, y: -1 },
     down: { x: 0, y: 1 },
@@ -18,9 +24,12 @@ const DIRECTION_VECTORS: Record<Direction, { x: number; y: number }> = {
     right: { x: 1, y: 0 },
 }
 
+type Camera = { x: number; y: number }
+
 export class SceneMap extends Scene {
     private selectedId: MapNodeId
     private readonly nodeElements = new Map<MapNodeId, HTMLElement>()
+    private mapWorldEl!: HTMLElement
     private infoEl!: HTMLElement
     private infoShowTimer?: number
     private livesEl!: HTMLElement
@@ -28,25 +37,43 @@ export class SceneMap extends Scene {
     private equipMenu?: Menu
     private equipDescriptionEl?: HTMLElement
 
+    // ワールド座標系でのカメラ位置(=画面中央に表示されるワールド座標)
+    private camera: Camera = { x: 0, y: 0 }
+    private readonly worldBounds = computeWorldBounds(mapGraph.nodes)
+
+    // スワイプでのカメラ操作用の状態
+    private dragging = false
+    private dragMoved = false
+    private dragPointerId: number | null = null
+    private dragStartClient: Camera = { x: 0, y: 0 }
+    private dragStartCamera: Camera = { x: 0, y: 0 }
+    // ドラッグ後に発火するclickをタップと誤認しないようにするためのフラグ
+    private suppressNextClick = false
+
     constructor(selectedId: MapNodeId = mapGraph.startId) {
         super()
         this.selectedId = selectedId
     }
 
     protected async onStart(): Promise<void> {
+        console.log(`SceneMap: ${this.selectedId}`)
+
         this.root.classList.add("scene-map")
         this.root.innerHTML = `
-            <svg class="map-edges" viewBox="0 0 100 100" preserveAspectRatio="none">
-                ${mapGraph.edges.map((edge) => this.renderEdge(edge)).join("")}
-            </svg>
-            <div class="map-nodes"></div>
-            <div class="map-node-info">
-                <div class="map-node-info-label"></div>
-                <div class="map-node-info-description"></div>
+            <div class="map-world">
+                <svg class="map-edges">
+                    ${mapGraph.edges.map((edge) => this.renderEdge(edge)).join("")}
+                </svg>
+                <div class="map-nodes"></div>
+                <div class="map-node-info">
+                    <div class="map-node-info-label"></div>
+                    <div class="map-node-info-description"></div>
+                </div>
             </div>
             <div class="map-lives">
                 <div class="map-lives-count"></div>
                 <div class="map-lives-recovery"></div>
+                <div class="map-score"></div>
             </div>
             <div class="map-controls">
                 <div data-control="open-equip">action(Ctrl): <span class="nowrap">装備変更</span></div>
@@ -55,14 +82,23 @@ export class SceneMap extends Scene {
             <div class="texture-overlay"></div>
         `
 
+        this.mapWorldEl = this.root.querySelector<HTMLElement>(".map-world")!
+
         const nodesEl = this.root.querySelector<HTMLElement>(".map-nodes")!
         for (const node of mapGraph.nodes) {
             const el = document.createElement("div")
             el.className = "map-node"
             el.classList.toggle("locked", !isMapNodeUnlocked(node, playerData))
-            el.style.left = `${node.x}%`
-            el.style.top = `${node.y}%`
-            el.addEventListener("click", () => this.handleNodeTap(node.id))
+            el.style.left = `${node.x}px`
+            el.style.top = `${node.y}px`
+            el.addEventListener("click", () => {
+                // スワイプの指を離した直後に発火するclickをタップ選択として扱わない
+                if (this.suppressNextClick) {
+                    this.suppressNextClick = false
+                    return
+                }
+                this.handleNodeTap(node.id)
+            })
 
             nodesEl.appendChild(el)
             this.nodeElements.set(node.id, el)
@@ -85,10 +121,28 @@ export class SceneMap extends Scene {
         this.livesEl = this.root.querySelector<HTMLElement>(".map-lives-count")!
         this.livesRecoveryEl = this.root.querySelector<HTMLElement>(".map-lives-recovery")!
         this.updateLivesDisplay()
+
+        // scoreはステージ内でのみ変動する値で、SceneMap滞在中には変わらないので一度だけ表示すればよい
+        this.root.querySelector<HTMLElement>(".map-score")!.textContent =
+            `銭 ${playerData.getTotalScore().toLocaleString()}`
+
+        // 初期カメラは選択中ノードを中央に据えた状態から始める(アニメーションなし)
+        this.camera = this.clampCamera(getMapNode(this.selectedId))
+        this.applyCamera(false)
+
+        this.root.addEventListener("pointerdown", this.handlePointerDown)
+        this.root.addEventListener("pointermove", this.handlePointerMove)
+        this.root.addEventListener("pointerup", this.handlePointerUp)
+        this.root.addEventListener("pointercancel", this.handlePointerUp)
     }
 
     protected async onEnd(): Promise<void> {
         clearTimeout(this.infoShowTimer)
+
+        this.root.removeEventListener("pointerdown", this.handlePointerDown)
+        this.root.removeEventListener("pointermove", this.handlePointerMove)
+        this.root.removeEventListener("pointerup", this.handlePointerUp)
+        this.root.removeEventListener("pointercancel", this.handlePointerUp)
     }
 
     update(): void {
@@ -138,6 +192,61 @@ export class SceneMap extends Scene {
         this.selectedId = id
         this.nodeElements.forEach((el, nodeId) => el.classList.toggle("selected", nodeId === this.selectedId))
         this.hideInfo()
+
+        this.camera = this.clampCamera(getMapNode(id))
+        this.applyCamera(true)
+    }
+
+    // カメラをワールド座標posに向ける(=posが画面中央に来るようにする)。animateがtrueならアニメーションさせる
+    private applyCamera(animate: boolean) {
+        this.mapWorldEl.style.transition = animate ? `transform ${CAMERA_PAN_MS}ms ease-out` : "none"
+        this.mapWorldEl.style.transform = `translate(${-this.camera.x}px, ${-this.camera.y}px)`
+    }
+
+    // カメラがノードの存在範囲より外に出ないように制限する(スワイプで無の空間へ延々と行けてしまわないため)
+    private clampCamera(pos: { x: number; y: number }): Camera {
+        return {
+            x: clamp(pos.x, this.worldBounds.minX, this.worldBounds.maxX),
+            y: clamp(pos.y, this.worldBounds.minY, this.worldBounds.maxY),
+        }
+    }
+
+    private handlePointerDown = (e: PointerEvent) => {
+        if (this.equipMenu) return
+        if (this.dragging) return // 既に別の指/ボタンでドラッグ中なら無視(多点タッチでの取り違え防止)
+        if (e.button !== 0) return // 左クリック/タッチのみ(右クリック等でのドラッグ開始を防ぐ)
+
+        this.dragging = true
+        this.dragMoved = false
+        this.dragPointerId = e.pointerId
+        this.dragStartClient = { x: e.clientX, y: e.clientY }
+        this.dragStartCamera = { ...this.camera }
+    }
+
+    private handlePointerMove = (e: PointerEvent) => {
+        if (!this.dragging || e.pointerId !== this.dragPointerId) return
+
+        const dx = e.clientX - this.dragStartClient.x
+        const dy = e.clientY - this.dragStartClient.y
+
+        if (!this.dragMoved) {
+            if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return
+            this.dragMoved = true
+            this.root.classList.add("dragging")
+        }
+
+        this.camera = this.clampCamera({ x: this.dragStartCamera.x - dx, y: this.dragStartCamera.y - dy })
+        this.applyCamera(false)
+    }
+
+    private handlePointerUp = (e: PointerEvent) => {
+        if (!this.dragging || e.pointerId !== this.dragPointerId) return
+
+        this.dragging = false
+        this.dragPointerId = null
+        this.root.classList.remove("dragging")
+        // ドラッグが発生した場合、指を離した直後に発火するclickをタップ選択として扱わない
+        if (this.dragMoved) this.suppressNextClick = true
     }
 
     // タップ操作用。既に選択中のノードをもう一度タップしたら決定(keyboardのok相当)、
@@ -350,8 +459,8 @@ export class SceneMap extends Scene {
 
     private showInfo() {
         const node = getMapNode(this.selectedId)
-        this.infoEl.style.left = `${node.x}%`
-        this.infoEl.style.top = `${node.y}%`
+        this.infoEl.style.left = `${node.x}px`
+        this.infoEl.style.top = `${node.y}px`
         this.infoEl.querySelector(".map-node-info-label")!.textContent = node.label
         this.infoEl.querySelector(".map-node-info-description")!.textContent = node.description
         this.infoEl.classList.add("visible")
@@ -415,6 +524,17 @@ function pickClosestInDirection(
     }
 
     return best
+}
+
+// カメラが取りうる範囲(全ノードのbounding box)
+function computeWorldBounds(nodes: readonly MapNode[]): { minX: number; maxX: number; minY: number; maxY: number } {
+    const xs = nodes.map((node) => node.x)
+    const ys = nodes.map((node) => node.y)
+    return { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) }
+}
+
+function clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max)
 }
 
 function formatMmSs(ms: number): string {

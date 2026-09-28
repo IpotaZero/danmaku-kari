@@ -27,6 +27,9 @@
             height: 100%;
             max-width: none;
             max-height: none;
+
+            /* 画面端まで詰めるので、境界線は不要 */
+            border: none;
         }
     }
 

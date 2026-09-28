@@ -1,3 +1,5 @@
+import { uid } from "../utils/Functions/uid"
+
 export abstract class IteratorQueue {
     protected scripts = new Map<string, Generator>()
 
@@ -30,7 +32,7 @@ export abstract class IteratorQueue {
     // 外部(装備など)からもエフェクト用の一時的なスクリプトを積めるようpublicにしている
     addScript(
         g: (me: this) => Iterable<void, void, void>,
-        { loop = 1, margin = 0, id = crypto.randomUUID() }: { loop?: number; margin?: number; id?: string } = {},
+        { loop = 1, margin = 0, id = uid() }: { loop?: number; margin?: number; id?: string } = {},
     ) {
         const me = this
 

@@ -7,6 +7,8 @@ export class SceneTitle extends Scene {
     private menu?: Menu
 
     protected async onStart(): Promise<void> {
+        console.log("SceneTitle")
+
         this.root.classList.add("scene-title")
         this.root.innerHTML = `
             <div class="title-content">
@@ -47,6 +49,20 @@ export class SceneTitle extends Scene {
         const textureOverlay = document.createElement("div")
         textureOverlay.className = "texture-overlay"
         this.root.appendChild(textureOverlay)
+
+        if (document.fullscreenEnabled) {
+            const fullscreenToggle = document.createElement("button")
+            fullscreenToggle.className = "title-fullscreen-toggle"
+            fullscreenToggle.textContent = "⛶"
+            fullscreenToggle.addEventListener("click", () => {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen()
+                } else {
+                    document.documentElement.requestFullscreen()
+                }
+            })
+            this.root.appendChild(fullscreenToggle)
+        }
     }
 
     protected async onEnd(): Promise<void> {}

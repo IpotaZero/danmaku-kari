@@ -4,16 +4,34 @@
     width: 100%;
     height: 100%;
     position: relative;
+    overflow: hidden;
+
+    /* ドラッグでのスワイプ操作を自前で処理するので、ブラウザ標準のスクロール/ズームジェスチャーには渡さない */
+    touch-action: none;
+    cursor: grab;
+
+    &.dragging {
+        cursor: grabbing;
+    }
+
+    /* ノードのワールド座標(px)の原点。ここを画面中央に置き、カメラ位置ぶんだけJSでtranslateする */
+    .map-world {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 0;
+        height: 0;
+    }
 
     .map-edges {
         position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
+        left: 0;
+        top: 0;
+        overflow: visible;
 
         line {
             stroke: #ffffff60;
-            stroke-width: 0.5;
+            stroke-width: 2;
 
             &.locked {
                 opacity: 0.05;
@@ -110,7 +128,7 @@
         position: absolute;
         display: flex;
         flex-direction: column;
-        gap: 0.5em;
+        gap: 0.25em;
         top: 0.8em;
         left: 1em;
 
@@ -129,14 +147,20 @@
         opacity: 0.7;
     }
 
+    .map-score {
+        font-size: 0.8em;
+        justify-content:start;
+    }
+
     .map-controls {
         position: absolute;
         bottom: 0.8em;
         left: 1em;
-        /* leftからさらに画面外へはみ出さないよう明示的に上限を決める(displayをflexにした
-           子要素の折返し崩れで、暗黙のshrink-to-fitに頼るとはみ出すことがあるため) */
-        max-width: calc(100vw - 2em);
+        right: 1em;
+        max-width: 30em;
 
+
+        
         display: flex;
         flex-direction: column;
         gap: 0.4em;

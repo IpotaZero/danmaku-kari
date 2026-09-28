@@ -2,7 +2,6 @@ import { Game } from "../Game/Game"
 import { EquipmentId } from "../Data/Equipment"
 import { PlayerData } from "../Data/PlayerData"
 import { Stage } from "../Stage/Stage"
-import StageTest from "../Stage/StageTest"
 
 export type MapNodeId = string
 
@@ -10,10 +9,10 @@ export type MapNode = {
     readonly id: MapNodeId
     readonly label: string
     readonly description: string
-    // 画面内の位置(%, 0-100)
+    // ワールド座標(px)。原点や単位に意味はなく、ノード間の相対位置だけが重要
     readonly x: number
     readonly y: number
-    readonly stage: (game: Game) => Stage
+    readonly stage: (game: Game) => Promise<Stage>
 }
 
 export type MapEdge = {
@@ -30,7 +29,6 @@ export type MapGraph = {
 }
 
 // 仮のマップ
-// とりあえず全ノードをStageTestに紐づけておく。requiredMainEquipmentIdの値も仮
 export const mapGraph: MapGraph = {
     startId: "start",
     nodes: [
@@ -38,13 +36,34 @@ export const mapGraph: MapGraph = {
             id: "start",
             label: "難しさとは",
             description: "集中と混乱のこと",
-            x: 20,
-            y: 50,
-            stage: (game) => new StageTest(game),
+            x: 0,
+            y: 120,
+            stage: async (game) => import("../Stage/StageTest").then(({ default: c }) => new c(game)),
         },
-        { id: "a", label: "A", description: "分岐A", x: 50, y: 25, stage: (game) => new StageTest(game) },
-        { id: "b", label: "B", description: "分岐B", x: 50, y: 75, stage: (game) => new StageTest(game) },
-        { id: "goal", label: "goal", description: "最終地点", x: 80, y: 50, stage: (game) => new StageTest(game) },
+        {
+            id: "a",
+            label: "",
+            description: "",
+            x: 160,
+            y: 0,
+            stage: async (game) => import("../Stage/StageConstellation").then(({ default: c }) => new c(game)),
+        },
+        {
+            id: "b",
+            label: "",
+            description: "",
+            x: 160,
+            y: 240,
+            stage: async (game) => import("../Stage/StageFrost").then(({ default: c }) => new c(game)),
+        },
+        {
+            id: "goal",
+            label: "",
+            description: "",
+            x: 320,
+            y: 120,
+            stage: async (game) => import("../Stage/StageTest").then(({ default: c }) => new c(game)),
+        },
     ],
     edges: [
         { from: "start", to: "a" },

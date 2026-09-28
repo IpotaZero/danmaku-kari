@@ -28,8 +28,7 @@ export class Game extends IteratorQueue {
     readonly canvas: HTMLCanvasElement
     readonly ctx: CanvasRenderingContext2D
 
-    readonly stage: Stage
-
+    stage!: Stage
     readonly player: Player
     readonly camera: Camera
 
@@ -63,16 +62,13 @@ export class Game extends IteratorQueue {
 
     private readonly handleResize = () => this.resizeCanvas()
 
-    constructor(
-        stage: (game: Game) => Stage,
+    private constructor(
         baseInput: DigitalInput.Reader<GameAction>,
-        readonly onWin: () => void,
-        readonly onLose: () => void,
+        readonly onWin: (score: number) => void,
+        readonly onLose: (score: number) => void,
         playerConfig: PlayerConfig,
     ) {
         super()
-
-        this.stage = stage(this)
 
         this.HEIGHT = this.computeHeight()
 
@@ -97,6 +93,18 @@ export class Game extends IteratorQueue {
 
         this.player = new Player(this, vec(this.WIDTH / 2, this.HEIGHT / 2), playerConfig)
         this.camera = new Camera(this, this.player.p)
+    }
+
+    static async create(
+        createStage: (game: Game) => Promise<Stage>,
+        baseInput: DigitalInput.Reader<GameAction>,
+        onWin: (score: number) => void,
+        onLose: (score: number) => void,
+        playerConfig: PlayerConfig,
+    ): Promise<Game> {
+        const game = new Game(baseInput, onWin, onLose, playerConfig)
+        game.stage = await createStage(game)
+        return game
     }
 
     // 画面比に合わせてフィールドの高さを決める。ただしwidth:heightが1:2より横長にはしない
@@ -147,14 +155,16 @@ export class Game extends IteratorQueue {
 
     // ステージクリア。何度呼ばれてもonWinは1度だけ発火する
     win() {
+        if (this.state === "cleared") return
         this.state = "cleared"
-        this.onWin()
+        this.onWin(this.score)
     }
 
     // ゲームオーバー。何度呼ばれてもonLoseは1度だけ発火する
     lose() {
+        if (this.state === "game-over") return
         this.state = "game-over"
-        this.onLose()
+        this.onLose(this.score)
     }
 
     private updateBulletAndEnemy() {

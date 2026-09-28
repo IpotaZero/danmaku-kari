@@ -36,6 +36,23 @@
     right: 1em;
 }
 
+.title-fullscreen-toggle {
+    position: absolute;
+    top: 2.4em;
+    right: 1em;
+
+    width: 1.6em;
+    height: 1.6em;
+
+    background: none;
+    border: none;
+    color: #ffffff;
+    opacity: 0.8;
+    font-size: 0.9em;
+
+    cursor: pointer;
+}
+
 .title-logo {
     position: absolute;
     left: 0;

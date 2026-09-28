@@ -1,14 +1,16 @@
 import { actionReadyEffect } from "./ActionReadyEffect"
 import type { SubEquipment } from "./types"
 
-const 持続フレーム = 30
-const クールダウンフレーム = 120
+// 高速移動は「場所を移る」装備。
+// 短く・頻繁に使え、薄い壁を一瞬で突き抜けるのが得意。
+// 弾は一つも消さないので、抜けた先に居場所がなければ意味がない。
+const 持続フレーム = 18
+const クールダウンフレーム = 90
 const 速度倍率 = 5
 
-// actionボタンで短時間ダッシュ(その間は移動速度アップ+無敵)。クールダウン中は再発動しない
 export const dash: SubEquipment = {
     label: "高速移動",
-    description: "actionボタンで短時間高速移動する。高速移動中は移動速度が上がり、無敵になる。",
+    description: "actionボタンで一瞬だけ高速移動する。高速移動中は無敵になる。再使用までが短い。",
     *action(player) {
         let cooldown = 0
         let burstFramesRemaining = 0
@@ -20,7 +22,7 @@ export const dash: SubEquipment = {
                 player.actionCooldownRemaining = cooldown / クールダウンフレーム
 
                 if (cooldown === 0) {
-                    player.addScript(() => actionReadyEffect(player), { id: crypto.randomUUID() })
+                    player.addScript(() => actionReadyEffect(player))
                 }
             }
 

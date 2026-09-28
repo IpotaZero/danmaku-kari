@@ -21,6 +21,7 @@ type SerializedPlayerData = {
     ownedSubEquipmentIds?: EquipmentId[]
     lives: number
     lastLivesSyncedAt: number
+    totalScore?: number
 }
 
 /**
@@ -41,6 +42,9 @@ export class PlayerData {
 
     // 残機回復の経過計算の基準時刻(ms epoch)。recoverLivesOverTimeを呼ぶたびに進める
     private lastLivesSyncedAt = Date.now()
+
+    // 各ステージで獲得したscoreの累計(ステージを跨いで引き継がれる)
+    private totalScore = 0
 
     constructor() {
         this.load()
@@ -93,6 +97,16 @@ export class PlayerData {
         this.save()
     }
 
+    getTotalScore(): number {
+        return this.totalScore
+    }
+
+    // ステージクリア/ゲームオーバー時に、そのステージで稼いだscoreを累計へ加算する
+    addScore(score: number) {
+        this.totalScore += score
+        this.save()
+    }
+
     // 次に残機が1回復するまでの残り時間(ms)。満タンなら0
     getLifeRecoveryRemainingMs(now: number = Date.now()): number {
         if (this.lives >= MAX_LIVES) return 0
@@ -141,6 +155,8 @@ export class PlayerData {
 
             this.lives = data.lives
             this.lastLivesSyncedAt = data.lastLivesSyncedAt
+            // 旧形式の保存データにはこのフィールドが無いので、その場合は0から始める
+            this.totalScore = data.totalScore ?? 0
         } catch {
             // 保存データが壊れている/存在しない場合は初期値のまま進める
         }
@@ -156,6 +172,7 @@ export class PlayerData {
             ownedSubEquipmentIds: [...this.ownedSubEquipmentIds],
             lives: this.lives,
             lastLivesSyncedAt: this.lastLivesSyncedAt,
+            totalScore: this.totalScore,
         }
 
         try {
