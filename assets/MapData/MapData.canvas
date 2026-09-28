@@ -1,16 +1,7 @@
 {
 	"nodes":[
-		{"id":"ec79d018ed01f25b","type":"text","text":"始まりの丘\nStageTest","x":-1340,"y":-42,"width":80,"height":85},
 		{"id":"2ca2c1708e3658bd","type":"text","text":"静寂の森:entry\nStageTest","x":-1110,"y":-462,"width":80,"height":85},
-		{"id":"8451c1f880a6a8a5","type":"text","text":"静寂の森:exit\nStageTest","x":-980,"y":-518,"width":80,"height":85},
-		{"id":"24b8de8af1982195","type":"text","text":"静寂の森:bonus\nStageTest","x":-980,"y":-408,"width":80,"height":85},
-		{"id":"6c32383df5b1c2f1","type":"text","text":"苔むす洞窟:entry\nStageTest","x":-850,"y":-82,"width":80,"height":85},
-		{"id":"5a12b27061a5dda7","type":"text","text":"苔むす洞窟:exit\nStageTest","x":-720,"y":-138,"width":80,"height":85},
-		{"id":"dd753e0ed5432f0f","type":"text","text":"苔むす洞窟:bonus\nStageTest","x":-720,"y":-28,"width":80,"height":85},
-		{"id":"7ada7a0cd395d684","type":"text","text":"風吹く峠:entry\nStageTest","x":-545,"y":-342,"width":80,"height":85},
-		{"id":"ff63a33dd0baeb36","type":"text","text":"風吹く峠:exitStd\nStageTest","x":-395,"y":-428,"width":80,"height":85},
 		{"id":"56423d37cd61533b","type":"text","text":"風吹く峠:exitLsr\nStageTest","x":-395,"y":-258,"width":80,"height":85},
-		{"id":"9c9c78f60a5d776f","type":"text","text":"風吹く峠:bonus\nStageTest","x":-450,"y":-192,"width":80,"height":85},
 		{"id":"01374fa21f10e4f8","type":"text","text":"凍える山肌:entry\nStageTest","x":-280,"y":-802,"width":80,"height":85},
 		{"id":"7273aacac8322f05","type":"text","text":"凍える山肌:exit\nStageTest","x":-150,"y":-858,"width":80,"height":85},
 		{"id":"8352c2ded7847a2d","type":"text","text":"凍える山肌:bonus\nStageTest","x":-150,"y":-748,"width":80,"height":85},
@@ -47,7 +38,16 @@
 		{"id":"f237652ca75f897b","type":"text","text":"深淵回廊:exit\nStageTest","x":1280,"y":-502,"width":80,"height":85},
 		{"id":"70aba56753fa1663","type":"text","text":"天空回廊:bonus\nStageTest","x":2410,"y":-397,"width":80,"height":85},
 		{"id":"7ec3ed7735eac962","type":"text","text":"天空回廊:exit\nStageTest","x":2410,"y":-522,"width":80,"height":85},
-		{"id":"4b0e399f7229d94b","type":"text","text":"廃墟の街:bonus\nStageTest","x":985,"y":-640,"width":80,"height":85}
+		{"id":"4b0e399f7229d94b","type":"text","text":"廃墟の街:bonus\nStageTest","x":985,"y":-640,"width":80,"height":85},
+		{"id":"24b8de8af1982195","type":"text","text":"静寂の森:bonus\nStageTest","x":-980,"y":-343,"width":80,"height":85},
+		{"id":"8451c1f880a6a8a5","type":"text","text":"静寂の森:exit\nStageTest","x":-980,"y":-462,"width":80,"height":85},
+		{"id":"ec79d018ed01f25b","type":"text","text":"始まりの丘\nStageTest","x":-1380,"y":-462,"width":80,"height":85},
+		{"id":"6c32383df5b1c2f1","type":"text","text":"苔むす洞窟:entry\nStageTest","x":-840,"y":-462,"width":80,"height":85},
+		{"id":"5a12b27061a5dda7","type":"text","text":"苔むす洞窟:exit\nStageTest","x":-700,"y":-462,"width":80,"height":85},
+		{"id":"dd753e0ed5432f0f","type":"text","text":"苔むす洞窟:bonus\nStageTest","x":-700,"y":-352,"width":80,"height":85},
+		{"id":"7ada7a0cd395d684","type":"text","text":"風吹く峠:entry\nStageTest","x":-560,"y":-462,"width":80,"height":85},
+		{"id":"ff63a33dd0baeb36","type":"text","text":"風吹く峠:exitStd\nStageTest","x":-395,"y":-620,"width":80,"height":85},
+		{"id":"9c9c78f60a5d776f","type":"text","text":"風吹く峠:bonus\nStageTest","x":-395,"y":-20,"width":80,"height":85}
 	],
 	"edges":[
 		{"id":"8cd1182ab01612cc","fromNode":"2ca2c1708e3658bd","fromSide":"right","toNode":"8451c1f880a6a8a5","toSide":"left"},

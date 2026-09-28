@@ -115,7 +115,6 @@ export class SceneMap extends Scene {
         })
 
         this.infoEl = this.root.querySelector<HTMLElement>(".map-node-info")!
-        this.showInfo()
 
         this.livesEl = this.root.querySelector<HTMLElement>(".map-lives-count")!
         this.livesRecoveryEl = this.root.querySelector<HTMLElement>(".map-lives-recovery")!
@@ -128,6 +127,9 @@ export class SceneMap extends Scene {
         // 初期カメラは選択中ノードを中央に据えた状態から始める(アニメーションなし)
         this.camera = this.clampCamera(mapGraph.node(this.selectedId))
         this.applyCamera(false)
+
+        // keepInfoOnScreen()が画面上の実際の位置を見て判定するため、カメラ適用後に呼ぶ
+        this.showInfo()
 
         this.root.addEventListener("pointerdown", this.handlePointerDown)
         this.root.addEventListener("pointermove", this.handlePointerMove)
