@@ -27,15 +27,6 @@ export abstract class Stage extends IteratorQueue {
         this.game.bullets.filter((b) => b.type === "enemy").forEach((b) => b.scorenize())
     }
 
-    // スコア化した弾が自機に届いて回収されるまで待つ。
-    // これを待たずにG()を終える(=ステージクリア)と、回収前にwin()のスコアが確定してしまい
-    // scorenizeAllBullets()で稼いだ分が加算されずに失われる
-    protected *waitAllBulletsScored(): Generator<void, void, void> {
-        while (this.game.bullets.some((b) => b.type === "score")) {
-            yield
-        }
-    }
-
     // 画面全体を指定色でフラッシュさせる(frameフレームかけて薄れて消える)
     flash(color: string = "#ffffff", frame: number = 12) {
         this.flashColor = color

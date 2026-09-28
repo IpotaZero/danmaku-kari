@@ -45,7 +45,6 @@ export default class extends Stage {
         this.shake(16, 60)
         this.flash("#ffffff", 12)
         this.scorenizeAllBullets()
-        yield* this.waitAllBulletsScored()
     }
 }
 

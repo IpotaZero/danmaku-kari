@@ -22,15 +22,15 @@ export class SceneGame extends Scene {
         this.game = await Game.create(
             (game) => this.node.stage(game),
             input,
-            (score) => {
+            () => {
                 playerData.recordStageClear(this.node.id, playerData.getLoadout().main)
-                playerData.addScore(score)
-                this.showResultMenu("--:: 作戦成功 ::--")
+                this.showResultMenu("--:: 作戦終了 ::--")
             },
             (score) => {
                 playerData.addScore(score)
                 this.showResultMenu("--:: 作戦失敗 ::--")
             },
+            (score) => playerData.addScore(score),
             createPlayerConfig(),
         )
 

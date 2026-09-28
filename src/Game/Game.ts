@@ -66,8 +66,9 @@ export class Game extends IteratorQueue {
 
     private constructor(
         baseInput: DigitalInput.Reader<GameAction>,
-        readonly onWin: (score: number) => void,
+        readonly onWin: () => void,
         readonly onLose: (score: number) => void,
+        readonly onScoreCollected: (score: number) => void,
         playerConfig: PlayerConfig,
     ) {
         super()
@@ -98,11 +99,12 @@ export class Game extends IteratorQueue {
     static async create(
         createStage: (game: Game) => Promise<Stage>,
         baseInput: DigitalInput.Reader<GameAction>,
-        onWin: (score: number) => void,
+        onWin: () => void,
         onLose: (score: number) => void,
+        onScoreCollected: (score: number) => void,
         playerConfig: PlayerConfig,
     ): Promise<Game> {
-        const game = new Game(baseInput, onWin, onLose, playerConfig)
+        const game = new Game(baseInput, onWin, onLose, onScoreCollected, playerConfig)
         game.stage = await createStage(game)
         return game
     }
@@ -153,11 +155,14 @@ export class Game extends IteratorQueue {
         super.update()
     }
 
-    // ステージクリア。何度呼ばれてもonWinは1度だけ発火する
+    // ステージクリア。何度呼ばれてもonWinは1度だけ発火する。
+    // スコア化した弾の回収(waitScoreCollected)を待たずに演出へ進める。
+    // 回収自体はクリア後も続き、終わった時点でonScoreCollectedが発火する
     win() {
         if (this.state === "cleared") return
         this.state = "cleared"
-        this.onWin(this.score)
+        this.onWin()
+        this.addScript(() => this.waitScoreCollected())
     }
 
     // ゲームオーバー。何度呼ばれてもonLoseは1度だけ発火する
@@ -165,6 +170,14 @@ export class Game extends IteratorQueue {
         if (this.state === "game-over") return
         this.state = "game-over"
         this.onLose(this.score)
+    }
+
+    private *waitScoreCollected(): Generator<void, void, void> {
+        while (this.bullets.some((b) => b.type === "score")) {
+            yield
+        }
+
+        this.onScoreCollected(this.score)
     }
 
     private updateBulletAndEnemy() {
