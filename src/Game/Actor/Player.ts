@@ -10,8 +10,8 @@ import type { MainEquipment, SubEquipment } from "../Equipment/PlayerEquipment"
 // 残像1コマ分のスナップショット
 type AfterImage = { p: Vec; alpha: number }
 
-const AFTER_IMAGE_MAX = 12
-const AFTER_IMAGE_DECAY = 0.08
+const AFTER_IMAGE_MAX = 18
+const AFTER_IMAGE_DECAY = 0.05
 
 const WING_FLAP_INTERVAL = 2
 
@@ -374,24 +374,16 @@ export class Player extends Actor {
     }
 
     private drawAfterImages(ctx: CanvasRenderingContext2D) {
-        const total = this.afterImages.length
-
-        this.afterImages.forEach((img, i) => {
-            const ratio = (i + 1) / total
-            const alpha = img.alpha * ratio
+        this.afterImages.forEach((img) => {
+            const alpha = img.alpha
             if (alpha <= 0) return
 
-            const color = `rgba(80, 220, 255, ${alpha.toFixed(3)})`
+            const cyan = `rgba(80, 220, 255, ${(alpha * 0.8).toFixed(3)})`
+            const white = `rgba(255, 255, 255, ${(alpha * 0.6).toFixed(3)})`
 
-            Ctx.arc(ctx, img.p, this.r * ratio, color, { lineWidth: 0 })
-            Ctx.polygon(ctx, 3, 2, img.p, this.GRAZE_R * 1.8 * ratio, color, {
-                theta: this.drawRadian / 8,
-                lineWidth: 1,
-            })
-            Ctx.polygon(ctx, 4, 2, img.p, this.GRAZE_R * 1.2 * ratio, color, {
-                theta: -this.drawRadian / 12,
-                lineWidth: 1,
-            })
+            Ctx.arc(ctx, img.p, this.r * 3, cyan, { lineWidth: 1 })
+            Ctx.polygon(ctx, 3, 2, img.p, this.GRAZE_R * 2.2, cyan, { theta: this.drawRadian / 8, lineWidth: 1 })
+            Ctx.polygon(ctx, 4, 2, img.p, this.GRAZE_R * 1.4, white, { theta: -this.drawRadian / 12, lineWidth: 2 })
         })
     }
 
