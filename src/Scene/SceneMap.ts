@@ -76,8 +76,8 @@ export class SceneMap extends Scene {
                 <div class="map-score"></div>
             </div>
             <div class="map-controls">
-                <div data-control="open-equip">action(Ctrl): <span class="nowrap">装備変更</span></div>
-                <div data-control="back-to-title">cancel(X): <span class="nowrap">タイトルへ戻る</span></div>
+                <div data-control="open-equip"><span class="nowrap">装備変更</span>: action(Ctrl)</div>
+                <div data-control="back-to-title"><span class="nowrap">タイトルへ戻る</span>: cancel(X)</div>
             </div>
             <div class="texture-overlay"></div>
         `

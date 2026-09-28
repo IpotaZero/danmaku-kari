@@ -8,26 +8,28 @@ import type { Player } from "../Actor/Player"
 import type { MainEquipment } from "./types"
 
 const 連射間隔 = 6
+const 弾数 = 7
 const 弾速 = 20
 const 弾半径 = 3
 const 弾威力 = 3
+const 通常時展開角度 = T / 32
+const 集中時展開角度 = T / 64
 
-const ホーミング間隔 = 40
-const ホーミング弾数 = 4
+const ホーミング弾数 = 6
 const ホーミング弾半径 = 4
 const ホーミング弾速 = 18
-const ホーミング弾威力 = 1
+const ホーミング弾威力 = 3
 const ホーミング展開角度 = T / 8
 const 追尾開始待機フレーム = 10
 const 追尾継続フレーム = 50
 const 角加速度 = T / 150
 const 最大角速度 = T / 50
 
-// 現状の攻撃の仕方(通常7way、低速時はshift撃ち)。どちらにも曲がるホーミング弾を2発、
-// メインの弾とは別の(より長い)間隔で添える
+// 通常時は広いn-way、低速時は狭いn-way。どちらにも曲がるホーミング弾を、
+// メインの弾とは別の間隔で添える
 export const standard: MainEquipment = {
     label: "拡散弾",
-    description: "前方にn-way。曲がるホーミング弾を2発、少し長い間隔で添えた汎用的な主装備。",
+    description: "前方にn-way。ホーミング弾を添えた汎用的な主装備。",
     *fire(player) {
         // メインの弾とホーミング弾は間隔が違うので、別々のループとして並行に走らせる
         yield* GenUtils.all({
@@ -40,33 +42,20 @@ export const standard: MainEquipment = {
 function* mainShotLoop(player: Player): Generator<void, void, void> {
     while (true) {
         if (!player.game.isGameOver) {
-            if (player.game.input.isPressed("slow")) {
-                yield* remodel(player)
-                    .p(player.p.clone())
-                    .radian(-T / 4)
-                    .appearance("player")
-                    .type("friend")
-                    .color("white")
-                    .alpha(0.5)
-                    .r(弾半径)
-                    .damage(弾威力)
-                    .nway(5, T / 64)
-                    .speed(弾速)
-                    .fire(player.game.bullets)
-            } else {
-                yield* remodel(player)
-                    .p(player.p.clone())
-                    .radian(-T / 4)
-                    .appearance("player")
-                    .type("friend")
-                    .color("white")
-                    .alpha(0.5)
-                    .r(弾半径)
-                    .damage(弾威力)
-                    .nway(5, T / 32)
-                    .speed(弾速)
-                    .fire(player.game.bullets)
-            }
+            const spread = player.game.input.isPressed("slow") ? 集中時展開角度 : 通常時展開角度
+
+            yield* remodel(player)
+                .p(player.p.clone())
+                .radian(-T / 4)
+                .appearance("player")
+                .type("friend")
+                .color("white")
+                .alpha(0.5)
+                .r(弾半径)
+                .damage(弾威力)
+                .nway(弾数, spread)
+                .speed(弾速)
+                .fire(player.game.bullets)
         }
 
         yield* GenUtils.waitFrames(連射間隔)

@@ -21,14 +21,10 @@
 
         border: white 1px solid;
 
-        /* スマホではHEIGHTを画面比に合わせてあるので、中央寄せに頼らず画面端まで明示的に詰める */
-        &.fill-viewport {
-            width: 100%;
-            height: 100%;
-            max-width: none;
-            max-height: none;
-
-            /* 画面端まで詰めるので、境界線は不要 */
+        /* width/height:100%は縦横比が合わない場合(非全画面でアドレスバー分だけ低くなる等)に
+           キャンバスを歪めて引き伸ばしてしまうため使わない。max-width/max-heightによる
+           アスペクト比を保った縮小のみに任せ、スマホでは枠線だけ消す */
+        &.smartphone {
             border: none;
         }
     }

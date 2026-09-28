@@ -12,6 +12,7 @@ import { TextBox } from "../utils/TextBox"
 import { remodel } from "./Remodel"
 import { TouchControls } from "./TouchControls"
 import { isSmartPhone } from "../utils/Functions/isSmartPhone"
+import { Dom } from "../Dom"
 
 export type GameAction = "right" | "left" | "up" | "down" | "slow" | "suicide" | "action" | "ok" | "cancel"
 
@@ -60,7 +61,9 @@ export class Game extends IteratorQueue {
     // 画面回転やスマホのアドレスバー表示/非表示で画面比が変わった際、resizeCanvas()が更新する
     HEIGHT: number
 
-    private readonly handleResize = () => this.resizeCanvas()
+    // window.innerWidth/innerHeightはスマホのアドレスバー分の食い違いで実際の表示サイズ(dvh基準)と
+    // ずれることがあるため、キャンバスが実際に収まる#containerのサイズを直接観測する
+    private readonly resizeObserver = new ResizeObserver(() => this.resizeCanvas())
 
     private constructor(
         baseInput: DigitalInput.Reader<GameAction>,
@@ -75,16 +78,14 @@ export class Game extends IteratorQueue {
         this.canvas = document.createElement("canvas")
         this.canvas.width = this.WIDTH
         this.canvas.height = this.HEIGHT
-        // スマホでは画面比にHEIGHTを合わせてあるので、max-width/max-height中央寄せ(≒ズレの余地がある)
-        // ではなく明示的にwidth/height:100%で画面端まで詰める
-        if (isSmartPhone) this.canvas.classList.add("fill-viewport")
+        if (isSmartPhone) this.canvas.classList.add("smartphone")
 
         const ctx = this.canvas.getContext("2d")
         if (!ctx) throw new Error("2D context is not available")
         this.ctx = ctx
         this.ctx.globalCompositeOperation = "lighter"
 
-        window.addEventListener("resize", this.handleResize)
+        this.resizeObserver.observe(Dom.container)
 
         this.touchControls = new TouchControls(baseInput, this.canvas)
         this.input = this.touchControls
@@ -112,7 +113,7 @@ export class Game extends IteratorQueue {
     // 潰れて遊べなくなるのを防ぐため、常に最低でも縦長2倍(1:2)の比を保つ)
     private computeHeight(): number {
         const minWidthToHeightRatio = 1 / 2
-        const viewportAspect = window.innerWidth / window.innerHeight
+        const viewportAspect = Dom.container.clientWidth / Dom.container.clientHeight
         return Math.round(this.WIDTH / Math.min(viewportAspect, minWidthToHeightRatio))
     }
 
@@ -127,7 +128,7 @@ export class Game extends IteratorQueue {
     }
 
     dispose() {
-        window.removeEventListener("resize", this.handleResize)
+        this.resizeObserver.disconnect()
     }
 
     update(): void {
