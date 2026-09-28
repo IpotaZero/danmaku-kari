@@ -1,0 +1,18 @@
+{
+	"nodes":[
+		{"id":"8d9b168a872ad44a","type":"text","text":"難しさとは\nStageTest","x":-260,"y":-313,"width":80,"height":85},
+		{"id":"707e674e28aefbb1","type":"text","text":"Frost\nStageFrost","x":-120,"y":-313,"width":80,"height":85},
+		{"id":"8181f34987d26599","type":"text","text":"Frost\nStageConstellation","x":20,"y":-313,"width":80,"height":85},
+		{"id":"1df6c75b590aaccd","type":"text","text":"Frost\nStageFrost","x":320,"y":-313,"width":89,"height":85},
+		{"id":"5ed93a0e45fe0247","type":"text","text":"Frost\nStageFrost","x":171,"y":-200,"width":89,"height":85},
+		{"id":"1b89ca7363ae789d","type":"text","text":"Frost\nStageFrost","x":171,"y":-420,"width":89,"height":85}
+	],
+	"edges":[
+		{"id":"8219f5e5d3a09796","fromNode":"8d9b168a872ad44a","fromSide":"right","toNode":"707e674e28aefbb1","toSide":"left"},
+		{"id":"42b0cad12162c2b1","fromNode":"707e674e28aefbb1","fromSide":"right","toNode":"8181f34987d26599","toSide":"left"},
+		{"id":"8e2e35ae78e70cc3","fromNode":"8181f34987d26599","fromSide":"right","toNode":"1b89ca7363ae789d","toSide":"left","label":"standard"},
+		{"id":"baa3a9f260591cc2","fromNode":"8181f34987d26599","fromSide":"right","toNode":"5ed93a0e45fe0247","toSide":"left","label":"laser"},
+		{"id":"6403c2fcea542297","fromNode":"1b89ca7363ae789d","fromSide":"right","toNode":"1df6c75b590aaccd","toSide":"left"},
+		{"id":"fdde32c6eaa713f7","fromNode":"5ed93a0e45fe0247","fromSide":"right","toNode":"1df6c75b590aaccd","toSide":"left"}
+	]
+}

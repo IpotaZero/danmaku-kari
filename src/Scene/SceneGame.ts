@@ -20,7 +20,7 @@ export class SceneGame extends Scene {
         console.log(`SceneGame: ${this.node.id}`)
 
         this.game = await Game.create(
-            this.node.stage,
+            (game) => this.node.stage(game),
             input,
             (score) => {
                 playerData.recordStageClear(this.node.id, playerData.getLoadout().main)

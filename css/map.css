@@ -199,18 +199,21 @@
 
     #equip-root {
         width: 100%;
+        max-width: 20em;
         flex-direction: column;
     }
 
     #equip-main-options {
         flex-direction: column;
         width: 100%;
+        max-width: 20em;
         padding-top: 0.5em;
     }
 
     #equip-sub-options {
         flex-direction: column;
         width: 100%;
+        max-width: 20em;
         padding-top: 0.5em;
     }
 
@@ -241,10 +244,8 @@
     .map-equip-modal {
         position: absolute;
         top: 0;
-        right: 0;
         height: 100%;
         width: 100%;
-        max-width: 20em;
 
         display: flex;
         flex-direction: column;

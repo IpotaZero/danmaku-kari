@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../Game/Actor/EnemyRendererCore"
 import { T } from "../T"
 import { GenUtils } from "../utils/Functions/GeneratorUtils"
 import { Curves } from "../utils/Functions/Curves"
+import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 
 // ステージ「霜」
 // 空から小さな雪(ball 4)が降り、画面のあちこちで止まって大きな雪玉(ball 24)に育つ。
@@ -36,6 +37,12 @@ const AREA_PER_SNOW = 8000
 
 export default class extends Stage {
     *G() {
+        if (isSmartPhone) {
+            yield* this.game.textBox.say(["二本指タップで技を発動。"])
+        } else {
+            yield* this.game.textBox.say(["Ctrlキーで技を発動。"])
+        }
+
         this.game.enemies.push(new EnemyFrost(this.game))
 
         yield* this.waitAllEnemiesDead()
@@ -71,6 +78,18 @@ class EnemyFrost extends Enemy {
     }
 
     private *cycle() {
+        yield* remodel(this)
+            .appearance("ball")
+            .color("#dff6ff")
+            .p(this.p.clone())
+            .r(4)
+            .speed(FALL_SPEED)
+            .scatter(120, { p: 0.5, radian: [0, -T / 2], speed: [FALL_SPEED * 0.8, FALL_SPEED * 1.2] })
+            .delete(120)
+            .fire(this.game.bullets)
+
+        yield* Array(120)
+
         yield* GenUtils.all({
             snow: this.snowfall(),
             icicles: this.icicles(),

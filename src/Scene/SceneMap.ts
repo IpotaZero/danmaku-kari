@@ -1,7 +1,7 @@
 import { playerData } from "../Data/PlayerData"
 import { mainEquipments, subEquipments } from "../Game/Equipment/PlayerEquipment"
 import { input } from "../input"
-import { getMapNode, getNeighborIds, isMapNodeUnlocked, mapGraph, MapEdge, MapNode, MapNodeId } from "../Map/MapGraph"
+import { mapGraph, MapEdge, MapNode, MapNodeId } from "../Map/MapGraph"
 import { sc } from "../sc"
 import { Menu, MenuOption, MenuOptionBox } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
@@ -39,7 +39,7 @@ export class SceneMap extends Scene {
 
     // ワールド座標系でのカメラ位置(=画面中央に表示されるワールド座標)
     private camera: Camera = { x: 0, y: 0 }
-    private readonly worldBounds = computeWorldBounds(mapGraph.nodes)
+    private readonly worldBounds = mapGraph.bounds()
 
     // スワイプでのカメラ操作用の状態
     private dragging = false
@@ -50,7 +50,7 @@ export class SceneMap extends Scene {
     // ドラッグ後に発火するclickをタップと誤認しないようにするためのフラグ
     private suppressNextClick = false
 
-    constructor(selectedId: MapNodeId = mapGraph.startId) {
+    constructor(selectedId: MapNodeId = mapGraph.start.id) {
         super()
         this.selectedId = selectedId
     }
@@ -67,7 +67,6 @@ export class SceneMap extends Scene {
                 <div class="map-nodes"></div>
                 <div class="map-node-info">
                     <div class="map-node-info-label"></div>
-                    <div class="map-node-info-description"></div>
                 </div>
             </div>
             <div class="map-lives">
@@ -76,7 +75,7 @@ export class SceneMap extends Scene {
                 <div class="map-score"></div>
             </div>
             <div class="map-controls">
-                <div data-control="open-equip"><span class="nowrap">装備変更</span>: action(Ctrl)</div>
+                <div data-control="open-equip"><span class="nowrap">型の変更</span>: action(Ctrl)</div>
                 <div data-control="back-to-title"><span class="nowrap">タイトルへ戻る</span>: cancel(X)</div>
             </div>
             <div class="texture-overlay"></div>
@@ -88,7 +87,7 @@ export class SceneMap extends Scene {
         for (const node of mapGraph.nodes) {
             const el = document.createElement("div")
             el.className = "map-node"
-            el.classList.toggle("locked", !isMapNodeUnlocked(node, playerData))
+            el.classList.toggle("locked", !mapGraph.isUnlocked(node, playerData))
             el.style.left = `${node.x}px`
             el.style.top = `${node.y}px`
             el.addEventListener("click", () => {
@@ -127,7 +126,7 @@ export class SceneMap extends Scene {
             `銭 ${playerData.getTotalScore().toLocaleString()}`
 
         // 初期カメラは選択中ノードを中央に据えた状態から始める(アニメーションなし)
-        this.camera = this.clampCamera(getMapNode(this.selectedId))
+        this.camera = this.clampCamera(mapGraph.node(this.selectedId))
         this.applyCamera(false)
 
         this.root.addEventListener("pointerdown", this.handlePointerDown)
@@ -177,10 +176,8 @@ export class SceneMap extends Scene {
     }
 
     private move(direction: Direction) {
-        const current = getMapNode(this.selectedId)
-        const neighbors = getNeighborIds(current.id)
-            .map((id) => getMapNode(id))
-            .filter((node) => isMapNodeUnlocked(node, playerData))
+        const current = mapGraph.node(this.selectedId)
+        const neighbors = mapGraph.neighbors(current).filter((node) => mapGraph.isUnlocked(node, playerData))
 
         const next = pickClosestInDirection(current, neighbors, DIRECTION_VECTORS[direction])
         if (!next) return
@@ -193,7 +190,7 @@ export class SceneMap extends Scene {
         this.nodeElements.forEach((el, nodeId) => el.classList.toggle("selected", nodeId === this.selectedId))
         this.hideInfo()
 
-        this.camera = this.clampCamera(getMapNode(id))
+        this.camera = this.clampCamera(mapGraph.node(id))
         this.applyCamera(true)
     }
 
@@ -253,7 +250,7 @@ export class SceneMap extends Scene {
     // そうでなければまずカーソルを合わせるだけ(keyboardの方向キー相当)にとどめる
     private handleNodeTap(id: MapNodeId) {
         if (this.equipMenu) return
-        if (!isMapNodeUnlocked(getMapNode(id), playerData)) return
+        if (!mapGraph.isUnlocked(mapGraph.node(id), playerData)) return
 
         if (id === this.selectedId) {
             this.select()
@@ -264,8 +261,8 @@ export class SceneMap extends Scene {
     }
 
     private select() {
-        const node = getMapNode(this.selectedId)
-        if (!isMapNodeUnlocked(node, playerData)) return
+        const node = mapGraph.node(this.selectedId)
+        if (!mapGraph.isUnlocked(node, playerData)) return
 
         sc.goto(async () => import("./SceneGame").then(({ SceneGame }) => new SceneGame(node)))
     }
@@ -279,7 +276,7 @@ export class SceneMap extends Scene {
              <div class="equip-description"></div>`,
             {
                 elementId: "equip-root",
-                title: "--:: 装備変更 ::--",
+                title: "--:: 型の変更 ::--",
                 options: () => this.buildEquipRootOptions(),
             },
             input,
@@ -310,7 +307,7 @@ export class SceneMap extends Scene {
             [
                 {
                     type: "submenu",
-                    label: `主装備: ${mainEquipments[playerData.getLoadout().main]?.label ?? playerData.getLoadout().main}`,
+                    label: `流派: ${mainEquipments[playerData.getLoadout().main]?.label ?? playerData.getLoadout().main}`,
                     hides: [],
                     onFocus: () => this.hideEquipDescription(),
                     subMenu: () => this.buildMainEquipmentSubMenu(),
@@ -319,7 +316,7 @@ export class SceneMap extends Scene {
             [
                 {
                     type: "submenu",
-                    label: `副装備: ${this.getSubEquipmentLabel()}`,
+                    label: `技: ${this.getSubEquipmentLabel()}`,
                     hides: [],
                     onFocus: () => this.hideEquipDescription(),
                     subMenu: () => this.buildSubEquipmentSubMenu(),
@@ -341,7 +338,7 @@ export class SceneMap extends Scene {
     private buildMainEquipmentSubMenu(): MenuOptionBox {
         return {
             elementId: "equip-main-options",
-            title: "--:: 主装備を選択 ::--",
+            title: "--:: 流派を選択 ::--",
             options: () => this.buildMainEquipmentOptions(),
             // 開いた瞬間、現在装備している主装備にカーソルを合わせる
             initialCursor: () => {
@@ -382,7 +379,7 @@ export class SceneMap extends Scene {
     private buildSubEquipmentSubMenu(): MenuOptionBox {
         return {
             elementId: "equip-sub-options",
-            title: "--:: 副装備を選択 ::--",
+            title: "--:: 技を選択 ::--",
             options: () => this.buildSubEquipmentOptions(),
             // 開いた瞬間、現在装備している副装備にカーソルを合わせる(「なし」は先頭行)
             initialCursor: () => {
@@ -399,7 +396,7 @@ export class SceneMap extends Scene {
                 {
                     type: "select",
                     label: "なし",
-                    onFocus: () => this.showEquipDescription("副装備を使用しない。"),
+                    onFocus: () => this.showEquipDescription("技を使用しない。"),
                     onSelect: () => {
                         playerData.setLoadout({ ...playerData.getLoadout(), sub: null })
                         this.equipMenu?.backToRoot()
@@ -458,17 +455,16 @@ export class SceneMap extends Scene {
     }
 
     private showInfo() {
-        const node = getMapNode(this.selectedId)
+        const node = mapGraph.node(this.selectedId)
         this.infoEl.style.left = `${node.x}px`
         this.infoEl.style.top = `${node.y}px`
         this.infoEl.querySelector(".map-node-info-label")!.textContent = node.label
-        this.infoEl.querySelector(".map-node-info-description")!.textContent = node.description
         this.infoEl.classList.add("visible")
 
         this.keepInfoOnScreen()
     }
 
-    // 中央寄せ(CSSのtransform: translate(-50%, ...))のままだと、端寄りのノードや長い説明文で
+    // 中央寄せ(CSSのtransform: translate(-50%, ...))のままだと、端寄りのノードや長いラベルで
     // 画面外にはみ出すことがあるため、実際の描画幅を見てその分だけ左右にずらす
     private keepInfoOnScreen() {
         const margin = 8
@@ -492,9 +488,8 @@ export class SceneMap extends Scene {
     }
 
     private renderEdge(edge: MapEdge): string {
-        const from = getMapNode(edge.from)
-        const to = getMapNode(edge.to)
-        const locked = !isMapNodeUnlocked(from, playerData) || !isMapNodeUnlocked(to, playerData)
+        const { from, to } = edge
+        const locked = !mapGraph.isUnlocked(from, playerData) || !mapGraph.isUnlocked(to, playerData)
         return `<line class="${locked ? "locked" : ""}" x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" />`
     }
 }
@@ -524,13 +519,6 @@ function pickClosestInDirection(
     }
 
     return best
-}
-
-// カメラが取りうる範囲(全ノードのbounding box)
-function computeWorldBounds(nodes: readonly MapNode[]): { minX: number; maxX: number; minY: number; maxY: number } {
-    const xs = nodes.map((node) => node.x)
-    const ys = nodes.map((node) => node.y)
-    return { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) }
 }
 
 function clamp(value: number, min: number, max: number): number {

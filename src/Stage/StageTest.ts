@@ -7,6 +7,7 @@ import { EnemyRendererCore } from "../Game/Actor/EnemyRendererCore"
 import { T } from "../T"
 import { GenUtils } from "../utils/Functions/GeneratorUtils"
 import { Curves } from "../utils/Functions/Curves"
+import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 
 // ボスの登場演出にかかるフレーム数。衛星もこれだけ待ってから合わせて動き出す
 const ENTRANCE_FRAMES = 150
@@ -16,7 +17,11 @@ const REST_FRAMES = 240
 
 export default class extends Stage {
     *G() {
-        yield* this.game.textBox.say(["...."])
+        if (isSmartPhone) {
+            yield* this.game.textBox.say(["スワイプで移動"])
+        } else {
+            yield* this.game.textBox.say(["矢印キーで移動。Shiftキーで低速。"])
+        }
 
         const parent = new EnemyBoss(this.game)
         this.game.enemies.push(parent)
