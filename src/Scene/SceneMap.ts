@@ -492,7 +492,19 @@ export class SceneMap extends Scene {
     private renderEdge(edge: MapEdge): string {
         const { from, to } = edge
         const locked = !mapGraph.isUnlocked(from, playerData) || !mapGraph.isUnlocked(to, playerData)
-        return `<line class="${locked ? "locked" : ""}" x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" />`
+        const className = [locked ? "locked" : "", edge.requiredMainEquipmentId ?? ""].join(" ")
+        const line = (offset: { x: number; y: number }) =>
+            `<line class="${className}" x1="${from.x + offset.x}" y1="${from.y + offset.y}" x2="${to.x + offset.x}" y2="${to.y + offset.y}" />`
+
+        // laserの条件は二重線で表す。辺に垂直な方向へ左右にずらした2本の線を引く
+        if (edge.requiredMainEquipmentId === "laser") {
+            const len = Math.hypot(to.x - from.x, to.y - from.y) || 1
+            const gap = 3
+            const normal = { x: (-(to.y - from.y) / len) * gap, y: ((to.x - from.x) / len) * gap }
+            return line(normal) + line({ x: -normal.x, y: -normal.y })
+        }
+
+        return line({ x: 0, y: 0 })
     }
 }
 

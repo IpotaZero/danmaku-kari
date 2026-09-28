@@ -36,6 +36,16 @@
             &.locked {
                 opacity: 0.05;
             }
+
+            // 主装備standardでのクリアが条件の辺は破線
+            &.standard {
+                stroke-dasharray: 8 6;
+            }
+
+            // 主装備laserでのクリアが条件の辺は二重線(2本の線はSceneMap側で引く)
+            &.laser {
+                stroke-width: 1.5;
+            }
         }
     }
 

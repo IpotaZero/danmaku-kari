@@ -1,6 +1,6 @@
 {
 	"nodes":[
-		{"id":"2ca2c1708e3658bd","type":"text","text":"静寂の森:entry\nStageTest","x":-1110,"y":-462,"width":80,"height":85},
+		{"id":"2ca2c1708e3658bd","type":"text","text":"静寂の森:entry\nStageFrost","x":-1110,"y":-462,"width":80,"height":85},
 		{"id":"01374fa21f10e4f8","type":"text","text":"凍える山肌:entry\nStageTest","x":-280,"y":-802,"width":80,"height":85},
 		{"id":"713b894ee92d69a6","type":"text","text":"雷鳴の尾根:bonus\nStageTest","x":150,"y":-328,"width":80,"height":85},
 		{"id":"c6e9772f636e7c9f","type":"text","text":"霧の谷:mid\nStageTest","x":350,"y":-762,"width":80,"height":85},
@@ -14,7 +14,7 @@
 		{"id":"70aba56753fa1663","type":"text","text":"天空回廊:bonus\nStageTest","x":2410,"y":-397,"width":80,"height":85},
 		{"id":"7ec3ed7735eac962","type":"text","text":"天空回廊:exit\nStageTest","x":2410,"y":-522,"width":80,"height":85},
 		{"id":"24b8de8af1982195","type":"text","text":"静寂の森:bonus\nStageTest","x":-980,"y":-343,"width":80,"height":85},
-		{"id":"8451c1f880a6a8a5","type":"text","text":"静寂の森:exit\nStageTest","x":-980,"y":-462,"width":80,"height":85},
+		{"id":"8451c1f880a6a8a5","type":"text","text":"静寂の森:exit\nStageConstellation","x":-980,"y":-462,"width":80,"height":85},
 		{"id":"ec79d018ed01f25b","type":"text","text":"始まりの丘\nStageTest","x":-1380,"y":-462,"width":80,"height":85},
 		{"id":"6c32383df5b1c2f1","type":"text","text":"苔むす洞窟:entry\nStageTest","x":-840,"y":-462,"width":80,"height":85},
 		{"id":"5a12b27061a5dda7","type":"text","text":"苔むす洞窟:exit\nStageTest","x":-700,"y":-462,"width":80,"height":85},
@@ -28,7 +28,7 @@
 		{"id":"abbaf61cf702ee8b","type":"text","text":"廃墟の街:exitStd\nStageTest","x":965,"y":-830,"width":80,"height":85},
 		{"id":"1f49b388acce6d98","type":"text","text":"廃墟の街:exitLsr\nStageTest","x":965,"y":-660,"width":80,"height":85},
 		{"id":"4b0e399f7229d94b","type":"text","text":"廃墟の街:bonus\nStageTest","x":965,"y":-482,"width":80,"height":85},
-		{"id":"56423d37cd61533b","type":"text","text":"風吹く峠:exitLsr\nStageTest","x":-395,"y":-462,"width":80,"height":85},
+		{"id":"56423d37cd61533b","type":"text","text":"風吹く峠:exitLsr\nStageGate","x":-395,"y":-462,"width":80,"height":85},
 		{"id":"9c9c78f60a5d776f","type":"text","text":"風吹く峠:bonus\nStageTest","x":-395,"y":-202,"width":80,"height":85},
 		{"id":"c6a8c31b8f5e83f1","type":"text","text":"星降る高原:entry\nStageTest","x":575,"y":-447,"width":80,"height":85},
 		{"id":"d18b2a6414120813","type":"text","text":"星降る高原:midA\nStageTest","x":655,"y":-523,"width":80,"height":85},
