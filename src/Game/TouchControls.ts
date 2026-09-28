@@ -7,6 +7,9 @@ import type { GameAction } from "./Game"
  * 1本指ドラッグ = 移動(指の移動量をワールド座標のベクトルとしてそのまま速度に使う)+集中モード常時ON、
  * 2本指タップ = action、3本指タッチ = suicide。
  * キーボード/ゲームパッドの入力(base)にはORで重ねるので、両方同時に使っても壊れない。
+ *
+ * 移動は「最初に触れた指」1本のみを追跡し、action/suicide用に指が増えても継続する
+ * (指の本数だけで判定すると、action目的の2本目タップのたびに移動が中断されてしまうため)。
  */
 export class TouchControls implements DigitalInput.Reader<GameAction> {
     private readonly tracker: TouchTracker
@@ -19,6 +22,10 @@ export class TouchControls implements DigitalInput.Reader<GameAction> {
     private suicidePushed = false
     private prevTouchCount = 0
 
+    // 移動に使っている指のidentifierと直前の座標。他の指が増減してもこの指が離れるまで移動を続ける
+    private dragTouchId: number | undefined
+    private dragPrevPos: Vec | undefined
+
     constructor(
         private readonly base: DigitalInput.Reader<GameAction>,
         private readonly canvas: HTMLCanvasElement,
@@ -28,26 +35,46 @@ export class TouchControls implements DigitalInput.Reader<GameAction> {
 
     /** 毎フレーム呼ぶこと。DigitalInput.Readerのインターフェースには無い、このクラス固有のメソッド */
     update() {
-        const touchCount = this.tracker.touchesCount()
+        const touches = this.tracker.getCurrentTouches()
+        const touchCount = touches?.length ?? 0
 
-        // getDelta()自体は内部状態(前フレーム座標)更新のため、本数に関わらず毎フレーム呼び続ける
-        const delta = this.tracker.getDelta()
-
-        // 複数指ジェスチャー中の誤動作を防ぐため、1本指の時だけドラッグ移動として扱う
-        if (touchCount === 1 && delta) {
-            // canvasの内部解像度とCSS表示サイズの比率で、画面px単位のずれをワールド座標に変換する
-            const scale = this.canvas.width / this.canvas.getBoundingClientRect().width
-            this.touchMoveVector = vec(delta.x * scale, delta.y * scale)
-        } else {
-            this.touchMoveVector = undefined
-        }
-
+        this.touchMoveVector = this.updateDrag(touches)
         this.isTouching = touchCount >= 1
 
         // 直前フレームと本数が変わった瞬間だけ発火するエッジ検出
         this.actionPushed = touchCount === 2 && this.prevTouchCount !== 2
         this.suicidePushed = touchCount === 3 && this.prevTouchCount !== 3
         this.prevTouchCount = touchCount
+    }
+
+    private updateDrag(touches: TouchList | undefined): Vec | undefined {
+        if (!touches || touches.length === 0) {
+            this.dragTouchId = undefined
+            this.dragPrevPos = undefined
+            return undefined
+        }
+
+        const current =
+            this.dragTouchId !== undefined
+                ? Array.from(touches).find((t) => t.identifier === this.dragTouchId)
+                : undefined
+
+        // 追跡していた指が見つからない(まだ決めていない、または離れた)場合、
+        // 残っている指のうち最初のものを新たに移動用として採用する。
+        // このフレームは基準座標を取り直すだけで、移動量は返さない(指の乗り換えで飛ばないように)
+        if (!current) {
+            const t = touches[0]
+            this.dragTouchId = t.identifier
+            this.dragPrevPos = vec(t.clientX, t.clientY)
+            return undefined
+        }
+
+        // canvasの内部解像度とCSS表示サイズの比率で、画面px単位のずれをワールド座標に変換する
+        const scale = this.canvas.width / this.canvas.getBoundingClientRect().width
+        const pos = vec(current.clientX, current.clientY)
+        const vector = pos.sub(this.dragPrevPos!).scale(scale)
+        this.dragPrevPos = pos
+        return vector
     }
 
     /** 1本指ドラッグ中の移動量(ワールド座標のベクトル)。ドラッグ中でなければundefined */
