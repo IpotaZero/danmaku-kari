@@ -37,12 +37,6 @@ const AREA_PER_SNOW = 8000
 
 export default class extends Stage {
     *G() {
-        if (isSmartPhone) {
-            yield* this.game.textBox.say(["二本指タップで技を発動。"])
-        } else {
-            yield* this.game.textBox.say(["Ctrlキーで技を発動。"])
-        }
-
         this.game.enemies.push(new EnemyFrost(this.game))
 
         yield* this.waitAllEnemiesDead()

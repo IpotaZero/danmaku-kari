@@ -17,18 +17,21 @@ const REST_FRAMES = 240
 
 export default class extends Stage {
     *G() {
-        yield* this.game.textBox.say(["雪の降り積もる朝。<br>道場に甲高い声が響き渡る。"])
+        yield* this.game.textBox.say(["雪の降り積もる道場。"])
+        yield* this.game.textBox.say(["そこに一人の虫人と老人が立っていた。"])
+        yield* this.game.textBox.say(["お前もそろそろ旅立つときじゃ。"], { name: "師匠" })
 
         this.showFigure("hachinoko", "assets/figure/Hachinoko.apng", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["やいやいお前らっ! 私と勝負するんだなっ!"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["なんだお前!?"], { name: "道場の人間" })
-        yield* this.game.textBox.say(["道場破りだぁっ!"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["はいっ!"], { name: "ハチノコ" })
+
+        yield* this.game.textBox.say(["じゃがその前に最後の試験といこう。"], { name: "師匠" })
+
         this.hideFigure("hachinoko")
 
         if (isSmartPhone) {
-            yield* this.game.textBox.say(["スワイプで移動"])
+            yield* this.game.textBox.say(["覚えておるな? スワイプで移動じゃ。"], { name: "師匠" })
         } else {
-            yield* this.game.textBox.say(["矢印キーで移動。Shiftキーで低速。"])
+            yield* this.game.textBox.say(["覚えておるな? 矢印キーで移動、Shiftキーで低速じゃ。"], { name: "師匠" })
         }
 
         const parent = new EnemyBoss(this.game)
@@ -40,6 +43,35 @@ export default class extends Stage {
         }
 
         yield* this.waitAllEnemiesDead()
+
+        if (isSmartPhone) {
+            yield* this.game.textBox.say(["次に、二本指タップで技を発動じゃ。<br>今は高速移動ができるじゃろう。"], {
+                name: "師匠",
+            })
+        } else {
+            yield* this.game.textBox.say(["次に、Ctrlキーで技を発動じゃ。<br>今は高速移動ができるじゃろう。"], {
+                name: "師匠",
+            })
+        }
+
+        const parent2 = new EnemyBoss(this.game)
+        this.game.enemies.push(parent2)
+
+        const satelliteCount2 = 3
+        for (let i = 0; i < satelliteCount2; i++) {
+            this.game.enemies.push(new EnemySatellite(this.game, parent2, i, satelliteCount2))
+        }
+
+        yield* this.waitAllEnemiesDead()
+
+        yield* Array(60)
+
+        yield* this.game.textBox.say(["もうわしに教えることはない。九つの道場を巡り、弾幕マスターとなるのじゃ!"], {
+            name: "師匠",
+        })
+
+        this.showFigure("hachinoko", "assets/figure/Hachinoko.apng", { offsetPercent: -30 })
+        yield* this.game.textBox.say(["やったるぜっ!"], { name: "ハチノコ" })
     }
 }
 

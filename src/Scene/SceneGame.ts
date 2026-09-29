@@ -23,7 +23,7 @@ export class SceneGame extends Scene {
             (game) => this.node.stage(game),
             input,
             () => {
-                playerData.recordStageClear(this.node.id, playerData.getLoadout().main)
+                this.node.recordClear(playerData, playerData.getLoadout().main)
                 this.showResultMenu("--:: 道場破り ::--")
             },
             (score) => {

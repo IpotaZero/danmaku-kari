@@ -1,7 +1,8 @@
 import { Game } from "../Game/Game"
 import { EquipmentId } from "../Data/Equipment"
-import { PlayerData } from "../Data/PlayerData"
+import { BadgeId, PlayerData } from "../Data/PlayerData"
 import { Stage } from "../Stage/Stage"
+import { EdgeCondition } from "./EdgeCondition"
 import { JsonCanvas, JsonCanvasNode } from "./JsonCanvas"
 
 // マップの定義ファイル(Obsidian Canvas)。実行時に取得する。
@@ -32,6 +33,8 @@ export class MapNode {
         // ワールド座標(px)。原点や単位に意味はなく、ノード間の相対位置だけが重要
         readonly x: number,
         readonly y: number,
+        // クリアすると授かる免状。道場主のノードにだけ付く
+        readonly badge?: BadgeId,
     ) {
         // 書き間違いにはマップ読み込みの時点で気づけるようにする(ステージに入ってから落ちるのを防ぐ)
         if (!stageLoaders.has(stageName)) {
@@ -42,10 +45,25 @@ export class MapNode {
         }
     }
 
-    // カード本文の1行目をラベル、2行目をステージのファイル名として読む。座標はカードの中心
+    // カード本文の1行目をラベル、2行目をステージのファイル名として読む。座標はカードの中心。
+    // 3行目以降は「キー:値」の形の追加情報(今のところ免状を授ける"badge"だけ)
     static fromCanvas(card: JsonCanvasNode): MapNode {
-        const [label = "", stageName = ""] = (card.text ?? "").split("\n").map((line) => line.trim())
-        return new MapNode(card.id, label, stageName, card.x + card.width / 2, card.y + card.height / 2)
+        const [label = "", stageName = "", ...rest] = (card.text ?? "").split("\n").map((line) => line.trim())
+
+        let badge: BadgeId | undefined
+        for (const line of rest.filter((line) => line.length > 0)) {
+            const [key = "", ...value] = line.split(":")
+            if (key.trim() !== "badge") throw new Error(`不明な追加情報です: ${line} (ノード「${label}」)`)
+            badge = value.join(":").trim()
+        }
+
+        return new MapNode(card.id, label, stageName, card.x + card.width / 2, card.y + card.height / 2, badge)
+    }
+
+    // クリアを記録し、免状を授けるノードなら免状も授ける
+    recordClear(playerData: PlayerData, mainEquipmentId: EquipmentId) {
+        playerData.recordStageClear(this.id, mainEquipmentId)
+        if (this.badge) playerData.awardBadge(this.badge)
     }
 
     async stage(game: Game): Promise<Stage> {
@@ -58,8 +76,7 @@ export class MapEdge {
     constructor(
         readonly from: MapNode,
         readonly to: MapNode,
-        // 指定した場合、fromをこの主装備でクリアしていないと、この辺を通ってtoは解放されない
-        readonly requiredMainEquipmentId?: EquipmentId,
+        readonly condition: EdgeCondition,
     ) {}
 
     // カーソル移動用。解放とは違い、辺は両方向にたどれる
@@ -71,12 +88,9 @@ export class MapEdge {
         return this.from === node ? this.to : this.from
     }
 
-    // 解放は矢印の向きにだけ伝わる: fromが、要求する主装備でクリア済みならtoを解放する(要求がなければクリア済みでよい)
+    // 解放は矢印の向きにだけ伝わる: fromがクリア済みで、かつ辺の条件を満たしていればtoを解放する
     isOpen(playerData: PlayerData): boolean {
-        if (!playerData.isStageCleared(this.from.id)) return false
-        if (!this.requiredMainEquipmentId) return true
-
-        return playerData.getStageClearedMainEquipments(this.from.id).has(this.requiredMainEquipmentId)
+        return playerData.isStageCleared(this.from.id) && this.condition.isMet(this.from, playerData)
     }
 }
 
@@ -113,10 +127,11 @@ export class MapGraph {
     }
 
     // テキストカードだけをノードとして読む(グループなどは整理用として無視する)。
-    // 辺のラベルは主装備の条件。スタート地点は、入ってくる辺が一本もない唯一のノード
+    // 辺のラベルは解放の条件(EdgeCondition.fromLabel)。スタート地点は、入ってくる辺が一本もない唯一のノード
     static fromCanvas(canvas: JsonCanvas): MapGraph {
         const nodes = canvas.nodes.filter((card) => card.type === "text").map((card) => MapNode.fromCanvas(card))
         const nodesById = new Map(nodes.map((node) => [node.id, node]))
+        const badges = new Set(nodes.flatMap((node) => (node.badge ? [node.badge] : [])))
 
         const findNode = (id: string): MapNode => {
             const node = nodesById.get(id)
@@ -125,7 +140,12 @@ export class MapGraph {
         }
 
         const edges = canvas.edges.map(
-            (edge) => new MapEdge(findNode(edge.fromNode), findNode(edge.toNode), edge.label?.trim() || undefined),
+            (edge) =>
+                new MapEdge(
+                    findNode(edge.fromNode),
+                    findNode(edge.toNode),
+                    EdgeCondition.fromLabel(edge.label?.trim() || undefined, badges),
+                ),
         )
 
         const starts = nodes.filter((node) => !edges.some((edge) => edge.to === node))

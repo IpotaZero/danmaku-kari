@@ -22,7 +22,11 @@ type SerializedPlayerData = {
     lives: number
     lastLivesSyncedAt: number
     totalScore?: number
+    badges?: BadgeId[]
 }
+
+// 免状(道場主を倒すと授かる証)のID
+export type BadgeId = string
 
 /**
  * ステージ間・シーン間で引き継がれるプレイヤーのセーブデータを保持する。
@@ -46,6 +50,9 @@ export class PlayerData {
     // 各ステージで獲得したscoreの累計(ステージを跨いで引き継がれる)
     private totalScore = 0
 
+    // 授かった免状
+    private readonly badges = new Set<BadgeId>()
+
     constructor() {
         this.load()
         this.recoverLivesOverTime()
@@ -64,6 +71,21 @@ export class PlayerData {
 
     getStageClearedMainEquipments(stageId: string): ReadonlySet<EquipmentId> {
         return this.stageClears.get(stageId) ?? new Set()
+    }
+
+    awardBadge(badge: BadgeId) {
+        if (this.badges.has(badge)) return
+
+        this.badges.add(badge)
+        this.save()
+    }
+
+    hasBadge(badge: BadgeId): boolean {
+        return this.badges.has(badge)
+    }
+
+    getBadges(): ReadonlySet<BadgeId> {
+        return this.badges
     }
 
     getLoadout(): Loadout {
@@ -157,6 +179,9 @@ export class PlayerData {
             this.lastLivesSyncedAt = data.lastLivesSyncedAt
             // 旧形式の保存データにはこのフィールドが無いので、その場合は0から始める
             this.totalScore = data.totalScore ?? 0
+            // 旧形式の保存データにはこのフィールドが無いので、その場合は免状なしから始める
+            this.badges.clear()
+            data.badges?.forEach((badge) => this.badges.add(badge))
         } catch {
             // 保存データが壊れている/存在しない場合は初期値のまま進める
         }
@@ -173,6 +198,7 @@ export class PlayerData {
             lives: this.lives,
             lastLivesSyncedAt: this.lastLivesSyncedAt,
             totalScore: this.totalScore,
+            badges: [...this.badges],
         }
 
         try {
