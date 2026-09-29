@@ -1,14 +1,14 @@
 import { vec } from "@ipota/vec"
 import { Ease } from "@ipota/functions"
-import { Enemy } from "../Game/Actor/Enemy"
-import { Game } from "../Game/Game"
-import { Remodel, remodel } from "../Game/Remodel"
-import { Stage } from "./Stage"
-import { EnemyRendererCore } from "../Game/Actor/EnemyRendererCore"
-import { T } from "../T"
-import { GenUtils } from "../utils/Functions/GeneratorUtils"
-import { Curves } from "../utils/Functions/Curves"
-import { isSmartPhone } from "../utils/Functions/isSmartPhone"
+import { Enemy } from "../../Game/Actor/Enemy"
+import { Game } from "../../Game/Game"
+import { Remodel, remodel } from "../../Game/Remodel"
+import { Stage } from "../Stage"
+import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
+import { T } from "../../T"
+import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { Curves } from "../../utils/Functions/Curves"
+import { isSmartPhone } from "../../utils/Functions/isSmartPhone"
 
 // ステージ「霜」
 // 空から小さな雪(ball 4)が降り、画面のあちこちで止まって大きな雪玉(ball 24)に育つ。

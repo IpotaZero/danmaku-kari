@@ -1,12 +1,12 @@
 import { vec } from "@ipota/vec"
-import { Enemy } from "../Game/Actor/Enemy"
-import { Game } from "../Game/Game"
-import { Remodel, remodel } from "../Game/Remodel"
-import { Stage } from "./Stage"
-import { EnemyRendererCore } from "../Game/Actor/EnemyRendererCore"
-import { T } from "../T"
-import { GenUtils } from "../utils/Functions/GeneratorUtils"
-import { Curves } from "../utils/Functions/Curves"
+import { Enemy } from "../../Game/Actor/Enemy"
+import { Game } from "../../Game/Game"
+import { Remodel, remodel } from "../../Game/Remodel"
+import { Stage } from "../Stage"
+import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
+import { T } from "../../T"
+import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { Curves } from "../../utils/Functions/Curves"
 
 // ステージ「凍てつく息」(霜月道場・門下生)
 // 門下生が吐いた息(小さな氷の粒)が放射状に広がり、数重の輪を描いたところで凍りついて止まる。
@@ -35,12 +35,12 @@ const DROP_SPEED = 4
 
 export default class extends Stage {
     *G() {
-        yield* this.game.textBox.say(["霜の降りた道場。板張りの床が冷たい。"])
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["うーさむさむ。冬眠したいなあ。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["道場主に挑むなら、まずは私を越えてからです。"], { name: "門下生" })
-        yield* this.game.textBox.say(["でもやったるぜっ!"], { name: "ハチノコ" })
-        this.hideFigure("hachinoko")
+        // yield* this.game.textBox.say(["霜の降りた道場。板張りの床が冷たい。"])
+        // this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
+        // yield* this.game.textBox.say(["うーさむさむ。冬眠したいなあ。"], { name: "ハチノコ" })
+        // yield* this.game.textBox.say(["道場主に挑むなら、まずは私を越えてからです。"], { name: "門下生" })
+        // yield* this.game.textBox.say(["でもやったるぜっ!"], { name: "ハチノコ" })
+        // this.hideFigure("hachinoko")
 
         this.game.enemies.push(new EnemyPupil(this.game))
 

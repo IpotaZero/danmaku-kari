@@ -15,10 +15,10 @@ type StageModule = { default: new (game: Game) => Stage }
 
 // ステージはファイル名(拡張子なし)で参照する。遅延読み込みなので、マップ画面では各ステージのコードを読み込まない。
 // globのキーの形式(相対パスか絶対パスか)に依存しないよう、キーからファイル名だけを取り出して引く
-// @ts-ignore: globの型定義が不正確で、import.meta.globの戻り値の型が正しく推論されない
+// @ts-ignore
 const stageLoaders: ReadonlyMap<string, () => Promise<StageModule>> = new Map(
-    // @ts-ignore: globの型定義が不正確で、import.meta.globの戻り値の型が正しく推論されない
-    Object.entries(import.meta.glob<StageModule>(["../Stage/Stage*.ts", "!../Stage/Stage.ts"])).map(([path, load]) => [
+    // @ts-ignore
+    Object.entries(import.meta.glob<StageModule>("../Stage/**/*.ts")).map(([path, load]) => [
         path.replace(/^.*\//, "").replace(/\.ts$/, ""),
         load,
     ]),

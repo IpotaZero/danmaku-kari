@@ -1,12 +1,12 @@
 import { vec } from "@ipota/vec"
-import { Enemy } from "../Game/Actor/Enemy"
-import { Game } from "../Game/Game"
-import { Remodel, remodel } from "../Game/Remodel"
-import { Stage } from "./Stage"
-import { EnemyRendererCore } from "../Game/Actor/EnemyRendererCore"
-import { T } from "../T"
-import { GenUtils } from "../utils/Functions/GeneratorUtils"
-import { Curves } from "../utils/Functions/Curves"
+import { Enemy } from "../../Game/Actor/Enemy"
+import { Game } from "../../Game/Game"
+import { Remodel, remodel } from "../../Game/Remodel"
+import { Stage } from "../Stage"
+import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
+import { T } from "../../T"
+import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { Curves } from "../../utils/Functions/Curves"
 
 // ステージ「門」(高難度)
 // 画面の左右の端に4本の門柱(衛星)が立ち、それぞれが画面の縦いっぱいに弾を並べて壁を描く。

@@ -1,12 +1,12 @@
 import { vec } from "@ipota/vec"
-import { Enemy } from "../Game/Actor/Enemy"
-import { Game } from "../Game/Game"
-import { Remodel, remodel } from "../Game/Remodel"
-import { Stage } from "./Stage"
-import { EnemyRendererCore } from "../Game/Actor/EnemyRendererCore"
-import { T } from "../T"
-import { GenUtils } from "../utils/Functions/GeneratorUtils"
-import { Curves } from "../utils/Functions/Curves"
+import { Enemy } from "../../Game/Actor/Enemy"
+import { Game } from "../../Game/Game"
+import { Remodel, remodel } from "../../Game/Remodel"
+import { Stage } from "../Stage"
+import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
+import { T } from "../../T"
+import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { Curves } from "../../utils/Functions/Curves"
 
 // ステージ「星座」
 // 月(ボス)の周りを5つの星(衛星)がゆっくり公転し、星どうしが弾で線を引いて五芒星を描く。

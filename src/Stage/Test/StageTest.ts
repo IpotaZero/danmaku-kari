@@ -1,13 +1,13 @@
 import { vec } from "@ipota/vec"
-import { Enemy } from "../Game/Actor/Enemy"
-import { Game } from "../Game/Game"
-import { Remodel, remodel } from "../Game/Remodel"
-import { Stage } from "./Stage"
-import { EnemyRendererCore } from "../Game/Actor/EnemyRendererCore"
-import { T } from "../T"
-import { GenUtils } from "../utils/Functions/GeneratorUtils"
-import { Curves } from "../utils/Functions/Curves"
-import { isSmartPhone } from "../utils/Functions/isSmartPhone"
+import { Enemy } from "../../Game/Actor/Enemy"
+import { Game } from "../../Game/Game"
+import { Remodel, remodel } from "../../Game/Remodel"
+import { Stage } from "../Stage"
+import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
+import { T } from "../../T"
+import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { Curves } from "../../utils/Functions/Curves"
+import { isSmartPhone } from "../../utils/Functions/isSmartPhone"
 
 // ボスの登場演出にかかるフレーム数。衛星もこれだけ待ってから合わせて動き出す
 const ENTRANCE_FRAMES = 150
