@@ -7,7 +7,7 @@ export abstract class Stage extends IteratorQueue {
 
     constructor(protected readonly game: Game) {
         super()
-        this.addScript(() => this.G(), { id: "runToEnd" })
+        this.addScript(() => this.H(), { id: "runToEnd" })
     }
 
     // G()が最後まで到達したらステージクリア
@@ -16,6 +16,13 @@ export abstract class Stage extends IteratorQueue {
     }
 
     abstract G(): Generator<void, void, void>
+
+    private *H() {
+        yield* this.G()
+        this.shake(16, 60)
+        this.flash("#dff6ff", 20)
+        this.scorenizeAllBullets()
+    }
 
     protected *waitAllEnemiesDead(): Generator<void, void, void> {
         while (this.game.enemies.length > 0) {
@@ -45,6 +52,16 @@ export abstract class Stage extends IteratorQueue {
     // 画面全体を揺らす。実体はCameraの揺れなので、Player被弾時の揺れと共存できる
     shake(intensity: number = 8, frame: number = 20) {
         this.game.camera.shake(intensity, frame)
+    }
+
+    // 立ち絵(APNG)を表示する。idを分ければ複数枚同時に並べられる。
+    // offsetPercentは画面幅に対する左右のずれ(負で左、正で右。中央基準)
+    showFigure(id: string, src: string, { offsetPercent = 0 }: { offsetPercent?: number } = {}) {
+        this.game.figureLayer.show(id, src, offsetPercent)
+    }
+
+    hideFigure(id: string) {
+        this.game.figureLayer.hide(id)
     }
 
     // Gameの描画が全て終わった後に呼ばれる、画面全体を覆うオーバーレイの描画

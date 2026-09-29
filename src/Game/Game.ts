@@ -9,6 +9,7 @@ import { BulletCollision } from "./BulletCollision"
 import { IteratorQueue } from "./IteratorQueue"
 import { Stage } from "../Stage/Stage"
 import { TextBox } from "../utils/TextBox"
+import { FigureLayer } from "../utils/FigureLayer"
 import { TouchControls } from "./TouchControls"
 import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 import { Dom } from "../Dom"
@@ -36,6 +37,7 @@ export class Game extends IteratorQueue {
     bullets: Bullet[] = []
 
     readonly textBox: TextBox
+    readonly figureLayer = new FigureLayer()
     readonly input: GameInput
 
     private readonly touchControls: TouchControls
@@ -130,6 +132,7 @@ export class Game extends IteratorQueue {
 
     dispose() {
         this.resizeObserver.disconnect()
+        this.figureLayer.dispose()
     }
 
     update(): void {

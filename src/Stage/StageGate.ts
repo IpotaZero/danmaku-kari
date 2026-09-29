@@ -45,9 +45,6 @@ export default class extends Stage {
         }
 
         yield* this.waitAllEnemiesDead()
-        this.shake(16, 60)
-        this.flash("#ffe6a8", 16)
-        this.scorenizeAllBullets()
     }
 }
 

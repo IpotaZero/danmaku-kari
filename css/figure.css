@@ -1,0 +1,25 @@
+.figure-layer {
+    position: absolute;
+    inset: 0;
+
+    pointer-events: none;
+
+    z-index: 100;
+
+    .figure {
+        position: absolute;
+        bottom: 0;
+        left: calc(50% + var(--offset, 0%));
+        transform: translateX(-50%);
+
+        height: 90%;
+        image-rendering: pixelated;
+
+        opacity: 0;
+        transition: opacity 0.3s ease;
+
+        &.figure--visible {
+            opacity: 1;
+        }
+    }
+}

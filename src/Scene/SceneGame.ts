@@ -36,7 +36,7 @@ export class SceneGame extends Scene {
 
         this.root.classList.add("scene-game")
         this.game.canvas.id = "main"
-        this.root.append(this.game.canvas, this.game.textBox.box)
+        this.root.append(this.game.canvas, this.game.figureLayer.box, this.game.textBox.box)
     }
 
     protected async onEnd(): Promise<void> {

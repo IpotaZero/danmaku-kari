@@ -17,6 +17,14 @@ const REST_FRAMES = 240
 
 export default class extends Stage {
     *G() {
+        yield* this.game.textBox.say(["雪の降り積もる朝。<br>道場に甲高い声が響き渡る。"])
+
+        this.showFigure("hachinoko", "assets/figure/Hachinoko.apng", { offsetPercent: -30 })
+        yield* this.game.textBox.say(["やいやいお前らっ! 私と勝負するんだなっ!"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["なんだお前!?"], { name: "道場の人間" })
+        yield* this.game.textBox.say(["道場破りだぁっ!"], { name: "ハチノコ" })
+        this.hideFigure("hachinoko")
+
         if (isSmartPhone) {
             yield* this.game.textBox.say(["スワイプで移動"])
         } else {
@@ -32,9 +40,6 @@ export default class extends Stage {
         }
 
         yield* this.waitAllEnemiesDead()
-        this.shake(16, 60)
-        this.flash("#ffffff", 12)
-        this.scorenizeAllBullets()
     }
 }
 
