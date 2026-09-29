@@ -4,11 +4,10 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Remodel, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
-import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
 import { GenUtils } from "../../utils/Functions/GeneratorUtils"
 import { Curves } from "../../utils/Functions/Curves"
-import { isSmartPhone } from "../../utils/Functions/isSmartPhone"
+import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 
 // ステージ「霜」
 // 空から小さな雪(ball 4)が降り、画面のあちこちで止まって大きな雪玉(ball 24)に育つ。
@@ -37,6 +36,15 @@ const AREA_PER_SNOW = 8000
 
 export default class extends Stage {
     *G() {
+        yield* this.game.textBox.say(["霜の降りた道場。板張りの床が冷たい。"])
+        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
+        yield* this.game.textBox.say(["うーさむさむ。冬眠したいなあ。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["よく来たね。ボクが霜月道場の長、ユキムシだよ。"], { name: "ユキムシ" })
+        yield* this.game.textBox.say(["あなたは寒くないんですか?"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["寒いよ。だから……"], { name: "ユキムシ" })
+        yield* this.game.textBox.say(["弾幕で熱くなろうかっ!"], { name: "ユキムシ" })
+        this.hideFigure("hachinoko")
+
         this.game.enemies.push(new EnemyFrost(this.game))
 
         yield* this.waitAllEnemiesDead()
@@ -47,7 +55,8 @@ class EnemyFrost extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.8, this.game.HEIGHT * 0.1, 2, 3)
 
     constructor(game: Game) {
-        super(game, 2400, 48, { renderer: new EnemyRendererCore() })
+        super(game, 2400, 96, { renderer: new EnemyRendererBoss() })
+        this.isInvincible = true
 
         this.addScript(() => this.enter())
     }

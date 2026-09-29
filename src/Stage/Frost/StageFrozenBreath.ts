@@ -35,13 +35,6 @@ const DROP_SPEED = 4
 
 export default class extends Stage {
     *G() {
-        // yield* this.game.textBox.say(["霜の降りた道場。板張りの床が冷たい。"])
-        // this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        // yield* this.game.textBox.say(["うーさむさむ。冬眠したいなあ。"], { name: "ハチノコ" })
-        // yield* this.game.textBox.say(["道場主に挑むなら、まずは私を越えてからです。"], { name: "門下生" })
-        // yield* this.game.textBox.say(["でもやったるぜっ!"], { name: "ハチノコ" })
-        // this.hideFigure("hachinoko")
-
         this.game.enemies.push(new EnemyPupil(this.game))
 
         yield* this.waitAllEnemiesDead()

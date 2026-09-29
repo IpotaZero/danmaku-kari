@@ -21,7 +21,7 @@
 		{
 			"id": "31f7d87e5e5e2323",
 			"type": "text",
-			"text": "霜月道場・高弟\nStageTest",
+			"text": "霜月道場・高弟\nStageNotImplemented",
 			"x": 330,
 			"y": 0,
 			"width": 80,
@@ -30,7 +30,7 @@
 		{
 			"id": "3b69dc58c8ff5df6",
 			"type": "text",
-			"text": "霜月道場・師範代\nStageTest",
+			"text": "霜月道場・師範代\nStageNotImplemented",
 			"x": 460,
 			"y": 0,
 			"width": 80,
@@ -48,7 +48,7 @@
 		{
 			"id": "32d20b61aa81414f",
 			"type": "text",
-			"text": "疾風道場・門下生\nStageTest",
+			"text": "疾風道場・門下生\nStageNotImplemented",
 			"x": 790,
 			"y": -250,
 			"width": 80,
@@ -57,7 +57,7 @@
 		{
 			"id": "d0f3ac057b2ec641",
 			"type": "text",
-			"text": "疾風道場・高弟\nStageTest",
+			"text": "疾風道場・高弟\nStageNotImplemented",
 			"x": 920,
 			"y": -250,
 			"width": 80,
@@ -66,7 +66,7 @@
 		{
 			"id": "d29f8461010994af",
 			"type": "text",
-			"text": "疾風道場・師範代\nStageTest",
+			"text": "疾風道場・師範代\nStageNotImplemented",
 			"x": 1050,
 			"y": -250,
 			"width": 80,
@@ -75,7 +75,7 @@
 		{
 			"id": "b645a540eecf50a7",
 			"type": "text",
-			"text": "疾風道場・道場主\nStageTest\nbadge:疾風",
+			"text": "疾風道場・道場主\nStageNotImplemented\nbadge:疾風",
 			"x": 1180,
 			"y": -250,
 			"width": 80,
@@ -84,7 +84,7 @@
 		{
 			"id": "8659e6c8a9cd5e2b",
 			"type": "text",
-			"text": "雷鼓道場・門下生\nStageTest",
+			"text": "雷鼓道場・門下生\nStageNotImplemented",
 			"x": 790,
 			"y": 250,
 			"width": 80,
@@ -93,7 +93,7 @@
 		{
 			"id": "830af84d77e4673c",
 			"type": "text",
-			"text": "雷鼓道場・高弟\nStageTest",
+			"text": "雷鼓道場・高弟\nStageNotImplemented",
 			"x": 920,
 			"y": 250,
 			"width": 80,
@@ -102,7 +102,7 @@
 		{
 			"id": "166d9f9191ad1a93",
 			"type": "text",
-			"text": "雷鼓道場・師範代\nStageTest",
+			"text": "雷鼓道場・師範代\nStageNotImplemented",
 			"x": 1050,
 			"y": 250,
 			"width": 80,
@@ -111,7 +111,7 @@
 		{
 			"id": "70041c417988cd82",
 			"type": "text",
-			"text": "雷鼓道場・道場主\nStageTest\nbadge:雷鼓",
+			"text": "雷鼓道場・道場主\nStageNotImplemented\nbadge:雷鼓",
 			"x": 1180,
 			"y": 250,
 			"width": 80,
@@ -120,7 +120,7 @@
 		{
 			"id": "478791923fb120a2",
 			"type": "text",
-			"text": "霧隠道場・門下生\nStageTest",
+			"text": "霧隠道場・門下生\nStageNotImplemented",
 			"x": 1380,
 			"y": -500,
 			"width": 80,
@@ -129,7 +129,7 @@
 		{
 			"id": "22d09d02a6ba8bc9",
 			"type": "text",
-			"text": "霧隠道場・高弟\nStageTest",
+			"text": "霧隠道場・高弟\nStageNotImplemented",
 			"x": 1510,
 			"y": -500,
 			"width": 80,
@@ -138,7 +138,7 @@
 		{
 			"id": "6b9ed5a8d80252c9",
 			"type": "text",
-			"text": "霧隠道場・師範代\nStageTest",
+			"text": "霧隠道場・師範代\nStageNotImplemented",
 			"x": 1640,
 			"y": -500,
 			"width": 80,
@@ -147,7 +147,7 @@
 		{
 			"id": "03e5df0075419b20",
 			"type": "text",
-			"text": "霧隠道場・道場主\nStageTest\nbadge:霧隠",
+			"text": "霧隠道場・道場主\nStageNotImplemented\nbadge:霧隠",
 			"x": 1770,
 			"y": -500,
 			"width": 80,
@@ -156,7 +156,7 @@
 		{
 			"id": "9f3742e71653f66f",
 			"type": "text",
-			"text": "砂塵道場・門下生\nStageTest",
+			"text": "砂塵道場・門下生\nStageNotImplemented",
 			"x": 1380,
 			"y": 0,
 			"width": 80,
@@ -165,7 +165,7 @@
 		{
 			"id": "c9504a1b3bf6d77a",
 			"type": "text",
-			"text": "砂塵道場・高弟\nStageTest",
+			"text": "砂塵道場・高弟\nStageNotImplemented",
 			"x": 1510,
 			"y": 0,
 			"width": 80,
@@ -174,7 +174,7 @@
 		{
 			"id": "54199e7166e6f1be",
 			"type": "text",
-			"text": "砂塵道場・師範代\nStageTest",
+			"text": "砂塵道場・師範代\nStageNotImplemented",
 			"x": 1640,
 			"y": 0,
 			"width": 80,
@@ -183,7 +183,7 @@
 		{
 			"id": "5675d716c5761d80",
 			"type": "text",
-			"text": "砂塵道場・道場主\nStageTest\nbadge:砂塵",
+			"text": "砂塵道場・道場主\nStageNotImplemented\nbadge:砂塵",
 			"x": 1770,
 			"y": 0,
 			"width": 80,
@@ -192,7 +192,7 @@
 		{
 			"id": "94be0c796c5a45c2",
 			"type": "text",
-			"text": "流星道場・門下生\nStageTest",
+			"text": "流星道場・門下生\nStageNotImplemented",
 			"x": 1970,
 			"y": -250,
 			"width": 80,
@@ -201,7 +201,7 @@
 		{
 			"id": "da5a0325d6b1823e",
 			"type": "text",
-			"text": "流星道場・高弟\nStageTest",
+			"text": "流星道場・高弟\nStageNotImplemented",
 			"x": 2100,
 			"y": -250,
 			"width": 80,
@@ -210,7 +210,7 @@
 		{
 			"id": "7cdea32cffb53b26",
 			"type": "text",
-			"text": "流星道場・師範代\nStageTest",
+			"text": "流星道場・師範代\nStageNotImplemented",
 			"x": 2230,
 			"y": -250,
 			"width": 80,
@@ -219,7 +219,7 @@
 		{
 			"id": "5fbe65792de30064",
 			"type": "text",
-			"text": "流星道場・道場主\nStageTest\nbadge:流星",
+			"text": "流星道場・道場主\nStageNotImplemented\nbadge:流星",
 			"x": 2360,
 			"y": -250,
 			"width": 80,
@@ -228,7 +228,7 @@
 		{
 			"id": "46e539f50437a678",
 			"type": "text",
-			"text": "四天王・青龍\nStageTest",
+			"text": "四天王・青龍\nStageNotImplemented",
 			"x": 3150,
 			"y": 0,
 			"width": 80,
@@ -237,7 +237,7 @@
 		{
 			"id": "534a94c5e210d65c",
 			"type": "text",
-			"text": "四天王・朱雀\nStageTest",
+			"text": "四天王・朱雀\nStageNotImplemented",
 			"x": 3280,
 			"y": 0,
 			"width": 80,
@@ -246,7 +246,7 @@
 		{
 			"id": "98c07e56e131e418",
 			"type": "text",
-			"text": "四天王・白虎\nStageTest",
+			"text": "四天王・白虎\nStageNotImplemented",
 			"x": 3410,
 			"y": 0,
 			"width": 80,
@@ -255,7 +255,7 @@
 		{
 			"id": "3bceb29a6b35762f",
 			"type": "text",
-			"text": "四天王・玄武\nStageTest",
+			"text": "四天王・玄武\nStageNotImplemented",
 			"x": 3540,
 			"y": 0,
 			"width": 80,
@@ -264,7 +264,7 @@
 		{
 			"id": "ca68c9295dde0dbf",
 			"type": "text",
-			"text": "チャンピオン\nStageTest",
+			"text": "チャンピオン\nStageNotImplemented",
 			"x": 3740,
 			"y": 0,
 			"width": 80,
@@ -273,7 +273,7 @@
 		{
 			"id": "ed45c0b7fab66007",
 			"type": "text",
-			"text": "鉄壁道場・門下生\nStageTest",
+			"text": "鉄壁道場・門下生\nStageNotImplemented",
 			"x": 1380,
 			"y": 520,
 			"width": 80,
@@ -282,7 +282,7 @@
 		{
 			"id": "8aede485119c7180",
 			"type": "text",
-			"text": "鉄壁道場・高弟\nStageTest",
+			"text": "鉄壁道場・高弟\nStageNotImplemented",
 			"x": 1510,
 			"y": 520,
 			"width": 80,
@@ -291,7 +291,7 @@
 		{
 			"id": "f306d45e3016d5aa",
 			"type": "text",
-			"text": "鉄壁道場・師範代\nStageTest",
+			"text": "鉄壁道場・師範代\nStageNotImplemented",
 			"x": 1640,
 			"y": 520,
 			"width": 80,
@@ -300,7 +300,7 @@
 		{
 			"id": "776f536c08216061",
 			"type": "text",
-			"text": "鉄壁道場・道場主\nStageTest\nbadge:鉄壁",
+			"text": "鉄壁道場・道場主\nStageNotImplemented\nbadge:鉄壁",
 			"x": 1770,
 			"y": 520,
 			"width": 80,
@@ -309,7 +309,7 @@
 		{
 			"id": "7673bf8340f21db7",
 			"type": "text",
-			"text": "陽炎道場・門下生\nStageTest",
+			"text": "陽炎道場・門下生\nStageNotImplemented",
 			"x": 1380,
 			"y": 250,
 			"width": 80,
@@ -318,7 +318,7 @@
 		{
 			"id": "3f068863a930d057",
 			"type": "text",
-			"text": "陽炎道場・高弟\nStageTest",
+			"text": "陽炎道場・高弟\nStageNotImplemented",
 			"x": 1510,
 			"y": 250,
 			"width": 80,
@@ -327,7 +327,7 @@
 		{
 			"id": "9c20658750cdab8d",
 			"type": "text",
-			"text": "陽炎道場・師範代\nStageTest",
+			"text": "陽炎道場・師範代\nStageNotImplemented",
 			"x": 1640,
 			"y": 250,
 			"width": 80,
@@ -336,7 +336,7 @@
 		{
 			"id": "573084b0c44d937c",
 			"type": "text",
-			"text": "月影道場・門下生\nStageTest",
+			"text": "月影道場・門下生\nStageNotImplemented",
 			"x": 2230,
 			"y": 520,
 			"width": 80,
@@ -345,7 +345,7 @@
 		{
 			"id": "245cc775e55e2d24",
 			"type": "text",
-			"text": "月影道場・高弟\nStageTest",
+			"text": "月影道場・高弟\nStageNotImplemented",
 			"x": 2360,
 			"y": 520,
 			"width": 80,
@@ -354,7 +354,7 @@
 		{
 			"id": "741a530ae89e9471",
 			"type": "text",
-			"text": "月影道場・師範代\nStageTest",
+			"text": "月影道場・師範代\nStageNotImplemented",
 			"x": 2490,
 			"y": 520,
 			"width": 80,
@@ -363,7 +363,7 @@
 		{
 			"id": "f7f1907383d4c135",
 			"type": "text",
-			"text": "月影道場・道場主\nStageTest\nbadge:月影",
+			"text": "月影道場・道場主\nStageNotImplemented\nbadge:月影",
 			"x": 2620,
 			"y": 520,
 			"width": 80,
@@ -372,7 +372,7 @@
 		{
 			"id": "2a0f289b578f41f4",
 			"type": "text",
-			"text": "陽炎道場・道場主\nStageTest\nbadge:陽炎",
+			"text": "陽炎道場・道場主\nStageNotImplemented\nbadge:陽炎",
 			"x": 1810,
 			"y": 250,
 			"width": 80,
