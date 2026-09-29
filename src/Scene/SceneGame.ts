@@ -24,11 +24,11 @@ export class SceneGame extends Scene {
             input,
             () => {
                 playerData.recordStageClear(this.node.id, playerData.getLoadout().main)
-                this.showResultMenu("--:: 作戦終了 ::--")
+                this.showResultMenu("--:: 道場破り ::--")
             },
             (score) => {
                 playerData.addScore(score)
-                this.showResultMenu("--:: 作戦失敗 ::--")
+                this.showResultMenu("--:: 失敗 ::--")
             },
             (score) => playerData.addScore(score),
             createPlayerConfig(),
