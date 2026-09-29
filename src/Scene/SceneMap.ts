@@ -1,7 +1,7 @@
 import { playerData } from "../Data/PlayerData"
 import { mainEquipments, subEquipments } from "../Game/Equipment/PlayerEquipment"
 import { input } from "../input"
-import { mapGraph, MapEdge, MapNode, MapNodeId } from "../Map/MapGraph"
+import { MapBounds, MapEdge, MapGraph, MapNode, MapNodeId } from "../Map/MapGraph"
 import { sc } from "../sc"
 import { Menu, MenuOption, MenuOptionBox } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
@@ -39,7 +39,7 @@ export class SceneMap extends Scene {
 
     // ワールド座標系でのカメラ位置(=画面中央に表示されるワールド座標)
     private camera: Camera = { x: 0, y: 0 }
-    private readonly worldBounds = mapGraph.bounds()
+    private readonly worldBounds: MapBounds
 
     // スワイプでのカメラ操作用の状態
     private dragging = false
@@ -50,9 +50,18 @@ export class SceneMap extends Scene {
     // ドラッグ後に発火するclickをタップと誤認しないようにするためのフラグ
     private suppressNextClick = false
 
-    constructor(selectedId: MapNodeId = mapGraph.start.id) {
+    private constructor(
+        private readonly graph: MapGraph,
+        selectedId: MapNodeId = graph.start.id,
+    ) {
         super()
         this.selectedId = selectedId
+        this.worldBounds = graph.bounds()
+    }
+
+    // マップの取得を待ってから生成する。selectedIdを省略するとスタート地点を選んだ状態で始まる
+    static async create(selectedId?: MapNodeId): Promise<SceneMap> {
+        return new SceneMap(await MapGraph.load(), selectedId)
     }
 
     protected async onStart(): Promise<void> {
@@ -62,7 +71,7 @@ export class SceneMap extends Scene {
         this.root.innerHTML = `
             <div class="map-world">
                 <svg class="map-edges">
-                    ${mapGraph.edges.map((edge) => this.renderEdge(edge)).join("")}
+                    ${this.graph.edges.map((edge) => this.renderEdge(edge)).join("")}
                 </svg>
                 <div class="map-nodes"></div>
                 <div class="map-node-info">
@@ -84,10 +93,10 @@ export class SceneMap extends Scene {
         this.mapWorldEl = this.root.querySelector<HTMLElement>(".map-world")!
 
         const nodesEl = this.root.querySelector<HTMLElement>(".map-nodes")!
-        for (const node of mapGraph.nodes) {
+        for (const node of this.graph.nodes) {
             const el = document.createElement("div")
             el.className = "map-node"
-            el.classList.toggle("locked", !mapGraph.isUnlocked(node, playerData))
+            el.classList.toggle("locked", !this.graph.isUnlocked(node, playerData))
             el.style.left = `${node.x}px`
             el.style.top = `${node.y}px`
             el.addEventListener("click", () => {
@@ -125,7 +134,7 @@ export class SceneMap extends Scene {
             `銭 ${playerData.getTotalScore().toLocaleString()}`
 
         // 初期カメラは選択中ノードを中央に据えた状態から始める(アニメーションなし)
-        this.camera = this.clampCamera(mapGraph.node(this.selectedId))
+        this.camera = this.clampCamera(this.graph.node(this.selectedId))
         this.applyCamera(false)
 
         // keepInfoOnScreen()が画面上の実際の位置を見て判定するため、カメラ適用後に呼ぶ
@@ -178,8 +187,8 @@ export class SceneMap extends Scene {
     }
 
     private move(direction: Direction) {
-        const current = mapGraph.node(this.selectedId)
-        const neighbors = mapGraph.neighbors(current).filter((node) => mapGraph.isUnlocked(node, playerData))
+        const current = this.graph.node(this.selectedId)
+        const neighbors = this.graph.neighbors(current).filter((node) => this.graph.isUnlocked(node, playerData))
 
         const next = pickClosestInDirection(current, neighbors, DIRECTION_VECTORS[direction])
         if (!next) return
@@ -192,7 +201,7 @@ export class SceneMap extends Scene {
         this.nodeElements.forEach((el, nodeId) => el.classList.toggle("selected", nodeId === this.selectedId))
         this.hideInfo()
 
-        this.camera = this.clampCamera(mapGraph.node(id))
+        this.camera = this.clampCamera(this.graph.node(id))
         this.applyCamera(true)
     }
 
@@ -252,7 +261,7 @@ export class SceneMap extends Scene {
     // そうでなければまずカーソルを合わせるだけ(keyboardの方向キー相当)にとどめる
     private handleNodeTap(id: MapNodeId) {
         if (this.equipMenu) return
-        if (!mapGraph.isUnlocked(mapGraph.node(id), playerData)) return
+        if (!this.graph.isUnlocked(this.graph.node(id), playerData)) return
 
         if (id === this.selectedId) {
             this.select()
@@ -263,8 +272,8 @@ export class SceneMap extends Scene {
     }
 
     private select() {
-        const node = mapGraph.node(this.selectedId)
-        if (!mapGraph.isUnlocked(node, playerData)) return
+        const node = this.graph.node(this.selectedId)
+        if (!this.graph.isUnlocked(node, playerData)) return
 
         sc.goto(async () => import("./SceneGame").then(({ SceneGame }) => new SceneGame(node)))
     }
@@ -457,7 +466,7 @@ export class SceneMap extends Scene {
     }
 
     private showInfo() {
-        const node = mapGraph.node(this.selectedId)
+        const node = this.graph.node(this.selectedId)
         this.infoEl.style.left = `${node.x}px`
         this.infoEl.style.top = `${node.y}px`
         this.infoEl.querySelector(".map-node-info-label")!.textContent = node.label
@@ -491,7 +500,7 @@ export class SceneMap extends Scene {
 
     private renderEdge(edge: MapEdge): string {
         const { from, to } = edge
-        const locked = !mapGraph.isUnlocked(from, playerData) || !mapGraph.isUnlocked(to, playerData)
+        const locked = !this.graph.isUnlocked(from, playerData) || !this.graph.isUnlocked(to, playerData)
         const className = [locked ? "locked" : "", edge.requiredMainEquipmentId ?? ""].join(" ")
         const line = (offset: { x: number; y: number }) =>
             `<line class="${className}" x1="${from.x + offset.x}" y1="${from.y + offset.y}" x2="${to.x + offset.x}" y2="${to.y + offset.y}" />`

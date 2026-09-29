@@ -4,6 +4,10 @@ import { PlayerData } from "../Data/PlayerData"
 import { Stage } from "../Stage/Stage"
 import { JsonCanvas, JsonCanvasNode } from "./JsonCanvas"
 
+// マップの定義ファイル(Obsidian Canvas)。実行時に取得する。
+// new URL(..., import.meta.url)の形で書くと、Viteがビルド時にファイルを出力し、URLを書き換えてくれる
+const MAP_URL = new URL("../../assets/MapData/MapData.canvas", import.meta.url).href
+
 export type MapNodeId = string
 
 type StageModule = { default: new (game: Game) => Stage }
@@ -54,10 +58,11 @@ export class MapEdge {
     constructor(
         readonly from: MapNode,
         readonly to: MapNode,
-        // 指定した場合、反対側のノードをこの主装備でクリアしていないと、この辺を通っての解放はされない
+        // 指定した場合、fromをこの主装備でクリアしていないと、この辺を通ってtoは解放されない
         readonly requiredMainEquipmentId?: EquipmentId,
     ) {}
 
+    // カーソル移動用。解放とは違い、辺は両方向にたどれる
     connects(node: MapNode): boolean {
         return this.from === node || this.to === node
     }
@@ -66,19 +71,21 @@ export class MapEdge {
         return this.from === node ? this.to : this.from
     }
 
-    // この辺越しにnodeを解放できるか: 反対側のノードが、要求する主装備でクリア済みか(要求がなければクリア済みでよい)
-    unlocks(node: MapNode, playerData: PlayerData): boolean {
-        const opposite = this.opposite(node)
-        if (!playerData.isStageCleared(opposite.id)) return false
+    // 解放は矢印の向きにだけ伝わる: fromが、要求する主装備でクリア済みならtoを解放する(要求がなければクリア済みでよい)
+    isOpen(playerData: PlayerData): boolean {
+        if (!playerData.isStageCleared(this.from.id)) return false
         if (!this.requiredMainEquipmentId) return true
 
-        return playerData.getStageClearedMainEquipments(opposite.id).has(this.requiredMainEquipmentId)
+        return playerData.getStageClearedMainEquipments(this.from.id).has(this.requiredMainEquipmentId)
     }
 }
 
 export type MapBounds = { readonly minX: number; readonly maxX: number; readonly minY: number; readonly maxY: number }
 
 export class MapGraph {
+    // 取得は一度だけ行い、以降は同じ結果を返す
+    private static loading?: Promise<MapGraph>
+
     private readonly nodesById: ReadonlyMap<MapNodeId, MapNode>
 
     private constructor(
@@ -87,6 +94,22 @@ export class MapGraph {
         readonly edges: readonly MapEdge[],
     ) {
         this.nodesById = new Map(nodes.map((node) => [node.id, node]))
+    }
+
+    static load(): Promise<MapGraph> {
+        MapGraph.loading ??= MapGraph.fetchCanvas().catch((error: unknown) => {
+            // 失敗を覚えておくと二度と読み込めなくなるので、次の呼び出しで取得し直せるようにする
+            MapGraph.loading = undefined
+            throw error
+        })
+        return MapGraph.loading
+    }
+
+    private static async fetchCanvas(): Promise<MapGraph> {
+        const response = await fetch(MAP_URL)
+        if (!response.ok) throw new Error(`マップを読み込めません: ${MAP_URL} (${response.status})`)
+
+        return MapGraph.fromCanvas((await response.json()) as JsonCanvas)
     }
 
     // テキストカードだけをノードとして読む(グループなどは整理用として無視する)。
@@ -124,11 +147,11 @@ export class MapGraph {
         return this.edgesOf(node).map((edge) => edge.opposite(node))
     }
 
-    // スタート地点は常に解放。それ以外は、隣接する辺のうち1つでも解放条件を満たしていれば解放される
+    // スタート地点は常に解放。それ以外は、入ってくる辺のうち1つでも開いていれば解放される
     isUnlocked(node: MapNode, playerData: PlayerData): boolean {
         if (node === this.start) return true
 
-        return this.edgesOf(node).some((edge) => edge.unlocks(node, playerData))
+        return this.edges.filter((edge) => edge.to === node).some((edge) => edge.isOpen(playerData))
     }
 
     // 全ノードを囲む範囲
@@ -142,7 +165,3 @@ export class MapGraph {
         return this.edges.filter((edge) => edge.connects(node))
     }
 }
-
-export const mapGraph = MapGraph.fromCanvas(
-    (await fetch("../../assets/MapData/MapData.canvas").then((r) => r.json())) as JsonCanvas,
-)
