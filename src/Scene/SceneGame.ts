@@ -28,7 +28,7 @@ export class SceneGame extends Scene {
             },
             (score) => {
                 playerData.addScore(score)
-                this.showResultMenu("--:: 失敗 ::--")
+                this.showResultMenu("--:: 敗北 ::--")
             },
             (score) => playerData.addScore(score),
             createPlayerConfig(),

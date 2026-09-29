@@ -21,8 +21,8 @@ export default class extends Stage {
         yield* this.game.textBox.say(["そこに一人の虫人と老人が立っていた。"])
         yield* this.game.textBox.say(["お前もそろそろ旅立つときじゃ。"], { name: "師匠" })
 
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.apng", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["はいっ!"], { name: "ハチノコ" })
+        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
+        yield* this.game.textBox.say(["おっす。"], { name: "ハチノコ" })
 
         yield* this.game.textBox.say(["じゃがその前に最後の試験といこう。"], { name: "師匠" })
 
@@ -45,13 +45,19 @@ export default class extends Stage {
         yield* this.waitAllEnemiesDead()
 
         if (isSmartPhone) {
-            yield* this.game.textBox.say(["次に、二本指タップで技を発動じゃ。<br>今は高速移動ができるじゃろう。"], {
-                name: "師匠",
-            })
+            yield* this.game.textBox.say(
+                ["次に、二本指タップで技を発動じゃ。<br>今は高速移動ができるじゃろう。<br>発動中は無敵じゃ。"],
+                {
+                    name: "師匠",
+                },
+            )
         } else {
-            yield* this.game.textBox.say(["次に、Ctrlキーで技を発動じゃ。<br>今は高速移動ができるじゃろう。"], {
-                name: "師匠",
-            })
+            yield* this.game.textBox.say(
+                ["次に、Ctrlキーで技を発動じゃ。<br>今は高速移動ができるじゃろう。<br>発動中は無敵じゃ。"],
+                {
+                    name: "師匠",
+                },
+            )
         }
 
         const parent2 = new EnemyBoss(this.game)
@@ -66,12 +72,16 @@ export default class extends Stage {
 
         yield* Array(60)
 
-        yield* this.game.textBox.say(["もうわしに教えることはない。九つの道場を巡り、弾幕マスターとなるのじゃ!"], {
-            name: "師匠",
-        })
+        yield* this.game.textBox.say(
+            ["よくやった! もうわしに教えることはない。九つの道場を巡り、弾幕マスターとなるのじゃ!"],
+            {
+                name: "師匠",
+            },
+        )
 
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.apng", { offsetPercent: -30 })
+        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
         yield* this.game.textBox.say(["やったるぜっ!"], { name: "ハチノコ" })
+        this.hideFigure("hachinoko")
     }
 }
 

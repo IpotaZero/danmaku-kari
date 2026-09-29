@@ -15,9 +15,6 @@
     padding: 1em;
     padding-top: 0.5em;
     cursor: pointer;
-
-    font-size: 1.2em;
-
     animation: fade-in 0.2s ease-out forwards;
 
     .name {
