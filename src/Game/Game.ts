@@ -227,6 +227,7 @@ export class Game extends IteratorQueue {
             .filter((b) => b.type === "score")
             .forEach((b) => {
                 if (this.bulletCollision.isColliding(b, this.player)) {
+                    this.se.graze.play()
                     this.score++
                     b.life = 0
                 }

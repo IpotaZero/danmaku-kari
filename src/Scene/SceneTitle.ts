@@ -34,12 +34,7 @@ export class SceneTitle extends Scene {
                 ],
             },
             App.input,
-            {
-                playCursor: () => {},
-                playOk: () => {},
-                playCancel: () => {},
-                playDisable: () => {},
-            },
+            App.se.menu,
         )
 
         this.menu.container.classList.add("title-menu")

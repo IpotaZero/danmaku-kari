@@ -74,9 +74,7 @@ export class SceneGame extends Scene {
                             type: "select",
                             label: "Back",
                             onSelect: () => {
-                                App.sc.goto(async () =>
-                                    import("./SceneMap").then(({ SceneMap }) => SceneMap.create()),
-                                )
+                                App.sc.goto(async () => import("./SceneMap").then(({ SceneMap }) => SceneMap.create()))
                             },
                         },
                     ],
@@ -84,12 +82,7 @@ export class SceneGame extends Scene {
                 initialCursor: () => ({ row: 0, col: 1 }),
             },
             App.input,
-            {
-                playCursor: () => {},
-                playOk: () => {},
-                playCancel: () => {},
-                playDisable: () => {},
-            },
+            App.se.menu,
         )
 
         this.resultMenu.container.classList.add("pause-menu")

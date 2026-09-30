@@ -28,6 +28,11 @@ export namespace App {
         export const unlock = set("assets/se/ドアを開ける2.mp3")
         export const gameover = set("assets/se/gameover.mp3")
 
+        export const ok = set("assets/se/menu/ok.mp3")
+        export const cancel = set("assets/se/menu/cancel.mp3")
+        export const cursor = set("assets/se/menu/cursor.mp3")
+        export const disabled = set("assets/se/menu/disabled.mp3")
+
         function set(path: string, volume?: number) {
             return new Sound(path, context, master, { volume })
         }
@@ -35,6 +40,13 @@ export namespace App {
         // 全SEの音量(0~1)
         export function setVolume(volume: number) {
             master.gain.value = volume
+        }
+
+        export const menu = {
+            playOk: () => ok.play(),
+            playCancel: () => cancel.play(),
+            playCursor: () => cursor.play(),
+            playDisable: () => disabled.play(),
         }
     }
 

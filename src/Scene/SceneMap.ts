@@ -198,6 +198,8 @@ export class SceneMap extends Scene {
     }
 
     private selectNode(id: MapNodeId) {
+        App.se.cursor.play()
+
         this.selectedId = id
         playerData.moveOnMap(id)
         this.nodeElements.forEach((el, nodeId) => el.classList.toggle("selected", nodeId === this.selectedId))
@@ -293,12 +295,7 @@ export class SceneMap extends Scene {
                 options: () => this.buildEquipRootOptions(),
             },
             App.input,
-            {
-                playCursor: () => {},
-                playOk: () => {},
-                playCancel: () => {},
-                playDisable: () => {},
-            },
+            App.se.menu,
         )
 
         this.equipMenu.onBack = () => this.closeEquipMenu()
