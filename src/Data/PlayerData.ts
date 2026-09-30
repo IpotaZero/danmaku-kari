@@ -24,6 +24,7 @@ type SerializedPlayerData = {
     totalScore?: number
     badges?: BadgeId[]
     noMissClears?: string[]
+    mapNodeId?: string
 }
 
 // 免状(道場主を倒すと授かる証)のID
@@ -39,6 +40,9 @@ export class PlayerData {
 
     // 一度でもノーミスでクリアしたステージのID
     private readonly noMissClears = new Set<string>()
+
+    // マップ画面で最後に選んでいたノードのID。まだマップを動いていなければundefined
+    mapNodeId?: string
 
     private loadout: Loadout = DEFAULT_LOADOUT
 
@@ -76,6 +80,11 @@ export class PlayerData {
 
     isStageClearedWithoutMiss(stageId: string): boolean {
         return this.noMissClears.has(stageId)
+    }
+
+    moveOnMap(nodeId: string) {
+        this.mapNodeId = nodeId
+        this.save()
     }
 
     getStageClearedMainEquipments(stageId: string): ReadonlySet<EquipmentId> {
@@ -194,6 +203,7 @@ export class PlayerData {
             // 旧形式の保存データにはこのフィールドが無いので、その場合はノーミスクリアなしから始める
             this.noMissClears.clear()
             data.noMissClears?.forEach((stageId) => this.noMissClears.add(stageId))
+            this.mapNodeId = data.mapNodeId
         } catch {
             // 保存データが壊れている/存在しない場合は初期値のまま進める
         }
@@ -212,6 +222,7 @@ export class PlayerData {
             totalScore: this.totalScore,
             badges: [...this.badges],
             noMissClears: [...this.noMissClears],
+            mapNodeId: this.mapNodeId,
         }
 
         try {

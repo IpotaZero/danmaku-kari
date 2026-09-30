@@ -49,18 +49,17 @@ export class SceneMap extends Scene {
     // ドラッグ後に発火するclickをタップと誤認しないようにするためのフラグ
     private suppressNextClick = false
 
-    private constructor(
-        private readonly graph: MapGraph,
-        selectedId: MapNodeId = graph.start.id,
-    ) {
+    private constructor(private readonly graph: MapGraph) {
         super()
-        this.selectedId = selectedId
+        // 前回いたノードから始める。マップの変更で消えた/未解放になったノードならスタート地点に戻す
+        const saved = graph.nodes.find((node) => node.id === playerData.mapNodeId)
+        this.selectedId = saved && graph.isUnlocked(saved, playerData) ? saved.id : graph.start.id
         this.worldBounds = graph.bounds()
     }
 
-    // マップの取得を待ってから生成する。selectedIdを省略するとスタート地点を選んだ状態で始まる
-    static async create(selectedId?: MapNodeId): Promise<SceneMap> {
-        return new SceneMap(await MapGraph.load(), selectedId)
+    // マップの取得を待ってから生成する
+    static async create(): Promise<SceneMap> {
+        return new SceneMap(await MapGraph.load())
     }
 
     protected async onStart(): Promise<void> {
@@ -200,6 +199,7 @@ export class SceneMap extends Scene {
 
     private selectNode(id: MapNodeId) {
         this.selectedId = id
+        playerData.moveOnMap(id)
         this.nodeElements.forEach((el, nodeId) => el.classList.toggle("selected", nodeId === this.selectedId))
         this.hideInfo()
 
