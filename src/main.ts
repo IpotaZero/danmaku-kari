@@ -1,16 +1,13 @@
-import { Dom } from "./Dom.js"
-import { looper } from "./looper.js"
-import { input } from "./input.js"
-import { sc } from "./sc.js"
+import { App } from "./App.js"
 
 document.addEventListener("DOMContentLoaded", async () => {
-    looper.start()
-    sc.goto(async () => await import("./Scene/SceneTitle.js").then(({ SceneTitle }) => new SceneTitle()))
+    App.looper.start()
+    App.sc.goto(async () => await import("./Scene/SceneTitle.js").then(({ SceneTitle }) => new SceneTitle()))
 })
 
-looper.addHandler((timeScale) => {
-    sc.update()
-    input.update()
+App.looper.addHandler((timeScale) => {
+    App.sc.update()
+    App.input.update()
 })
 
 window.addEventListener("keydown", (e) => {

@@ -1,5 +1,4 @@
-import { input } from "../input"
-import { sc } from "../sc"
+import { App } from "../App"
 import { Menu } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
 
@@ -28,13 +27,13 @@ export class SceneTitle extends Scene {
                             type: "select",
                             label: "Start",
                             onSelect: () => {
-                                sc.goto(async () => import("./SceneMap").then(({ SceneMap }) => SceneMap.create()))
+                                App.sc.goto(async () => import("./SceneMap").then(({ SceneMap }) => SceneMap.create()))
                             },
                         },
                     ],
                 ],
             },
-            input,
+            App.input,
             {
                 playCursor: () => {},
                 playOk: () => {},

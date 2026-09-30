@@ -2,11 +2,10 @@ import { playerData } from "../Data/PlayerData"
 import { Game } from "../Game/Game"
 import { mainEquipments, subEquipments } from "../Game/Equipment/PlayerEquipment"
 import type { PlayerConfig } from "../Game/Actor/Player"
-import { input } from "../input"
 import type { MapNode } from "../Map/MapGraph"
-import { sc } from "../sc"
 import { Menu } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
+import { App } from "../App"
 
 export class SceneGame extends Scene {
     private game?: Game
@@ -24,7 +23,7 @@ export class SceneGame extends Scene {
 
         this.game = await Game.create(
             (game) => this.node.stage(game),
-            input,
+            App.input,
             () => {
                 this.node.recordClear(playerData, playerData.getLoadout().main, playerData.getLives() === initialLives)
                 this.showResultMenu("--:: 道場破り ::--")
@@ -67,14 +66,14 @@ export class SceneGame extends Scene {
                             type: "select",
                             label: "Retry",
                             onSelect: () => {
-                                sc.goto(async () => new SceneGame(this.node))
+                                App.sc.goto(async () => new SceneGame(this.node))
                             },
                         },
                         {
                             type: "select",
                             label: "Back",
                             onSelect: () => {
-                                sc.goto(async () =>
+                                App.sc.goto(async () =>
                                     import("./SceneMap").then(({ SceneMap }) => SceneMap.create(this.node.id)),
                                 )
                             },
@@ -83,7 +82,7 @@ export class SceneGame extends Scene {
                 ],
                 initialCursor: () => ({ row: 0, col: 1 }),
             },
-            input,
+            App.input,
             {
                 playCursor: () => {},
                 playOk: () => {},

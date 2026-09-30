@@ -1,8 +1,7 @@
+import { App } from "../App"
 import { playerData } from "../Data/PlayerData"
 import { mainEquipments, subEquipments } from "../Game/Equipment/PlayerEquipment"
-import { input } from "../input"
 import { MapBounds, MapEdge, MapGraph, MapNode, MapNodeId } from "../Map/MapGraph"
-import { sc } from "../sc"
 import { Menu, MenuOption, MenuOptionBox } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
 
@@ -119,7 +118,7 @@ export class SceneMap extends Scene {
 
         this.root.querySelector<HTMLElement>('[data-control="back-to-title"]')?.addEventListener("click", () => {
             if (this.equipMenu) return
-            sc.goto(async () => import("./SceneTitle").then(({ SceneTitle }) => new SceneTitle()))
+            App.sc.goto(async () => import("./SceneTitle").then(({ SceneTitle }) => new SceneTitle()))
         })
         this.root.querySelector<HTMLElement>('[data-control="open-equip"]')?.addEventListener("click", () => {
             if (this.equipMenu) return
@@ -165,27 +164,27 @@ export class SceneMap extends Scene {
         if (this.equipMenu) {
             this.equipMenu.update()
 
-            if (input.isPushed("action")) {
+            if (App.input.isPushed("action")) {
                 this.closeEquipMenu()
             }
 
             return
         }
 
-        if (input.isRepeatPushed("up", 100, 300)) {
+        if (App.input.isRepeatPushed("up", 100, 300)) {
             this.move("up")
-        } else if (input.isRepeatPushed("down", 100, 300)) {
+        } else if (App.input.isRepeatPushed("down", 100, 300)) {
             this.move("down")
-        } else if (input.isRepeatPushed("left", 100, 300)) {
+        } else if (App.input.isRepeatPushed("left", 100, 300)) {
             this.move("left")
-        } else if (input.isRepeatPushed("right", 100, 300)) {
+        } else if (App.input.isRepeatPushed("right", 100, 300)) {
             this.move("right")
-        } else if (input.isPushed("ok")) {
+        } else if (App.input.isPushed("ok")) {
             this.select()
-        } else if (input.isPushed("action")) {
+        } else if (App.input.isPushed("action")) {
             this.openEquipMenu()
-        } else if (input.isPushed("cancel")) {
-            sc.goto(async () => import("./SceneTitle").then(({ SceneTitle }) => new SceneTitle()))
+        } else if (App.input.isPushed("cancel")) {
+            App.sc.goto(async () => import("./SceneTitle").then(({ SceneTitle }) => new SceneTitle()))
         }
     }
 
@@ -278,7 +277,7 @@ export class SceneMap extends Scene {
         const node = this.graph.node(this.selectedId)
         if (!this.graph.isUnlocked(node, playerData)) return
 
-        sc.goto(async () => import("./SceneGame").then(({ SceneGame }) => new SceneGame(node)))
+        App.sc.goto(async () => import("./SceneGame").then(({ SceneGame }) => new SceneGame(node)))
     }
 
     // 所持している主装備・副装備の中から選び直せる、右側に開くモーダル
@@ -293,7 +292,7 @@ export class SceneMap extends Scene {
                 title: "--:: 型の変更 ::--",
                 options: () => this.buildEquipRootOptions(),
             },
-            input,
+            App.input,
             {
                 playCursor: () => {},
                 playOk: () => {},
