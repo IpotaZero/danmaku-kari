@@ -186,7 +186,6 @@ export class Game extends IteratorQueue {
     lose() {
         if (this.state === "game-over") return
         this.state = "game-over"
-        this.se.gameover.play()
         this.onLose(this.score)
     }
 
