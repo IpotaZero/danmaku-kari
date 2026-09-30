@@ -39,6 +39,7 @@ export const dash: SubEquipment = {
                 player.actionCooldownRemaining = 1
                 player.speedMultiplier = 速度倍率
                 player.isActionInvincible = true
+                player.game.se.dash.play()
             }
 
             yield

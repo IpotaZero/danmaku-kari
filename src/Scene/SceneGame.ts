@@ -21,20 +21,21 @@ export class SceneGame extends Scene {
         // ステージ中に残機が増えることはないので、クリア時に開始時から減っていなければノーミス
         const initialLives = playerData.getLives()
 
-        this.game = await Game.create(
-            (game) => this.node.stage(game),
-            App.input,
-            () => {
+        this.game = await Game.create({
+            createStage: (game) => this.node.stage(game),
+            input: App.input,
+            se: App.se,
+            onWin: () => {
                 this.node.recordClear(playerData, playerData.getLoadout().main, playerData.getLives() === initialLives)
                 this.showResultMenu("--:: 道場破り ::--")
             },
-            (score) => {
+            onLose: (score) => {
                 playerData.addScore(score)
                 this.showResultMenu("--:: 敗北 ::--")
             },
-            (score) => playerData.addScore(score),
-            createPlayerConfig(),
-        )
+            onScoreCollected: (score) => playerData.addScore(score),
+            playerConfig: createPlayerConfig(),
+        })
 
         this.root.classList.add("scene-game")
         this.game.canvas.id = "main"

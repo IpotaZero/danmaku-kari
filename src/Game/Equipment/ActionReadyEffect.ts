@@ -9,6 +9,7 @@ const 演出フレーム = 45
 // クールタイムが明けた瞬間に、広がるリングと"CHARGED"の文字を表示する
 export function* actionReadyEffect(player: Player): Generator<void, void, void> {
     const ctx = player.game.ctx
+    player.game.se.charge.play()
 
     for (let i = 1; i <= 演出フレーム; i++) {
         const progress = i / 演出フレーム

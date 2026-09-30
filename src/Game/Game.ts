@@ -22,6 +22,22 @@ export type GameInput = DigitalInput.Reader<GameAction> & {
     getTouchMoveVector?(): Vec | undefined
 }
 
+// ゲーム中に鳴らすSE。App.seをそのまま渡せるよう、play()できることだけを要求する
+export type GameSE = Record<
+    "graze" | "hit" | "dash" | "u" | "crush" | "bossDefeatPre" | "bossDefeat" | "charge" | "gameover",
+    { play(): void }
+>
+
+export type GameConfig = {
+    createStage: (game: Game) => Promise<Stage>
+    input: DigitalInput.Reader<GameAction>
+    se: GameSE
+    onWin: () => void
+    onLose: (score: number) => void
+    onScoreCollected: (score: number) => void
+    playerConfig: PlayerConfig
+}
+
 /**
  * ゲーム本体をカプセル化したクラス。
  */
@@ -39,6 +55,7 @@ export class Game extends IteratorQueue {
     readonly textBox: TextBox
     readonly figureLayer = new FigureLayer()
     readonly input: GameInput
+    readonly se: GameSE
 
     private readonly touchControls: TouchControls
 
@@ -66,14 +83,17 @@ export class Game extends IteratorQueue {
     // ずれることがあるため、キャンバスが実際に収まる#containerのサイズを直接観測する
     private readonly resizeObserver = new ResizeObserver(() => this.resizeCanvas())
 
-    private constructor(
-        baseInput: DigitalInput.Reader<GameAction>,
-        readonly onWin: () => void,
-        readonly onLose: (score: number) => void,
-        readonly onScoreCollected: (score: number) => void,
-        playerConfig: PlayerConfig,
-    ) {
+    private readonly onWin: () => void
+    private readonly onLose: (score: number) => void
+    private readonly onScoreCollected: (score: number) => void
+
+    private constructor({ input, se, onWin, onLose, onScoreCollected, playerConfig }: GameConfig) {
         super()
+
+        this.se = se
+        this.onWin = onWin
+        this.onLose = onLose
+        this.onScoreCollected = onScoreCollected
 
         this.HEIGHT = this.computeHeight()
 
@@ -89,7 +109,7 @@ export class Game extends IteratorQueue {
 
         this.resizeObserver.observe(Dom.container)
 
-        this.touchControls = new TouchControls(baseInput, this.canvas)
+        this.touchControls = new TouchControls(input, this.canvas)
         this.input = this.touchControls
 
         this.textBox = new TextBox(this.input, () => {})
@@ -98,16 +118,9 @@ export class Game extends IteratorQueue {
         this.camera = new Camera(this, this.player.p)
     }
 
-    static async create(
-        createStage: (game: Game) => Promise<Stage>,
-        baseInput: DigitalInput.Reader<GameAction>,
-        onWin: () => void,
-        onLose: (score: number) => void,
-        onScoreCollected: (score: number) => void,
-        playerConfig: PlayerConfig,
-    ): Promise<Game> {
-        const game = new Game(baseInput, onWin, onLose, onScoreCollected, playerConfig)
-        game.stage = await createStage(game)
+    static async create(config: GameConfig): Promise<Game> {
+        const game = new Game(config)
+        game.stage = await config.createStage(game)
         return game
     }
 
@@ -164,6 +177,7 @@ export class Game extends IteratorQueue {
     win() {
         if (this.state === "cleared") return
         this.state = "cleared"
+        // this.se.bossDefeat.play()
         this.onWin()
         this.addScript(() => this.waitScoreCollected())
     }
@@ -172,6 +186,7 @@ export class Game extends IteratorQueue {
     lose() {
         if (this.state === "game-over") return
         this.state = "game-over"
+        this.se.gameover.play()
         this.onLose(this.score)
     }
 
@@ -185,6 +200,10 @@ export class Game extends IteratorQueue {
 
     private updateBulletAndEnemy() {
         if (!this.player.isInvincible() && this.state === "playing") {
+            // グレイズ: 当たり判定には触れずにGRAZE_Rの内側にある敵弾1発につき、毎フレームスコアを加算する
+            const grazeCircle = { p: this.player.p, r: this.player.GRAZE_R }
+            let grazeCount = 0
+
             this.bullets
                 .filter((b) => b.type === "enemy")
                 .forEach((b) => {
@@ -194,8 +213,15 @@ export class Game extends IteratorQueue {
                         if (b.isScorable) {
                             b.life = 0
                         }
+                    } else if (this.bulletCollision.isColliding(b, grazeCircle)) {
+                        grazeCount++
                     }
                 })
+
+            if (grazeCount > 0 && !this.player.isInvincible()) {
+                this.score += grazeCount
+                this.se.graze.play()
+            }
         }
 
         this.bullets
@@ -232,6 +258,7 @@ export class Game extends IteratorQueue {
 
         const aliveEnemies = this.enemies.filter((e) => {
             if (e.life <= 0) {
+                this.se.crush.play()
                 this.addScript(() => e.onDead())
             }
 

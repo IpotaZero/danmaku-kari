@@ -1,7 +1,11 @@
+// 同じSEを鳴らす最短の間隔(ms)。これより短い間隔で呼ばれた分は無視する
+const MIN_INTERVAL_MS = 50
+
 // 効果音1つ分。呼び出されるたびに、鳴っている途中でも止めて最初から再生しなおす
 export class Sound {
     private buffer?: AudioBuffer
     private source?: AudioBufferSourceNode
+    private lastPlayedAt = -Infinity
     private readonly gain
 
     constructor(
@@ -24,6 +28,10 @@ export class Sound {
 
     play() {
         if (!this.buffer) return
+
+        const now = performance.now()
+        if (now - this.lastPlayedAt < MIN_INTERVAL_MS) return
+        this.lastPlayedAt = now
 
         // ブラウザはユーザー操作前のAudioContextを停止状態にするので、鳴らすたびに再開を試みる
         if (this.context.state === "suspended") this.context.resume()
