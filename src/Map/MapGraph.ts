@@ -61,8 +61,8 @@ export class MapNode {
     }
 
     // クリアを記録し、免状を授けるノードなら免状も授ける
-    recordClear(playerData: PlayerData, mainEquipmentId: EquipmentId) {
-        playerData.recordStageClear(this.id, mainEquipmentId)
+    recordClear(playerData: PlayerData, mainEquipmentId: EquipmentId, noMiss: boolean) {
+        playerData.recordStageClear(this.id, mainEquipmentId, noMiss)
         if (this.badge) playerData.awardBadge(this.badge)
     }
 

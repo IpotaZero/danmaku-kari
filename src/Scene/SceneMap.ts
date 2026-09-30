@@ -97,6 +97,9 @@ export class SceneMap extends Scene {
             const el = document.createElement("div")
             el.className = "map-node"
             el.classList.toggle("locked", !this.graph.isUnlocked(node, playerData))
+            // クリア済みなら銀の星、ノーミスでクリア済みなら金の星を付ける
+            el.classList.toggle("cleared", playerData.isStageCleared(node.id))
+            el.classList.toggle("no-miss", playerData.isStageClearedWithoutMiss(node.id))
             el.style.left = `${node.x}px`
             el.style.top = `${node.y}px`
             el.addEventListener("click", () => {

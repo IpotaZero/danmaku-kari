@@ -1,707 +1,93 @@
 {
-	"nodes": [
-		{
-			"id": "35c5577f1a6c4709",
-			"type": "text",
-			"text": "師匠の庵\nStageTest",
-			"x": 0,
-			"y": 0,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "f840811f7f798aeb",
-			"type": "text",
-			"text": "霜月道場・門下生\nStageFrozenBreath",
-			"x": 200,
-			"y": 0,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "31f7d87e5e5e2323",
-			"type": "text",
-			"text": "霜月道場・高弟\nStageNotImplemented",
-			"x": 330,
-			"y": 0,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "3b69dc58c8ff5df6",
-			"type": "text",
-			"text": "霜月道場・師範代\nStageNotImplemented",
-			"x": 460,
-			"y": 0,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "751ab8850da9b699",
-			"type": "text",
-			"text": "霜月道場・道場主\nStageConstellation\nbadge:霜月",
-			"x": 590,
-			"y": 0,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "32d20b61aa81414f",
-			"type": "text",
-			"text": "疾風道場・門下生\nStageNotImplemented",
-			"x": 790,
-			"y": -250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "d0f3ac057b2ec641",
-			"type": "text",
-			"text": "疾風道場・高弟\nStageNotImplemented",
-			"x": 920,
-			"y": -250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "d29f8461010994af",
-			"type": "text",
-			"text": "疾風道場・師範代\nStageNotImplemented",
-			"x": 1050,
-			"y": -250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "b645a540eecf50a7",
-			"type": "text",
-			"text": "疾風道場・道場主\nStageNotImplemented\nbadge:疾風",
-			"x": 1180,
-			"y": -250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "8659e6c8a9cd5e2b",
-			"type": "text",
-			"text": "雷鼓道場・門下生\nStageNotImplemented",
-			"x": 790,
-			"y": 250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "830af84d77e4673c",
-			"type": "text",
-			"text": "雷鼓道場・高弟\nStageNotImplemented",
-			"x": 920,
-			"y": 250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "166d9f9191ad1a93",
-			"type": "text",
-			"text": "雷鼓道場・師範代\nStageNotImplemented",
-			"x": 1050,
-			"y": 250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "70041c417988cd82",
-			"type": "text",
-			"text": "雷鼓道場・道場主\nStageNotImplemented\nbadge:雷鼓",
-			"x": 1180,
-			"y": 250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "478791923fb120a2",
-			"type": "text",
-			"text": "霧隠道場・門下生\nStageNotImplemented",
-			"x": 1380,
-			"y": -500,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "22d09d02a6ba8bc9",
-			"type": "text",
-			"text": "霧隠道場・高弟\nStageNotImplemented",
-			"x": 1510,
-			"y": -500,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "6b9ed5a8d80252c9",
-			"type": "text",
-			"text": "霧隠道場・師範代\nStageNotImplemented",
-			"x": 1640,
-			"y": -500,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "03e5df0075419b20",
-			"type": "text",
-			"text": "霧隠道場・道場主\nStageNotImplemented\nbadge:霧隠",
-			"x": 1770,
-			"y": -500,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "9f3742e71653f66f",
-			"type": "text",
-			"text": "砂塵道場・門下生\nStageNotImplemented",
-			"x": 1380,
-			"y": 0,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "c9504a1b3bf6d77a",
-			"type": "text",
-			"text": "砂塵道場・高弟\nStageNotImplemented",
-			"x": 1510,
-			"y": 0,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "54199e7166e6f1be",
-			"type": "text",
-			"text": "砂塵道場・師範代\nStageNotImplemented",
-			"x": 1640,
-			"y": 0,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "5675d716c5761d80",
-			"type": "text",
-			"text": "砂塵道場・道場主\nStageNotImplemented\nbadge:砂塵",
-			"x": 1770,
-			"y": 0,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "94be0c796c5a45c2",
-			"type": "text",
-			"text": "流星道場・門下生\nStageNotImplemented",
-			"x": 1970,
-			"y": -250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "da5a0325d6b1823e",
-			"type": "text",
-			"text": "流星道場・高弟\nStageNotImplemented",
-			"x": 2100,
-			"y": -250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "7cdea32cffb53b26",
-			"type": "text",
-			"text": "流星道場・師範代\nStageNotImplemented",
-			"x": 2230,
-			"y": -250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "5fbe65792de30064",
-			"type": "text",
-			"text": "流星道場・道場主\nStageNotImplemented\nbadge:流星",
-			"x": 2360,
-			"y": -250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "46e539f50437a678",
-			"type": "text",
-			"text": "四天王・青龍\nStageNotImplemented",
-			"x": 3150,
-			"y": 0,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "534a94c5e210d65c",
-			"type": "text",
-			"text": "四天王・朱雀\nStageNotImplemented",
-			"x": 3280,
-			"y": 0,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "98c07e56e131e418",
-			"type": "text",
-			"text": "四天王・白虎\nStageNotImplemented",
-			"x": 3410,
-			"y": 0,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "3bceb29a6b35762f",
-			"type": "text",
-			"text": "四天王・玄武\nStageNotImplemented",
-			"x": 3540,
-			"y": 0,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "ca68c9295dde0dbf",
-			"type": "text",
-			"text": "チャンピオン\nStageNotImplemented",
-			"x": 3740,
-			"y": 0,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "ed45c0b7fab66007",
-			"type": "text",
-			"text": "鉄壁道場・門下生\nStageNotImplemented",
-			"x": 1380,
-			"y": 520,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "8aede485119c7180",
-			"type": "text",
-			"text": "鉄壁道場・高弟\nStageNotImplemented",
-			"x": 1510,
-			"y": 520,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "f306d45e3016d5aa",
-			"type": "text",
-			"text": "鉄壁道場・師範代\nStageNotImplemented",
-			"x": 1640,
-			"y": 520,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "776f536c08216061",
-			"type": "text",
-			"text": "鉄壁道場・道場主\nStageNotImplemented\nbadge:鉄壁",
-			"x": 1770,
-			"y": 520,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "7673bf8340f21db7",
-			"type": "text",
-			"text": "陽炎道場・門下生\nStageNotImplemented",
-			"x": 1380,
-			"y": 250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "3f068863a930d057",
-			"type": "text",
-			"text": "陽炎道場・高弟\nStageNotImplemented",
-			"x": 1510,
-			"y": 250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "9c20658750cdab8d",
-			"type": "text",
-			"text": "陽炎道場・師範代\nStageNotImplemented",
-			"x": 1640,
-			"y": 250,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "573084b0c44d937c",
-			"type": "text",
-			"text": "月影道場・門下生\nStageNotImplemented",
-			"x": 2230,
-			"y": 520,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "245cc775e55e2d24",
-			"type": "text",
-			"text": "月影道場・高弟\nStageNotImplemented",
-			"x": 2360,
-			"y": 520,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "741a530ae89e9471",
-			"type": "text",
-			"text": "月影道場・師範代\nStageNotImplemented",
-			"x": 2490,
-			"y": 520,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "f7f1907383d4c135",
-			"type": "text",
-			"text": "月影道場・道場主\nStageNotImplemented\nbadge:月影",
-			"x": 2620,
-			"y": 520,
-			"width": 80,
-			"height": 85
-		},
-		{
-			"id": "2a0f289b578f41f4",
-			"type": "text",
-			"text": "陽炎道場・道場主\nStageNotImplemented\nbadge:陽炎",
-			"x": 1810,
-			"y": 250,
-			"width": 80,
-			"height": 85
-		}
+	"nodes":[
+		{"id":"35c5577f1a6c4709","type":"text","text":"師匠の庵\nStageTest","x":0,"y":0,"width":80,"height":85},
+		{"id":"f840811f7f798aeb","type":"text","text":"霜月道場・門下生\nStageFrozenBreath","x":200,"y":0,"width":80,"height":85},
+		{"id":"31f7d87e5e5e2323","type":"text","text":"霜月道場・高弟\nStageNotImplemented","x":330,"y":0,"width":80,"height":85},
+		{"id":"3b69dc58c8ff5df6","type":"text","text":"霜月道場・師範代\nStageNotImplemented","x":460,"y":0,"width":80,"height":85},
+		{"id":"751ab8850da9b699","type":"text","text":"霜月道場・道場主\nStageFrost\nbadge:霜月","x":590,"y":0,"width":80,"height":85},
+		{"id":"32d20b61aa81414f","type":"text","text":"疾風道場・門下生\nStageNotImplemented","x":790,"y":-250,"width":80,"height":85},
+		{"id":"d0f3ac057b2ec641","type":"text","text":"疾風道場・高弟\nStageNotImplemented","x":920,"y":-250,"width":80,"height":85},
+		{"id":"d29f8461010994af","type":"text","text":"疾風道場・師範代\nStageNotImplemented","x":1050,"y":-250,"width":80,"height":85},
+		{"id":"b645a540eecf50a7","type":"text","text":"疾風道場・道場主\nStageNotImplemented\nbadge:疾風","x":1180,"y":-250,"width":80,"height":85},
+		{"id":"8659e6c8a9cd5e2b","type":"text","text":"雷鼓道場・門下生\nStageNotImplemented","x":790,"y":250,"width":80,"height":85},
+		{"id":"830af84d77e4673c","type":"text","text":"雷鼓道場・高弟\nStageNotImplemented","x":920,"y":250,"width":80,"height":85},
+		{"id":"166d9f9191ad1a93","type":"text","text":"雷鼓道場・師範代\nStageNotImplemented","x":1050,"y":250,"width":80,"height":85},
+		{"id":"70041c417988cd82","type":"text","text":"雷鼓道場・道場主\nStageNotImplemented\nbadge:雷鼓","x":1180,"y":250,"width":80,"height":85},
+		{"id":"478791923fb120a2","type":"text","text":"霧隠道場・門下生\nStageNotImplemented","x":1380,"y":-500,"width":80,"height":85},
+		{"id":"22d09d02a6ba8bc9","type":"text","text":"霧隠道場・高弟\nStageNotImplemented","x":1510,"y":-500,"width":80,"height":85},
+		{"id":"6b9ed5a8d80252c9","type":"text","text":"霧隠道場・師範代\nStageNotImplemented","x":1640,"y":-500,"width":80,"height":85},
+		{"id":"03e5df0075419b20","type":"text","text":"霧隠道場・道場主\nStageNotImplemented\nbadge:霧隠","x":1770,"y":-500,"width":80,"height":85},
+		{"id":"9f3742e71653f66f","type":"text","text":"砂塵道場・門下生\nStageNotImplemented","x":1380,"y":0,"width":80,"height":85},
+		{"id":"c9504a1b3bf6d77a","type":"text","text":"砂塵道場・高弟\nStageNotImplemented","x":1510,"y":0,"width":80,"height":85},
+		{"id":"54199e7166e6f1be","type":"text","text":"砂塵道場・師範代\nStageNotImplemented","x":1640,"y":0,"width":80,"height":85},
+		{"id":"5675d716c5761d80","type":"text","text":"砂塵道場・道場主\nStageNotImplemented\nbadge:砂塵","x":1770,"y":0,"width":80,"height":85},
+		{"id":"94be0c796c5a45c2","type":"text","text":"流星道場・門下生\nStageNotImplemented","x":1970,"y":-250,"width":80,"height":85},
+		{"id":"da5a0325d6b1823e","type":"text","text":"流星道場・高弟\nStageNotImplemented","x":2100,"y":-250,"width":80,"height":85},
+		{"id":"7cdea32cffb53b26","type":"text","text":"流星道場・師範代\nStageNotImplemented","x":2230,"y":-250,"width":80,"height":85},
+		{"id":"5fbe65792de30064","type":"text","text":"流星道場・道場主\nStageNotImplemented\nbadge:流星","x":2360,"y":-250,"width":80,"height":85},
+		{"id":"46e539f50437a678","type":"text","text":"四天王・青龍\nStageNotImplemented","x":3150,"y":0,"width":80,"height":85},
+		{"id":"534a94c5e210d65c","type":"text","text":"四天王・朱雀\nStageNotImplemented","x":3280,"y":0,"width":80,"height":85},
+		{"id":"98c07e56e131e418","type":"text","text":"四天王・白虎\nStageNotImplemented","x":3410,"y":0,"width":80,"height":85},
+		{"id":"3bceb29a6b35762f","type":"text","text":"四天王・玄武\nStageNotImplemented","x":3540,"y":0,"width":80,"height":85},
+		{"id":"ca68c9295dde0dbf","type":"text","text":"チャンピオン\nStageNotImplemented","x":3740,"y":0,"width":80,"height":85},
+		{"id":"ed45c0b7fab66007","type":"text","text":"鉄壁道場・門下生\nStageNotImplemented","x":1380,"y":520,"width":80,"height":85},
+		{"id":"8aede485119c7180","type":"text","text":"鉄壁道場・高弟\nStageNotImplemented","x":1510,"y":520,"width":80,"height":85},
+		{"id":"f306d45e3016d5aa","type":"text","text":"鉄壁道場・師範代\nStageNotImplemented","x":1640,"y":520,"width":80,"height":85},
+		{"id":"776f536c08216061","type":"text","text":"鉄壁道場・道場主\nStageNotImplemented\nbadge:鉄壁","x":1770,"y":520,"width":80,"height":85},
+		{"id":"7673bf8340f21db7","type":"text","text":"陽炎道場・門下生\nStageNotImplemented","x":1380,"y":250,"width":80,"height":85},
+		{"id":"3f068863a930d057","type":"text","text":"陽炎道場・高弟\nStageNotImplemented","x":1510,"y":250,"width":80,"height":85},
+		{"id":"9c20658750cdab8d","type":"text","text":"陽炎道場・師範代\nStageNotImplemented","x":1640,"y":250,"width":80,"height":85},
+		{"id":"573084b0c44d937c","type":"text","text":"月影道場・門下生\nStageNotImplemented","x":2230,"y":520,"width":80,"height":85},
+		{"id":"245cc775e55e2d24","type":"text","text":"月影道場・高弟\nStageNotImplemented","x":2360,"y":520,"width":80,"height":85},
+		{"id":"741a530ae89e9471","type":"text","text":"月影道場・師範代\nStageNotImplemented","x":2490,"y":520,"width":80,"height":85},
+		{"id":"f7f1907383d4c135","type":"text","text":"月影道場・道場主\nStageNotImplemented\nbadge:月影","x":2620,"y":520,"width":80,"height":85},
+		{"id":"2a0f289b578f41f4","type":"text","text":"陽炎道場・道場主\nStageNotImplemented\nbadge:陽炎","x":1810,"y":250,"width":80,"height":85}
 	],
-	"edges": [
-		{
-			"id": "3a6309e33f10111f",
-			"fromNode": "f840811f7f798aeb",
-			"fromSide": "right",
-			"toNode": "31f7d87e5e5e2323",
-			"toSide": "left"
-		},
-		{
-			"id": "5408bc41f7f5cf03",
-			"fromNode": "31f7d87e5e5e2323",
-			"fromSide": "right",
-			"toNode": "3b69dc58c8ff5df6",
-			"toSide": "left"
-		},
-		{
-			"id": "8fbfab0604298a1f",
-			"fromNode": "3b69dc58c8ff5df6",
-			"fromSide": "right",
-			"toNode": "751ab8850da9b699",
-			"toSide": "left"
-		},
-		{
-			"id": "cc39d9244144a60f",
-			"fromNode": "32d20b61aa81414f",
-			"fromSide": "right",
-			"toNode": "d0f3ac057b2ec641",
-			"toSide": "left"
-		},
-		{
-			"id": "058a41ce0478da68",
-			"fromNode": "d0f3ac057b2ec641",
-			"fromSide": "right",
-			"toNode": "d29f8461010994af",
-			"toSide": "left"
-		},
-		{
-			"id": "fc7208f5c0c4cde9",
-			"fromNode": "d29f8461010994af",
-			"fromSide": "right",
-			"toNode": "b645a540eecf50a7",
-			"toSide": "left"
-		},
-		{
-			"id": "ecf300e7dc8d3f08",
-			"fromNode": "8659e6c8a9cd5e2b",
-			"fromSide": "right",
-			"toNode": "830af84d77e4673c",
-			"toSide": "left"
-		},
-		{
-			"id": "4db771a2ac55f5b4",
-			"fromNode": "830af84d77e4673c",
-			"fromSide": "right",
-			"toNode": "166d9f9191ad1a93",
-			"toSide": "left"
-		},
-		{
-			"id": "d4d911a018b4ae9d",
-			"fromNode": "166d9f9191ad1a93",
-			"fromSide": "right",
-			"toNode": "70041c417988cd82",
-			"toSide": "left"
-		},
-		{
-			"id": "ab5c043613f2cb31",
-			"fromNode": "478791923fb120a2",
-			"fromSide": "right",
-			"toNode": "22d09d02a6ba8bc9",
-			"toSide": "left"
-		},
-		{
-			"id": "cd8442b5590cb686",
-			"fromNode": "22d09d02a6ba8bc9",
-			"fromSide": "right",
-			"toNode": "6b9ed5a8d80252c9",
-			"toSide": "left"
-		},
-		{
-			"id": "730f51bd1d4c29e8",
-			"fromNode": "6b9ed5a8d80252c9",
-			"fromSide": "right",
-			"toNode": "03e5df0075419b20",
-			"toSide": "left"
-		},
-		{
-			"id": "c56a1c82f27818ea",
-			"fromNode": "9f3742e71653f66f",
-			"fromSide": "right",
-			"toNode": "c9504a1b3bf6d77a",
-			"toSide": "left"
-		},
-		{
-			"id": "ba5961af257b05a9",
-			"fromNode": "c9504a1b3bf6d77a",
-			"fromSide": "right",
-			"toNode": "54199e7166e6f1be",
-			"toSide": "left"
-		},
-		{
-			"id": "f378e952c5bad8f7",
-			"fromNode": "54199e7166e6f1be",
-			"fromSide": "right",
-			"toNode": "5675d716c5761d80",
-			"toSide": "left"
-		},
-		{
-			"id": "3ef296f6e574b1c0",
-			"fromNode": "7673bf8340f21db7",
-			"fromSide": "right",
-			"toNode": "3f068863a930d057",
-			"toSide": "left"
-		},
-		{
-			"id": "8ad2f0b3f3dc344b",
-			"fromNode": "3f068863a930d057",
-			"fromSide": "right",
-			"toNode": "9c20658750cdab8d",
-			"toSide": "left"
-		},
-		{
-			"id": "d07b39f41de2b649",
-			"fromNode": "9c20658750cdab8d",
-			"fromSide": "right",
-			"toNode": "2a0f289b578f41f4",
-			"toSide": "left"
-		},
-		{
-			"id": "ac41a6eff95eead8",
-			"fromNode": "94be0c796c5a45c2",
-			"fromSide": "right",
-			"toNode": "da5a0325d6b1823e",
-			"toSide": "left"
-		},
-		{
-			"id": "48d84455a97d7796",
-			"fromNode": "da5a0325d6b1823e",
-			"fromSide": "right",
-			"toNode": "7cdea32cffb53b26",
-			"toSide": "left"
-		},
-		{
-			"id": "4021278d8e8cc581",
-			"fromNode": "7cdea32cffb53b26",
-			"fromSide": "right",
-			"toNode": "5fbe65792de30064",
-			"toSide": "left"
-		},
-		{
-			"id": "dbca70da20313a66",
-			"fromNode": "ed45c0b7fab66007",
-			"fromSide": "right",
-			"toNode": "8aede485119c7180",
-			"toSide": "left"
-		},
-		{
-			"id": "945bc3f56d803923",
-			"fromNode": "8aede485119c7180",
-			"fromSide": "right",
-			"toNode": "f306d45e3016d5aa",
-			"toSide": "left"
-		},
-		{
-			"id": "107d366d28c90f76",
-			"fromNode": "f306d45e3016d5aa",
-			"fromSide": "right",
-			"toNode": "776f536c08216061",
-			"toSide": "left"
-		},
-		{
-			"id": "a67d7a620686c7c7",
-			"fromNode": "573084b0c44d937c",
-			"fromSide": "right",
-			"toNode": "245cc775e55e2d24",
-			"toSide": "left"
-		},
-		{
-			"id": "2d774782c9e1d7df",
-			"fromNode": "245cc775e55e2d24",
-			"fromSide": "right",
-			"toNode": "741a530ae89e9471",
-			"toSide": "left"
-		},
-		{
-			"id": "692767aa53962080",
-			"fromNode": "741a530ae89e9471",
-			"fromSide": "right",
-			"toNode": "f7f1907383d4c135",
-			"toSide": "left"
-		},
-		{
-			"id": "8a6d3c81362b0a27",
-			"fromNode": "35c5577f1a6c4709",
-			"fromSide": "right",
-			"toNode": "f840811f7f798aeb",
-			"toSide": "left"
-		},
-		{
-			"id": "50a1a4a66c9557f1",
-			"fromNode": "751ab8850da9b699",
-			"fromSide": "right",
-			"toNode": "32d20b61aa81414f",
-			"toSide": "left"
-		},
-		{
-			"id": "01cdcdc9e7cc9996",
-			"fromNode": "751ab8850da9b699",
-			"fromSide": "right",
-			"toNode": "8659e6c8a9cd5e2b",
-			"toSide": "left"
-		},
-		{
-			"id": "788bb84aca7c657e",
-			"fromNode": "b645a540eecf50a7",
-			"fromSide": "right",
-			"toNode": "478791923fb120a2",
-			"toSide": "left",
-			"label": "standard"
-		},
-		{
-			"id": "279516c247241767",
-			"fromNode": "b645a540eecf50a7",
-			"fromSide": "right",
-			"toNode": "9f3742e71653f66f",
-			"toSide": "left",
-			"label": "laser"
-		},
-		{
-			"id": "c2dee9ce97ea054a",
-			"fromNode": "70041c417988cd82",
-			"fromSide": "right",
-			"toNode": "7673bf8340f21db7",
-			"toSide": "left",
-			"label": "laser"
-		},
-		{
-			"id": "d203e375b2ec54fe",
-			"fromNode": "03e5df0075419b20",
-			"fromSide": "right",
-			"toNode": "94be0c796c5a45c2",
-			"toSide": "left"
-		},
-		{
-			"id": "57f8a366bcc32c2b",
-			"fromNode": "5675d716c5761d80",
-			"fromSide": "right",
-			"toNode": "94be0c796c5a45c2",
-			"toSide": "left",
-			"label": "standard"
-		},
-		{
-			"id": "53835172853dfbe3",
-			"fromNode": "776f536c08216061",
-			"fromSide": "right",
-			"toNode": "573084b0c44d937c",
-			"toSide": "left"
-		},
-		{
-			"id": "c24ce699dc7d39f8",
-			"fromNode": "f7f1907383d4c135",
-			"fromSide": "right",
-			"toNode": "46e539f50437a678",
-			"toSide": "left",
-			"label": "badges"
-		},
-		{
-			"id": "583cfbafcb15a550",
-			"fromNode": "46e539f50437a678",
-			"fromSide": "right",
-			"toNode": "534a94c5e210d65c",
-			"toSide": "left"
-		},
-		{
-			"id": "5b6c0ac89c1e8e02",
-			"fromNode": "534a94c5e210d65c",
-			"fromSide": "right",
-			"toNode": "98c07e56e131e418",
-			"toSide": "left"
-		},
-		{
-			"id": "c7ab9be423e9d4e8",
-			"fromNode": "98c07e56e131e418",
-			"fromSide": "right",
-			"toNode": "3bceb29a6b35762f",
-			"toSide": "left"
-		},
-		{
-			"id": "c6bf14ae3ae307fe",
-			"fromNode": "3bceb29a6b35762f",
-			"fromSide": "right",
-			"toNode": "ca68c9295dde0dbf",
-			"toSide": "left"
-		},
-		{
-			"id": "bcaeeff0907faa6e",
-			"fromNode": "2a0f289b578f41f4",
-			"fromSide": "right",
-			"toNode": "94be0c796c5a45c2",
-			"toSide": "left"
-		},
-		{
-			"id": "930c44ba62266bbc",
-			"fromNode": "70041c417988cd82",
-			"fromSide": "right",
-			"toNode": "ed45c0b7fab66007",
-			"toSide": "left",
-			"label": "standard"
-		},
-		{
-			"id": "b6f7b13917ca7faa",
-			"fromNode": "5fbe65792de30064",
-			"fromSide": "right",
-			"toNode": "46e539f50437a678",
-			"toSide": "left",
-			"label": "badges"
-		},
-		{
-			"id": "4679701d62d5bf4e",
-			"fromNode": "5675d716c5761d80",
-			"fromSide": "right",
-			"toNode": "573084b0c44d937c",
-			"toSide": "left",
-			"label": "laser"
-		}
+	"edges":[
+		{"id":"3a6309e33f10111f","fromNode":"f840811f7f798aeb","fromSide":"right","toNode":"31f7d87e5e5e2323","toSide":"left"},
+		{"id":"5408bc41f7f5cf03","fromNode":"31f7d87e5e5e2323","fromSide":"right","toNode":"3b69dc58c8ff5df6","toSide":"left"},
+		{"id":"8fbfab0604298a1f","fromNode":"3b69dc58c8ff5df6","fromSide":"right","toNode":"751ab8850da9b699","toSide":"left"},
+		{"id":"cc39d9244144a60f","fromNode":"32d20b61aa81414f","fromSide":"right","toNode":"d0f3ac057b2ec641","toSide":"left"},
+		{"id":"058a41ce0478da68","fromNode":"d0f3ac057b2ec641","fromSide":"right","toNode":"d29f8461010994af","toSide":"left"},
+		{"id":"fc7208f5c0c4cde9","fromNode":"d29f8461010994af","fromSide":"right","toNode":"b645a540eecf50a7","toSide":"left"},
+		{"id":"ecf300e7dc8d3f08","fromNode":"8659e6c8a9cd5e2b","fromSide":"right","toNode":"830af84d77e4673c","toSide":"left"},
+		{"id":"4db771a2ac55f5b4","fromNode":"830af84d77e4673c","fromSide":"right","toNode":"166d9f9191ad1a93","toSide":"left"},
+		{"id":"d4d911a018b4ae9d","fromNode":"166d9f9191ad1a93","fromSide":"right","toNode":"70041c417988cd82","toSide":"left"},
+		{"id":"ab5c043613f2cb31","fromNode":"478791923fb120a2","fromSide":"right","toNode":"22d09d02a6ba8bc9","toSide":"left"},
+		{"id":"cd8442b5590cb686","fromNode":"22d09d02a6ba8bc9","fromSide":"right","toNode":"6b9ed5a8d80252c9","toSide":"left"},
+		{"id":"730f51bd1d4c29e8","fromNode":"6b9ed5a8d80252c9","fromSide":"right","toNode":"03e5df0075419b20","toSide":"left"},
+		{"id":"c56a1c82f27818ea","fromNode":"9f3742e71653f66f","fromSide":"right","toNode":"c9504a1b3bf6d77a","toSide":"left"},
+		{"id":"ba5961af257b05a9","fromNode":"c9504a1b3bf6d77a","fromSide":"right","toNode":"54199e7166e6f1be","toSide":"left"},
+		{"id":"f378e952c5bad8f7","fromNode":"54199e7166e6f1be","fromSide":"right","toNode":"5675d716c5761d80","toSide":"left"},
+		{"id":"3ef296f6e574b1c0","fromNode":"7673bf8340f21db7","fromSide":"right","toNode":"3f068863a930d057","toSide":"left"},
+		{"id":"8ad2f0b3f3dc344b","fromNode":"3f068863a930d057","fromSide":"right","toNode":"9c20658750cdab8d","toSide":"left"},
+		{"id":"d07b39f41de2b649","fromNode":"9c20658750cdab8d","fromSide":"right","toNode":"2a0f289b578f41f4","toSide":"left"},
+		{"id":"ac41a6eff95eead8","fromNode":"94be0c796c5a45c2","fromSide":"right","toNode":"da5a0325d6b1823e","toSide":"left"},
+		{"id":"48d84455a97d7796","fromNode":"da5a0325d6b1823e","fromSide":"right","toNode":"7cdea32cffb53b26","toSide":"left"},
+		{"id":"4021278d8e8cc581","fromNode":"7cdea32cffb53b26","fromSide":"right","toNode":"5fbe65792de30064","toSide":"left"},
+		{"id":"dbca70da20313a66","fromNode":"ed45c0b7fab66007","fromSide":"right","toNode":"8aede485119c7180","toSide":"left"},
+		{"id":"945bc3f56d803923","fromNode":"8aede485119c7180","fromSide":"right","toNode":"f306d45e3016d5aa","toSide":"left"},
+		{"id":"107d366d28c90f76","fromNode":"f306d45e3016d5aa","fromSide":"right","toNode":"776f536c08216061","toSide":"left"},
+		{"id":"a67d7a620686c7c7","fromNode":"573084b0c44d937c","fromSide":"right","toNode":"245cc775e55e2d24","toSide":"left"},
+		{"id":"2d774782c9e1d7df","fromNode":"245cc775e55e2d24","fromSide":"right","toNode":"741a530ae89e9471","toSide":"left"},
+		{"id":"692767aa53962080","fromNode":"741a530ae89e9471","fromSide":"right","toNode":"f7f1907383d4c135","toSide":"left"},
+		{"id":"8a6d3c81362b0a27","fromNode":"35c5577f1a6c4709","fromSide":"right","toNode":"f840811f7f798aeb","toSide":"left"},
+		{"id":"50a1a4a66c9557f1","fromNode":"751ab8850da9b699","fromSide":"right","toNode":"32d20b61aa81414f","toSide":"left"},
+		{"id":"01cdcdc9e7cc9996","fromNode":"751ab8850da9b699","fromSide":"right","toNode":"8659e6c8a9cd5e2b","toSide":"left"},
+		{"id":"788bb84aca7c657e","fromNode":"b645a540eecf50a7","fromSide":"right","toNode":"478791923fb120a2","toSide":"left","label":"standard"},
+		{"id":"279516c247241767","fromNode":"b645a540eecf50a7","fromSide":"right","toNode":"9f3742e71653f66f","toSide":"left","label":"laser"},
+		{"id":"c2dee9ce97ea054a","fromNode":"70041c417988cd82","fromSide":"right","toNode":"7673bf8340f21db7","toSide":"left","label":"laser"},
+		{"id":"d203e375b2ec54fe","fromNode":"03e5df0075419b20","fromSide":"right","toNode":"94be0c796c5a45c2","toSide":"left"},
+		{"id":"57f8a366bcc32c2b","fromNode":"5675d716c5761d80","fromSide":"right","toNode":"94be0c796c5a45c2","toSide":"left","label":"standard"},
+		{"id":"53835172853dfbe3","fromNode":"776f536c08216061","fromSide":"right","toNode":"573084b0c44d937c","toSide":"left"},
+		{"id":"c24ce699dc7d39f8","fromNode":"f7f1907383d4c135","fromSide":"right","toNode":"46e539f50437a678","toSide":"left","label":"badges"},
+		{"id":"583cfbafcb15a550","fromNode":"46e539f50437a678","fromSide":"right","toNode":"534a94c5e210d65c","toSide":"left"},
+		{"id":"5b6c0ac89c1e8e02","fromNode":"534a94c5e210d65c","fromSide":"right","toNode":"98c07e56e131e418","toSide":"left"},
+		{"id":"c7ab9be423e9d4e8","fromNode":"98c07e56e131e418","fromSide":"right","toNode":"3bceb29a6b35762f","toSide":"left"},
+		{"id":"c6bf14ae3ae307fe","fromNode":"3bceb29a6b35762f","fromSide":"right","toNode":"ca68c9295dde0dbf","toSide":"left"},
+		{"id":"bcaeeff0907faa6e","fromNode":"2a0f289b578f41f4","fromSide":"right","toNode":"94be0c796c5a45c2","toSide":"left"},
+		{"id":"930c44ba62266bbc","fromNode":"70041c417988cd82","fromSide":"right","toNode":"ed45c0b7fab66007","toSide":"left","label":"standard"},
+		{"id":"b6f7b13917ca7faa","fromNode":"5fbe65792de30064","fromSide":"right","toNode":"46e539f50437a678","toSide":"left","label":"badges"},
+		{"id":"4679701d62d5bf4e","fromNode":"5675d716c5761d80","fromSide":"right","toNode":"573084b0c44d937c","toSide":"left","label":"laser"}
 	]
 }

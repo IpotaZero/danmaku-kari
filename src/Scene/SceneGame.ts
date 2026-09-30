@@ -19,11 +19,14 @@ export class SceneGame extends Scene {
     protected async onStart(): Promise<void> {
         console.log(`SceneGame: ${this.node.id}`)
 
+        // ステージ中に残機が増えることはないので、クリア時に開始時から減っていなければノーミス
+        const initialLives = playerData.getLives()
+
         this.game = await Game.create(
             (game) => this.node.stage(game),
             input,
             () => {
-                this.node.recordClear(playerData, playerData.getLoadout().main)
+                this.node.recordClear(playerData, playerData.getLoadout().main, playerData.getLives() === initialLives)
                 this.showResultMenu("--:: 道場破り ::--")
             },
             (score) => {

@@ -23,6 +23,7 @@ type SerializedPlayerData = {
     lastLivesSyncedAt: number
     totalScore?: number
     badges?: BadgeId[]
+    noMissClears?: string[]
 }
 
 // 免状(道場主を倒すと授かる証)のID
@@ -35,6 +36,9 @@ export type BadgeId = string
 export class PlayerData {
     // ステージID -> そのステージをクリアした際に使った主装備のID一覧
     private readonly stageClears = new Map<string, Set<EquipmentId>>()
+
+    // 一度でもノーミスでクリアしたステージのID
+    private readonly noMissClears = new Set<string>()
 
     private loadout: Loadout = DEFAULT_LOADOUT
 
@@ -58,15 +62,20 @@ export class PlayerData {
         this.recoverLivesOverTime()
     }
 
-    recordStageClear(stageId: string, mainEquipmentId: EquipmentId) {
+    recordStageClear(stageId: string, mainEquipmentId: EquipmentId, noMiss: boolean) {
         const clearedWith = this.stageClears.get(stageId) ?? new Set()
         clearedWith.add(mainEquipmentId)
         this.stageClears.set(stageId, clearedWith)
+        if (noMiss) this.noMissClears.add(stageId)
         this.save()
     }
 
     isStageCleared(stageId: string): boolean {
         return this.stageClears.has(stageId)
+    }
+
+    isStageClearedWithoutMiss(stageId: string): boolean {
+        return this.noMissClears.has(stageId)
     }
 
     getStageClearedMainEquipments(stageId: string): ReadonlySet<EquipmentId> {
@@ -182,6 +191,9 @@ export class PlayerData {
             // 旧形式の保存データにはこのフィールドが無いので、その場合は免状なしから始める
             this.badges.clear()
             data.badges?.forEach((badge) => this.badges.add(badge))
+            // 旧形式の保存データにはこのフィールドが無いので、その場合はノーミスクリアなしから始める
+            this.noMissClears.clear()
+            data.noMissClears?.forEach((stageId) => this.noMissClears.add(stageId))
         } catch {
             // 保存データが壊れている/存在しない場合は初期値のまま進める
         }
@@ -199,6 +211,7 @@ export class PlayerData {
             lastLivesSyncedAt: this.lastLivesSyncedAt,
             totalScore: this.totalScore,
             badges: [...this.badges],
+            noMissClears: [...this.noMissClears],
         }
 
         try {

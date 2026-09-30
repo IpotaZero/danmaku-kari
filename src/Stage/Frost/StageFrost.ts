@@ -48,6 +48,19 @@ export default class extends Stage {
         this.game.enemies.push(new EnemyFrost(this.game))
 
         yield* this.waitAllEnemiesDead()
+
+        yield* this.game.textBox.say(["あちちっ。暑さには弱いんだボク。"], { name: "ユキムシ" })
+        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
+        yield* this.game.textBox.say(["あらそうなの。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["ということで、君には霜月道場の免状を与えましょう。"], { name: "ユキムシ" })
+        this.hideFigure("hachinoko")
+        this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
+        yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["次は……そうだな、疾風道場か雷鼓道場に行ってみるといいでしょう。頑張ってね。"], {
+            name: "ユキムシ",
+        })
+        yield* this.game.textBox.say(["ありがとー。"], { name: "ハチノコ" })
+        this.hideFigure("hachinoko")
     }
 }
 
