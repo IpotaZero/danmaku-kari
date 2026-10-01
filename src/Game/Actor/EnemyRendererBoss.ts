@@ -1,5 +1,6 @@
 import { Enemy } from "./Enemy"
 import { IEnemyRenderer } from "./IEnemyRenderer"
+import { DeathEffect } from "./DeathEffect"
 import { Ctx } from "../../utils/Functions/Ctx"
 import { vec } from "@ipota/vec"
 import { T } from "../../T"
@@ -14,6 +15,10 @@ const BLUE = "rgba(60, 140, 255, 0.8)"
 const CHARGE_FILL = "rgba(140, 200, 255, 0.95)"
 
 export class EnemyRendererBoss implements IEnemyRenderer {
+    *onDead(e: Enemy) {
+        yield* DeathEffect.bossDefeat(e)
+    }
+
     draw(ctx: CanvasRenderingContext2D, e: Enemy): void {
         const orbitTheta = e.frame / 60
         const pulse = Math.sin(e.frame / 15) * 0.05
@@ -37,8 +42,9 @@ export class EnemyRendererBoss implements IEnemyRenderer {
         const isCharging = e.chargeRemaining > 0
         const width = e.game.WIDTH * 0.8
         const height = 24
-        const x = -width / 2
-        const y = -e.game.HEIGHT / 2 + 30
+        // ワールド座標は左上原点の [0, WIDTH] x [0, HEIGHT]
+        const x = (e.game.WIDTH - width) / 2
+        const y = 30
 
         ctx.save()
         ctx.translate(0, y)

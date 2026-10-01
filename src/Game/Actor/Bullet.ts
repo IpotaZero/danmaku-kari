@@ -9,8 +9,8 @@ export class Bullet extends Actor {
     delay: number = 0
     isScorable: boolean = true
 
-    appearance: "donut" | "ball" | "line" | "arrow" | "laser" | "beam" | "player" | "score" | "triangle" = "donut"
-    collision: "circle" | "line" | "arrow" | "rect" = "circle"
+    appearance: "donut" | "ball" | "line" | "arrow" | "laser" | "beam" | "player" | "score" | "triangle" | "wedge" = "donut"
+    collision: "circle" | "line" | "arrow" | "rect" | "wedge" = "circle"
     type: "friend" | "enemy" | "neutral" | "effect" | "score" = "enemy"
     color: Color = "black"
     alpha: number = 1

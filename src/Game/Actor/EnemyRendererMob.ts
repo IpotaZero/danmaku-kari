@@ -2,6 +2,7 @@ import { Ctx } from "../../utils/Functions/Ctx"
 import { vec } from "@ipota/vec"
 import { Enemy } from "./Enemy"
 import { IEnemyRenderer } from "./IEnemyRenderer"
+import { DeathEffect } from "./DeathEffect"
 
 const WHITE = "#ffffff80"
 const RED = "rgba(255, 60, 60, 0.6)"
@@ -11,6 +12,10 @@ const CHARGE_FILL = "rgba(140, 200, 255, 0.95)"
 const CHARGE_BG = "rgba(60, 140, 255, 0.2)"
 
 export class EnemyRendererMob implements IEnemyRenderer {
+    *onDead(e: Enemy) {
+        yield* DeathEffect.explode(e)
+    }
+
     draw(ctx: CanvasRenderingContext2D, e: Enemy): void {
         const orbitTheta = e.frame / 30
 

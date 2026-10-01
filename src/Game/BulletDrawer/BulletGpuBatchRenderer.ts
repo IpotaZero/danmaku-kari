@@ -1,5 +1,5 @@
-import { CameraTransform } from "./Actor/Camera"
-import { AtlasUv, BulletSpriteAtlas } from "./BulletSpriteAtlas"
+import { CameraTransform } from "../Actor/Camera"
+import { AtlasUv, BulletSpriteAtlas } from "../BulletSpriteAtlas"
 
 const VERTEX_SHADER = `#version 300 es
 layout(location = 0) in vec2 a_corner;

@@ -71,7 +71,7 @@ export class TextBox {
 
     // 「ok」が押されたか(boxのクリック待ちも1回分の押下として合成する)
     private isOkPushed(): boolean {
-        if (this.input.isPushed("ok")) return true
+        if (this.input.isRepeatPushed("ok", 50, 500)) return true
 
         if (this.boxClickPending) {
             this.boxClickPending = false

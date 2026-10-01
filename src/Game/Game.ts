@@ -4,7 +4,7 @@ import { Vec, vec } from "@ipota/vec"
 import { Player, PlayerConfig } from "./Actor/Player"
 import { Enemy } from "./Actor/Enemy"
 import { Bullet } from "./Actor/Bullet"
-import { BulletDrawer } from "./BulletDrawer"
+import { BulletDrawer } from "./BulletDrawer/BulletDrawer"
 import { BulletCollision } from "./BulletCollision"
 import { IteratorQueue } from "./IteratorQueue"
 import { Stage } from "../Stage/Stage"
@@ -13,6 +13,8 @@ import { FigureLayer } from "../utils/FigureLayer"
 import { TouchControls } from "./TouchControls"
 import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 import { Dom } from "../Dom"
+
+const FPS = 60
 
 export type GameAction = "right" | "left" | "up" | "down" | "slow" | "suicide" | "action" | "ok" | "cancel"
 
@@ -36,6 +38,8 @@ export type GameConfig = {
     onLose: (score: number) => void
     onScoreCollected: (score: number) => void
     playerConfig: PlayerConfig
+    // ゲーム全体の更新速度を変える(ボス撃破時のスローモーション用)
+    setFPS: (fps: number) => void
 }
 
 /**
@@ -86,10 +90,12 @@ export class Game extends IteratorQueue {
     private readonly onWin: () => void
     private readonly onLose: (score: number) => void
     private readonly onScoreCollected: (score: number) => void
+    private readonly setFPS: (fps: number) => void
 
-    private constructor({ input, se, onWin, onLose, onScoreCollected, playerConfig }: GameConfig) {
+    private constructor({ input, se, onWin, onLose, onScoreCollected, playerConfig, setFPS }: GameConfig) {
         super()
 
+        this.setFPS = setFPS
         this.se = se
         this.onWin = onWin
         this.onLose = onLose
@@ -144,6 +150,8 @@ export class Game extends IteratorQueue {
     }
 
     dispose() {
+        // スロー中にシーンを抜けても速さが戻るように
+        this.setSpeed(1)
         this.resizeObserver.disconnect()
         this.figureLayer.dispose()
     }
@@ -177,7 +185,7 @@ export class Game extends IteratorQueue {
     win() {
         if (this.state === "cleared") return
         this.state = "cleared"
-        // this.se.bossDefeat.play()
+        this.se.crush.play()
         this.onWin()
         this.addScript(() => this.waitScoreCollected())
     }
@@ -187,6 +195,11 @@ export class Game extends IteratorQueue {
         if (this.state === "game-over") return
         this.state = "game-over"
         this.onLose(this.score)
+    }
+
+    // ゲーム全体の進む速さを変える(1で通常)。更新回数そのものを変えるので、遅くするとカクつく
+    setSpeed(scale: number) {
+        this.setFPS(FPS * scale)
     }
 
     private *waitScoreCollected(): Generator<void, void, void> {

@@ -70,6 +70,9 @@ export default class extends Stage {
         phase.next()
 
         yield* this.waitAllEnemiesDead()
+        this.scorenizeAllBullets()
+
+        yield* Array(300)
 
         yield* this.game.textBox.say(["あちちっ。暑さには弱いんだボク。"], { name: "ユキムシ" })
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
@@ -87,21 +90,31 @@ export default class extends Stage {
 }
 
 class EnemyFrost extends Enemy {
-    private readonly path = Curves.lissajous(this.game.WIDTH * 0.8, this.game.HEIGHT * 0.1, 2, 3)
+    private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.1, 2, 3)
 
     constructor(game: Game) {
-        super(game, 2400, 96, { renderer: new EnemyRendererBoss() })
+        super(game, 1200, 64, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
     }
 
     *start() {
-        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle" })
+        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle" })
+        yield
+
+        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 300 })
+        yield
+
+        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 300 })
+        yield
+
+        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 300 })
         yield
     }
 
     private *enter() {
+        this.p = vec(-200, -200)
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
         this.addScript(() => this.move(), { loop: Infinity })
@@ -112,7 +125,7 @@ class EnemyFrost extends Enemy {
     }
 
     private *move() {
-        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 2400).add(this.home())
+        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 1200).add(this.home())
         yield
     }
 
@@ -210,15 +223,99 @@ class EnemyFrost extends Enemy {
     }
 
     private *cycle1() {
-        yield* remodel(this).p(this.p.clone()).fire(this.game.bullets)
+        yield* remodel(this)
+            .color("#bfe9ff")
+            .format("donut")
+            .p(this.p.clone())
+            .scatter(13, { p: 240, radian: [0, T], speed: [3, 6] })
+            .delayByIndex(2)
+            .ex(13)
+            .g((me) => Behavior.reaccel(me, 60, 60, 60, 4))
+            .fire(this.game.bullets)
+
+        yield* Array(120)
+
+        yield* remodel(this)
+            .color("#bfe9ff")
+            .format("arrow")
+            .p(this.p.clone())
+            .sim(3, 4, 8)
+            .delayByIndex(10)
+            .ex(31)
+            .fire(this.game.bullets)
+
+        yield* Array(300)
+    }
+
+    private *cycle2() {
+        yield* GenUtils.all({
+            cycle0: this.cycle2_0(),
+            cycle1: this.cycle2_1(),
+        })
+    }
+
+    private *cycle2_0() {
+        while (1) {
+            yield* remodel(this)
+                .color("#bfe9ff")
+                .format("arrow")
+                .p(this.p.clone())
+                .ex(31)
+                .delayByIndex()
+                .ex(2)
+                .g(function* (me, _, i, j) {
+                    yield* Behavior.stop(me, 30)
+                    yield* Array(60 - i)
+                    yield* GenUtils.all({
+                        accel: Behavior.accel(me, 60, 4),
+                        rotate: Behavior.rotating(me, (T / 6400) * (2 * (j % 2) - 1)),
+                    })
+                })
+                .fire(this.game.bullets)
+
+            yield* Array(12)
+        }
+    }
+
+    private *cycle2_1() {
+        while (1) {
+            yield* remodel(this)
+                .color("#bfe9ff")
+                .format("donut")
+                .p(this.p.clone())
+                .g((me) => Behavior.appear(me, 15))
+                .scatter(63, { p: 120 })
+                .delayByIndex()
+                .speed(8)
+                .aim(this.game.player.p)
+                .fire(this.game.bullets)
+
+            yield* Array(120)
+        }
+    }
+
+    private *cycle3() {
+        yield* remodel(this)
+            .color("#bfe9ff")
+            .format("small-ball")
+            .p(this.p.clone())
+            .g((me) => Behavior.appear(me, 15))
+            .scatter(63, { speed: [4, 8], radian: [0, T] })
+            .delayByIndex()
+            .g(function* (me) {
+                yield* Behavior.reaccel(me, 30, 30, 60)
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(120)
     }
 }
 
 class EnemyCore extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
-        super(game, 1200, 48, { renderer: new EnemyRendererCore() })
+        super(game, 1000, 48, { renderer: new EnemyRendererCore() })
         this.setParent(parent, () =>
-            vec.arg(this.frame / 360 + (T / 3) * index).scale(200 + 200 * Math.sin(this.frame / 720)),
+            vec.arg(this.frame / 360 + (T / 3) * index).scale(200 + 50 * Math.sin(this.frame / 720)),
         )
         this.isInvincible = true
     }

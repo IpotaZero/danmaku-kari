@@ -48,7 +48,7 @@ export abstract class IteratorQueue {
         )
     }
 
-    protected removeScript(id: string) {
+    removeScript(id: string) {
         this.scripts.delete(id)
     }
 }

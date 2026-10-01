@@ -35,6 +35,7 @@ namespace Format {
         "small-ball": 4,
         "arrow": 24,
         "line": 24,
+        "wedge": 24,
     } as const
 
     export const collision = {
@@ -43,6 +44,7 @@ namespace Format {
         "small-ball": "circle",
         "arrow": "arrow",
         "line": "line",
+        "wedge": "wedge",
     } as const
 
     export const appearance = {
@@ -51,6 +53,7 @@ namespace Format {
         "small-ball": "ball",
         "arrow": "arrow",
         "line": "line",
+        "wedge": "wedge",
     } as const
 }
 
@@ -72,7 +75,7 @@ export namespace Behavior {
 
     // 数フレームかけて停止し、数フレーム何もせず、数フレームかけて加速する
     export function* reaccel(
-        me: Bullet & { speed: number },
+        me: Bullet,
         stopFrame: number,
         waitFrame: number,
         accelFrame: number,
@@ -92,6 +95,13 @@ export namespace Behavior {
     // 数フレームかけて加速する
     export function* accel(me: Bullet, frame: number, finalSpeed: number) {
         yield* ease(me, "speed", finalSpeed, frame, Ease.Linear)
+    }
+
+    export function* rotating(me: Bullet, angularSpeed: number) {
+        while (me.life > 0) {
+            me.radian += angularSpeed
+            yield
+        }
     }
 
     // 数フレームかけて消える。始まった時点で当たり判定は消える
@@ -130,10 +140,14 @@ export namespace Behavior {
 export interface Remodel<Parent extends Actor> extends BulletSetters<Remodel<Parent>> {}
 
 export class Remodel<Parent extends Actor> {
+    private readonly indices: number[][]
+
     constructor(
         private bullets: Bullet[],
         private readonly e: Parent,
     ) {
+        this.indices = bullets.map(() => [])
+
         return new Proxy(this, {
             get(target, key, receiver: Remodel<Parent>) {
                 if (key in target) return Reflect.get(target, key, receiver)
@@ -163,7 +177,7 @@ export class Remodel<Parent extends Actor> {
         }
     }
 
-    format(type: "donut" | "big-ball" | "small-ball" | "arrow" | "line") {
+    format(type: keyof typeof Format.r) {
         return this.appearance(Format.appearance[type]).collision(Format.collision[type]).r(Format.r[type])
     }
 
@@ -239,22 +253,42 @@ export class Remodel<Parent extends Actor> {
     }
 
     // 弾を複製する。map で複製した弾のプロパティを変更できる
-    duplicate(num: number, map: (me: Bullet, index: number) => Bullet) {
-        const result: Bullet[] = []
+    duplicate(num: number, map?: (me: Bullet, index: number, ...parentIndices: number[]) => Bullet) {
+        if (map) {
+            const result: Bullet[] = []
+            const resultIndices: number[][] = []
 
-        const length = this.bullets.length
+            const length = this.bullets.length
 
-        for (let i = 0; i < length; i++) {
-            const bullet = this.bullets[i]
+            for (let i = 0; i < length; i++) {
+                const bullet = this.bullets[i]
 
-            for (let j = 0; j < num; j++) {
-                result.push(map(bullet.clone(), j))
+                for (let j = 0; j < num; j++) {
+                    result.push(map(bullet.clone(), j, ...this.indices[i]))
+                    resultIndices.push([...this.indices[i], j])
+                }
             }
+
+            this.bullets = result
+            this.indices.splice(0, this.indices.length, ...resultIndices)
+
+            return this
+        } else {
+            const result: Bullet[] = []
+            const resultIndices: number[][] = []
+
+            this.bullets.forEach((bullet, i) => {
+                for (let j = 0; j < num; j++) {
+                    result.push(bullet.clone())
+                    resultIndices.push([...this.indices[i], j])
+                }
+            })
+
+            this.bullets = result
+            this.indices.splice(0, this.indices.length, ...resultIndices)
+
+            return this
         }
-
-        this.bullets = result
-
-        return this
     }
 
     // 弾を円形に配置する。direction は弾の向きの方向を指定する
@@ -370,13 +404,17 @@ export class Remodel<Parent extends Actor> {
     }
 
     // 挙動を追加する。g の this は Remodel を呼び出した Actor になる
-    g(g: (this: Parent, me: Bullet, index: number) => Generator, config: { loop?: number; margin?: number } = {}) {
+    g(
+        g: (this: Parent, me: Bullet, index: number, ...generationIndices: number[]) => Generator,
+        config: { loop?: number; margin?: number } = {},
+    ) {
         const e = this.e
+        const indices = this.indices
 
         this.bullets.forEach((b, index) => {
             b.addScriptBook(
                 function* (me: Bullet) {
-                    yield* g.call(e, me, index)
+                    yield* g.call(e, me, index, ...indices[index])
                 } as () => Generator<void, void, void>,
                 config,
             )

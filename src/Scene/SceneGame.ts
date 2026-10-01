@@ -35,6 +35,7 @@ export class SceneGame extends Scene {
             },
             onScoreCollected: (score) => playerData.addScore(score),
             playerConfig: createPlayerConfig(),
+            setFPS: (fps) => App.looper.setFPS(fps),
         })
 
         this.root.classList.add("scene-game")

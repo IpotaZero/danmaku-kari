@@ -1,8 +1,6 @@
 import { vec, Vec } from "@ipota/vec"
 import { Actor } from "./Actor"
 import { Ease } from "@ipota/functions"
-import { Behavior, remodel } from "../Remodel"
-import { T } from "../../T"
 import { Game } from "../Game"
 import { IEnemyRenderer } from "./IEnemyRenderer"
 import { EnemyRendererMob } from "./EnemyRendererMob"
@@ -57,20 +55,7 @@ export abstract class Enemy extends Actor {
     }
 
     *onDead(): Generator<void, void, void> {
-        yield* remodel(this)
-            .type("effect")
-            .alpha(0.5)
-            .p(this.p.clone())
-            .duplicate(31, (me, i) => {
-                me.radian = Math.random() * T
-                me.speed = Math.random() * 2 + 2
-                me.r = Math.random() * 4 + 8
-                return me
-            })
-            .g(function* (me) {
-                yield* Behavior.fadeout(me, 80)
-            })
-            .fire(this.game.bullets)
+        yield* this.renderer.onDead(this)
     }
 
     private *hitG() {

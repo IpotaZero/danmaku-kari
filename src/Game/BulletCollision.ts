@@ -1,6 +1,7 @@
 import { Vec, vec } from "@ipota/vec"
 import { T } from "../T"
 import { Bullet } from "./Actor/Bullet"
+import { Wedge } from "./BulletDrawer/Wedge"
 
 type Circle = {
     p: Vec
@@ -46,6 +47,9 @@ export class BulletCollision {
                 this.isCollidingLine(circle, line1) ||
                 this.isCollidingLine(circle, line2)
             )
+        } else if (b.collision === "wedge") {
+            const [a, b1, c] = Wedge.vertices(b.r).map((v) => b.p.add(v.rotate(b.radian)))
+            return this.isCollidingTriangle(e, a, b1, c)
         } else if (b.collision === "rect") {
             // ビーム判定: 始点を b.p に固定するため、中心を進行方向に length/2 だけオフセットする
             return this.isCollidingRect(e, {
@@ -73,6 +77,22 @@ export class BulletCollision {
         const closest = start.add(segment.scale(t))
         const distSq = p.sub(closest).magnitudeSquared()
         return distSq <= r ** 2
+    }
+
+    // 円の中心が三角形の内側にあるか、いずれかの辺に円が触れていれば衝突
+    private isCollidingTriangle(circle: Circle, a: Vec, b: Vec, c: Vec) {
+        const cross = (o: Vec, p: Vec, q: Vec) => (p.x - o.x) * (q.y - o.y) - (p.y - o.y) * (q.x - o.x)
+        const d0 = cross(a, b, circle.p)
+        const d1 = cross(b, c, circle.p)
+        const d2 = cross(c, a, circle.p)
+        const inside = (d0 >= 0 && d1 >= 0 && d2 >= 0) || (d0 <= 0 && d1 <= 0 && d2 <= 0)
+
+        return (
+            inside ||
+            this.isCollidingLine(circle, { start: a, end: b }) ||
+            this.isCollidingLine(circle, { start: b, end: c }) ||
+            this.isCollidingLine(circle, { start: c, end: a })
+        )
     }
 
     /**

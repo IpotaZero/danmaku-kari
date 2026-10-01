@@ -1,7 +1,8 @@
-import { isSmartPhone } from "../utils/Functions/isSmartPhone"
-import { Bullet } from "./Actor/Bullet"
-import { CameraTransform } from "./Actor/Camera"
+import { isSmartPhone } from "../../utils/Functions/isSmartPhone"
+import { Bullet } from "../Actor/Bullet"
+import { CameraTransform } from "../Actor/Camera"
 import { BulletGpuBatchRenderer } from "./BulletGpuBatchRenderer"
+import { Wedge } from "./Wedge"
 
 export class BulletDrawer {
     private readonly cache = new Map<string, HTMLCanvasElement>()
@@ -108,6 +109,8 @@ export class BulletDrawer {
                 return this.drawBall(bullet, halfCanvasSize)
             case "triangle":
                 return this.drawTriangle(bullet, halfCanvasSize)
+            case "wedge":
+                return this.drawWedge(bullet, halfCanvasSize)
             default:
                 return this.drawPlayer(bullet, halfCanvasSize)
         }
@@ -334,6 +337,35 @@ export class BulletDrawer {
 
         ctx.strokeStyle = bullet.color
         ctx.stroke()
+        return canvas
+    }
+
+    // 色付きの光をまとった楔に、白い芯を重ねる(ballと同じ構成)
+    private drawWedge(bullet: Bullet, halfCanvasSize: number) {
+        const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
+        ctx.translate(center, center)
+
+        const path = (scale: number) => {
+            ctx.beginPath()
+            Wedge.vertices(bullet.r).forEach((v, i) => {
+                if (i === 0) ctx.moveTo(v.x * scale, v.y * scale)
+                else ctx.lineTo(v.x * scale, v.y * scale)
+            })
+            ctx.closePath()
+        }
+
+        path(1)
+        if (!isSmartPhone) {
+            ctx.shadowColor = bullet.color
+            ctx.shadowBlur = 14
+        }
+        ctx.fillStyle = bullet.color
+        ctx.fill()
+
+        path(0.7)
+        ctx.shadowColor = "white"
+        ctx.fillStyle = "white"
+        ctx.fill()
         return canvas
     }
 
