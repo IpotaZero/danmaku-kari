@@ -113,7 +113,7 @@ function nearestEnemy(player: Player, from: Vec): Enemy | undefined {
     let nearest: Enemy | undefined
     let nearestDistSq = Infinity
 
-    for (const enemy of player.game.enemies) {
+    for (const enemy of player.game.enemies.filter((e) => !e.isInvincible)) {
         const distSq = enemy.p.sub(from).magnitudeSquared()
         if (distSq < nearestDistSq) {
             nearestDistSq = distSq
