@@ -17,13 +17,15 @@ import { Curves } from "../../utils/Functions/Curves"
 
 const ENTRANCE_FRAMES = 150
 // 1周期の長さ。結晶の破片が画面を抜けた後、2秒半ほど休憩が入る
-const CYCLE_FRAMES = 420
-// 種を投げてから止まるまで
-const THROW_FRAMES = 60
+const CYCLE_FRAMES = 470
+// 種が飛ぶ平均の速さ。遠くへ投げるほど止まるまでに時間がかかる
+const THROW_SPEED = 3.5
+// 種を投げてから止まるまでの最大フレーム数。どれだけ遠くても、結晶が育ちきってから砕けるよう抑える
+const MAX_THROW_FRAMES = 150
 // 結晶が育ちきるまで(弾幕の提示)
 const GROW_FRAMES = 50
-// 周期の開始から結晶が砕けるまで。育ちきってから少し眺める時間がある
-const SHATTER_FRAMES = 180
+// 周期の開始から結晶が砕けるまで。一番遠くへ投げても、育ちきってから少し眺める時間がある
+const SHATTER_FRAMES = MAX_THROW_FRAMES + GROW_FRAMES + 20
 const SHATTER_SPEED = 3.5
 // 結晶の腕を構成する弾の間隔。自機の当たり判定の8倍より狭いので、腕は抜けられない
 const CRYSTAL_SPACING = 16
@@ -146,31 +148,29 @@ class EnemyFlake extends Enemy {
         const height = this.game.HEIGHT
         const center = vec(width * (0.5 + side * (0.1 + Math.random() * 0.25)), height * (0.45 + Math.random() * 0.25))
 
-        yield* this.seed(center)
-        yield* this.grow(center)
+        const throwFrames = Math.min(Math.ceil(center.sub(this.p).magnitude() / THROW_SPEED), MAX_THROW_FRAMES)
+
+        yield* this.seed(center, throwFrames)
+        yield* this.grow(center, throwFrames)
     }
 
     // 種は投げた瞬間から等しく減速して、ちょうどcenterで止まる。止まったら結晶に置き換わって消える
-    private *seed(center: Vec) {
-        const diff = center.sub(this.p)
-
+    private *seed(center: Vec, throwFrames: number) {
         yield* remodel(this)
             .format("diamond")
             .color("#dff6ff")
             .p(this.p.clone())
-            .radian(diff.radian())
-            .speed((diff.magnitude() * 2) / THROW_FRAMES)
             .g(function* (me) {
-                yield* Behavior.stop(me, THROW_FRAMES)
+                yield* Behavior.throwTo(me, center, throwFrames)
                 yield* Behavior.fadeout(me, 10)
             })
             .fire(this.game.bullets)
 
-        yield* Array(THROW_FRAMES)
+        yield* Array(throwFrames)
     }
 
     // 中心から外へ向かって腕が伸びるように育つ。砕けるときは中心から離れる向きに飛ぶので、形を保ったまま広がっていく
-    private *grow(center: Vec) {
+    private *grow(center: Vec, throwFrames: number) {
         const offsets = crystal(Math.random() * T)
         const maxDistance = Math.max(...offsets.map((o) => o.magnitude()))
 
@@ -188,7 +188,7 @@ class EnemyFlake extends Enemy {
                 const appearFrames = 12
                 // 自機の真上に突然出現しないよう、大きさ0から現れる(見た目と判定は常に一致)
                 yield* Behavior.appear(me, appearFrames)
-                yield* Array(Math.max(0, SHATTER_FRAMES - THROW_FRAMES - me.delay - appearFrames))
+                yield* Array(Math.max(0, SHATTER_FRAMES - throwFrames - me.delay - appearFrames))
 
                 me.color = "#dff6ff"
                 yield* Behavior.accel(me, 30, SHATTER_SPEED)

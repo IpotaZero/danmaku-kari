@@ -137,6 +137,14 @@ export namespace Behavior {
             }
         }
     }
+
+    // target へ向けて投げる。frame フレームかけて等しく減速し、ちょうど target で止まる
+    export function* throwTo(me: Bullet, target: Vec, frame: number) {
+        const diff = target.sub(me.p)
+        me.radian = diff.radian()
+        me.speed = (diff.magnitude() * 2) / frame
+        yield* Behavior.stop(me, frame)
+    }
 }
 
 // BulletSetters は constructor が返す Proxy によって実装される
