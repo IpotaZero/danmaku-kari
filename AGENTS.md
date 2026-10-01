@@ -47,6 +47,7 @@ ball: 4または24
 arrow: 24
 line: 24
 wedge: 24
+diamond: 24
 
 前作は参考になるかもしれない。
 "C:\ipota\git\The-Noisy-Days\src\Stage"

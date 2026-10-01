@@ -2,7 +2,7 @@ import { isSmartPhone } from "../../utils/Functions/isSmartPhone"
 import { Bullet } from "../Actor/Bullet"
 import { CameraTransform } from "../Actor/Camera"
 import { BulletGpuBatchRenderer } from "./BulletGpuBatchRenderer"
-import { Wedge } from "./Wedge"
+import { Polygon } from "./Polygon"
 
 export class BulletDrawer {
     private readonly cache = new Map<string, HTMLCanvasElement>()
@@ -110,7 +110,8 @@ export class BulletDrawer {
             case "triangle":
                 return this.drawTriangle(bullet, halfCanvasSize)
             case "wedge":
-                return this.drawWedge(bullet, halfCanvasSize)
+            case "diamond":
+                return this.drawPolygon(bullet, bullet.appearance, halfCanvasSize)
             default:
                 return this.drawPlayer(bullet, halfCanvasSize)
         }
@@ -340,14 +341,14 @@ export class BulletDrawer {
         return canvas
     }
 
-    // 色付きの光をまとった楔に、白い芯を重ねる(ballと同じ構成)
-    private drawWedge(bullet: Bullet, halfCanvasSize: number) {
+    // 色付きの光をまとった多角形に、白い芯を重ねる(ballと同じ構成)
+    private drawPolygon(bullet: Bullet, type: Polygon.Type, halfCanvasSize: number) {
         const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
         ctx.translate(center, center)
 
         const path = (scale: number) => {
             ctx.beginPath()
-            Wedge.vertices(bullet.r).forEach((v, i) => {
+            Polygon.vertices(type, bullet.r).forEach((v, i) => {
                 if (i === 0) ctx.moveTo(v.x * scale, v.y * scale)
                 else ctx.lineTo(v.x * scale, v.y * scale)
             })

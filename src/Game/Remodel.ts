@@ -36,6 +36,7 @@ namespace Format {
         "arrow": 24,
         "line": 24,
         "wedge": 24,
+        "diamond": 24,
     } as const
 
     export const collision = {
@@ -45,6 +46,7 @@ namespace Format {
         "arrow": "arrow",
         "line": "line",
         "wedge": "wedge",
+        "diamond": "diamond",
     } as const
 
     export const appearance = {
@@ -54,6 +56,7 @@ namespace Format {
         "arrow": "arrow",
         "line": "line",
         "wedge": "wedge",
+        "diamond": "diamond",
     } as const
 }
 
