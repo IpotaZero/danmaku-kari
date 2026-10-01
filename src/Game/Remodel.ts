@@ -7,19 +7,25 @@ import type { NumberKeys } from "@ipota/my-utils"
 import { Actor } from "./Actor/Actor"
 
 export function remodel<Parent extends Actor>(e: Parent) {
-    return new Proxy(new Remodel([new Bullet(e.game)], e), {
-        get(target, key) {
-            if (key in target) return (target as any)[key]
-
-            return function (this: Mod<Parent>, value: any) {
-                return this.set(key as any, value)
-            }
-        },
-    }) as Mod<Parent>
+    return new Remodel([new Bullet(e.game)], e)
 }
 
-type Mod<Parent extends Actor> = Remodel<Parent> & {
-    [key in keyof Bullet]: (value: Bullet[key]) => Mod<Parent>
+// Bullet のうち、値として書き換えられるプロパティ(メソッドと readonly を除く)
+type BulletProps = {
+    [K in keyof Bullet]-?: Bullet[K] extends Function
+        ? never
+        : (<T>() => T extends { [Q in K]: Bullet[K] } ? 1 : 2) extends <T>() => T extends {
+                -readonly [Q in K]: Bullet[K]
+            }
+                ? 1
+                : 2
+          ? K
+          : never
+}[keyof Bullet]
+
+// remodel(this).r(12).speed(3) のように Bullet のプロパティを一括で書き換えるメソッド群
+type BulletSetters<Self> = {
+    [K in BulletProps]: (value: Bullet[K]) => Self
 }
 
 namespace Format {
@@ -120,11 +126,22 @@ export namespace Behavior {
     }
 }
 
+// BulletSetters は constructor が返す Proxy によって実装される
+export interface Remodel<Parent extends Actor> extends BulletSetters<Remodel<Parent>> {}
+
 export class Remodel<Parent extends Actor> {
     constructor(
         private bullets: Bullet[],
         private readonly e: Parent,
-    ) {}
+    ) {
+        return new Proxy(this, {
+            get(target, key, receiver: Remodel<Parent>) {
+                if (key in target) return Reflect.get(target, key, receiver)
+
+                return (value: Bullet[BulletProps]) => receiver.set(key as BulletProps, value)
+            },
+        })
+    }
 
     // 発射
     *fire(bullets: Bullet[]) {
@@ -147,10 +164,7 @@ export class Remodel<Parent extends Actor> {
     }
 
     format(type: "donut" | "big-ball" | "small-ball" | "arrow" | "line") {
-        return (this as unknown as Mod<Parent>)
-            .appearance(Format.appearance[type])
-            .collision(Format.collision[type])
-            .r(Format.r[type])
+        return this.appearance(Format.appearance[type]).collision(Format.collision[type]).r(Format.r[type])
     }
 
     // 出現を遅らせる
@@ -225,7 +239,7 @@ export class Remodel<Parent extends Actor> {
     }
 
     // 弾を複製する。map で複製した弾のプロパティを変更できる
-    duplicate(num: number, map: (me: Bullet, index: number) => Bullet): Mod<Parent> {
+    duplicate(num: number, map: (me: Bullet, index: number) => Bullet) {
         const result: Bullet[] = []
 
         const length = this.bullets.length
@@ -240,7 +254,7 @@ export class Remodel<Parent extends Actor> {
 
         this.bullets = result
 
-        return this as unknown as Mod<Parent>
+        return this
     }
 
     // 弾を円形に配置する。direction は弾の向きの方向を指定する
@@ -294,8 +308,7 @@ export class Remodel<Parent extends Actor> {
     beam(length: number) {
         const e = this.e
 
-        return (this as unknown as Mod<Parent>)
-            .length(length)
+        return this.length(length)
             .speed(0)
             .r(12)
             .appearance("beam")
@@ -323,8 +336,7 @@ export class Remodel<Parent extends Actor> {
 
     // レーザーを生成する。waitFrame は予告があってからレーザーが出るまでの時間、existsFrame はレーザーが存在する時間、length はレーザーの長さ
     laser(waitFrame: number, existsFrame: number, length: number) {
-        return (this as unknown as Mod<Parent>)
-            .length(length)
+        return this.length(length)
             .speed(0)
             .type("neutral")
             .alpha(0)
@@ -380,7 +392,7 @@ export class Remodel<Parent extends Actor> {
     }
 
     // 弾のプロパティを一括で変更する
-    set<K extends keyof Bullet, V extends Bullet[K]>(key: K, value: V) {
+    set<K extends BulletProps>(key: K, value: Bullet[K]) {
         this.bullets.forEach((b) => {
             b[key] = value
         })
