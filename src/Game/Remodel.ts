@@ -35,8 +35,8 @@ namespace Format {
         "small-ball": 4,
         "arrow": 24,
         "line": 24,
-        "wedge": 24,
-        "diamond": 24,
+        "wedge": 16,
+        "diamond": 16,
     } as const
 
     export const collision = {
@@ -215,8 +215,8 @@ export class Remodel<Parent extends Actor> {
     // ばらつきを持たせて num 発複製する。数値プロパティは [min, max] の範囲でランダムに割り振り、
     // p だけは特別扱いして、その場所を中心に半径 p 以内の円の中へ一様分布でランダムに散らす
     // (単純に半径だけ乱数にすると中心付近に偏るため、sqrtで面積が一様になるよう補正している)
-    scatter(num: number, ranges: Partial<Record<NumberKeys<Bullet>, [number, number]>> & { p?: number }) {
-        return this.duplicate(num, (b) => {
+    scatter(ranges: Partial<Record<NumberKeys<Bullet>, [number, number]>> & { p?: number }) {
+        return this.forEach((b) => {
             for (const key in ranges) {
                 if (key === "p") continue
 
@@ -232,8 +232,6 @@ export class Remodel<Parent extends Actor> {
                 const angle = Math.random() * T
                 b.p = b.p.add(vec.arg(angle).scale(radius))
             }
-
-            return b
         })
     }
 

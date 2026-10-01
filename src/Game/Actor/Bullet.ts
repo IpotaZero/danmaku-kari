@@ -10,7 +10,17 @@ export class Bullet extends Actor {
     delay: number = 0
     isScorable: boolean = true
 
-    appearance: "donut" | "ball" | "line" | "arrow" | "laser" | "beam" | "player" | "score" | "triangle" | Polygon.Type = "donut"
+    appearance:
+        | "donut"
+        | "ball"
+        | "line"
+        | "arrow"
+        | "laser"
+        | "beam"
+        | "player"
+        | "score"
+        | "triangle"
+        | Polygon.Type = "donut"
     collision: "circle" | "line" | "arrow" | "rect" | Polygon.Type = "circle"
     type: "friend" | "enemy" | "neutral" | "effect" | "score" = "enemy"
     color: Color = "black"
@@ -59,7 +69,7 @@ export class Bullet extends Actor {
         const diff = target.sub(this.p)
 
         this.radian = diff.radian()
-        this.speed = Math.max(diff.magnitude() / 12, 8)
+        this.speed = Math.max(diff.magnitude() / 12, 16)
 
         yield
     }

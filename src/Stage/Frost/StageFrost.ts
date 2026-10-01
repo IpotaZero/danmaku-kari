@@ -60,14 +60,17 @@ export default class extends Stage {
         yield* this.waitDead([core0])
         core1.isInvincible = false
         phase.next()
+        this.scorenizeAllBullets()
 
         yield* this.waitDead([core1])
         core2.isInvincible = false
         phase.next()
+        this.scorenizeAllBullets()
 
         yield* this.waitDead([core2])
         boss.isInvincible = false
         phase.next()
+        this.scorenizeAllBullets()
 
         yield* this.waitAllEnemiesDead()
         this.scorenizeAllBullets()
@@ -93,23 +96,23 @@ class EnemyFrost extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.1, 2, 3)
 
     constructor(game: Game) {
-        super(game, 1200, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 2400, 64, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
     }
 
     *start() {
-        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle" })
+        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle" })
         yield
 
-        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 300 })
+        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
 
-        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 300 })
+        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
 
-        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 300 })
+        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
     }
 
@@ -125,7 +128,7 @@ class EnemyFrost extends Enemy {
     }
 
     private *move() {
-        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 1200).add(this.home())
+        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 600).add(this.home())
         yield
     }
 
@@ -135,7 +138,8 @@ class EnemyFrost extends Enemy {
             .color("#dff6ff")
             .p(this.p.clone())
             .speed(FALL_SPEED)
-            .scatter(120, { p: 0.5, radian: [0, -T / 2], speed: [FALL_SPEED * 0.8, FALL_SPEED * 1.2] })
+            .duplicate(120)
+            .scatter({ p: 0.5, radian: [0, -T / 2], speed: [FALL_SPEED * 0.8, FALL_SPEED * 1.2] })
             .delete(120)
             .fire(this.game.bullets)
 
@@ -214,7 +218,7 @@ class EnemyFrost extends Enemy {
         const count = 120
 
         yield* remodel(this)
-            .format("donut")
+            .format("diamond")
             .p(this.p.clone())
             .speed(1.4)
             .ex(count)
@@ -225,9 +229,10 @@ class EnemyFrost extends Enemy {
     private *cycle1() {
         yield* remodel(this)
             .color("#bfe9ff")
-            .format("donut")
+            .format("diamond")
             .p(this.p.clone())
-            .scatter(13, { p: 240, radian: [0, T], speed: [3, 6] })
+            .duplicate(13)
+            .scatter({ p: 240, radian: [0, T], speed: [3, 6] })
             .delayByIndex(2)
             .ex(13)
             .g((me) => Behavior.reaccel(me, 60, 60, 60, 4))
@@ -260,7 +265,7 @@ class EnemyFrost extends Enemy {
                 .color("#bfe9ff")
                 .format("arrow")
                 .p(this.p.clone())
-                .ex(31)
+                .ex(23)
                 .delayByIndex()
                 .ex(2)
                 .g(function* (me, _, i, j) {
@@ -281,12 +286,14 @@ class EnemyFrost extends Enemy {
         while (1) {
             yield* remodel(this)
                 .color("#bfe9ff")
-                .format("donut")
+                .format("diamond")
                 .p(this.p.clone())
                 .g((me) => Behavior.appear(me, 15))
-                .scatter(63, { p: 120 })
+                .duplicate(63)
+                .scatter({ p: 120 })
                 .delayByIndex()
                 .speed(8)
+                .g((me) => Behavior.reaccel(me, 30, 30, 30))
                 .aim(this.game.player.p)
                 .fire(this.game.bullets)
 
@@ -295,25 +302,59 @@ class EnemyFrost extends Enemy {
     }
 
     private *cycle3() {
-        yield* remodel(this)
-            .color("#bfe9ff")
-            .format("small-ball")
-            .p(this.p.clone())
-            .g((me) => Behavior.appear(me, 15))
-            .scatter(63, { speed: [4, 8], radian: [0, T] })
-            .delayByIndex()
-            .g(function* (me) {
-                yield* Behavior.reaccel(me, 30, 30, 60)
-            })
-            .fire(this.game.bullets)
+        yield* GenUtils.all({
+            icicles: this.cycle3_0(),
+            snow: this.cycle3_1(),
+        })
+        yield
+    }
 
-        yield* Array(120)
+    private *cycle3_0() {
+        while (1) {
+            yield* remodel(this)
+                .color("#39baff")
+                .format("diamond")
+                .p(this.p.clone())
+                .g((me) => Behavior.appear(me, 15))
+                .duplicate(7, (me, i) => {
+                    me.radian = T * (i / 7)
+                    me.speed = 4 + 4 * (i / 7)
+                    return me
+                })
+                .delayByIndex(3)
+                .ex(31)
+                .g(function* (me) {
+                    yield* Behavior.reaccel(me, 30, 30, 60)
+                })
+                .fire(this.game.bullets)
+
+            yield* Array(240)
+        }
+    }
+
+    private *cycle3_1() {
+        while (1) {
+            yield* remodel(this)
+                .color("#bfe9ff")
+                .format("small-ball")
+                .duplicate(23, (me) => {
+                    me.p = vec(me.game.WIDTH * Math.random(), 0)
+                    return me
+                })
+                .scatter({ radian: [0, T / 2] })
+                .g(function* (me) {
+                    yield* Behavior.reaccel(me, 30, 30, 60, 4)
+                })
+                .fire(this.game.bullets)
+
+            yield* Array(20)
+        }
     }
 }
 
 class EnemyCore extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
-        super(game, 1000, 48, { renderer: new EnemyRendererCore() })
+        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
         this.setParent(parent, () =>
             vec.arg(this.frame / 360 + (T / 3) * index).scale(200 + 50 * Math.sin(this.frame / 720)),
         )

@@ -12,7 +12,7 @@ export namespace Polygon {
                 return [vec(r, 0), vec(-r, r * 0.4), vec(-r, -r * 0.4)]
             // 前, 右, 後, 左
             case "diamond":
-                return [vec(r, 0), vec(0, r * 0.5), vec(-r, 0), vec(0, -r * 0.5)]
+                return [vec(r, 0), vec(0, r * 0.4), vec(-r, 0), vec(0, -r * 0.4)]
         }
     }
 }
