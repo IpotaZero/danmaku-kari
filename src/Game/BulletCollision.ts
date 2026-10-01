@@ -46,7 +46,7 @@ export class BulletCollision {
                 this.isCollidingLine(circle, line1) ||
                 this.isCollidingLine(circle, line2)
             )
-        } else if (b.collision === "laser") {
+        } else if (b.collision === "rect") {
             // ビーム判定: 始点を b.p に固定するため、中心を進行方向に length/2 だけオフセットする
             return this.isCollidingRect(e, {
                 p: b.p.add(vec.arg(b.radian).scale(b.length / 2)),
