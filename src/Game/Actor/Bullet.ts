@@ -10,7 +10,7 @@ export class Bullet extends Actor {
     isScorable: boolean = true
 
     appearance: "donut" | "ball" | "line" | "arrow" | "laser" | "beam" | "player" | "score" | "triangle" = "donut"
-    collision: "ball" | "line" | "arrow" | "laser" = "ball"
+    collision: "circle" | "line" | "arrow" | "rect" = "circle"
     type: "friend" | "enemy" | "neutral" | "effect" | "score" = "enemy"
     color: Color = "black"
     alpha: number = 1

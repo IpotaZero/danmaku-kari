@@ -1,7 +1,7 @@
 import { vec } from "@ipota/vec"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { Remodel, remodel } from "../../Game/Remodel"
+import { Behavior, Remodel, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
@@ -172,9 +172,9 @@ class EnemyPillar extends Enemy {
             .g(function* (me) {
                 const appearFrames = 16
                 // 自機の真上に突然出現しないよう、大きさ0から現れる(見た目と判定は常に一致)
-                yield* Remodel.appear(me, appearFrames)
+                yield* Behavior.appear(me, appearFrames)
                 yield* Array(Math.max(0, launch - me.delay - appearFrames))
-                yield* Remodel.accel(me, 30, WALL_SPEED)
+                yield* Behavior.accel(me, 30, WALL_SPEED)
             })
             .fire(this.game.bullets)
     }

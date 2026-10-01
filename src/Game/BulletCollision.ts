@@ -16,7 +16,7 @@ type Rect = { p: Vec; w: number; h: number; rad: number }
 
 export class BulletCollision {
     isColliding(b: Bullet, e: Circle) {
-        if (b.collision === "ball") {
+        if (b.collision === "circle") {
             return this.isCollidingCircle({ p: b.p, r: b.r }, { p: e.p, r: e.r })
         } else if (b.collision === "line") {
             const circle: Circle = e

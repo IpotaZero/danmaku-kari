@@ -2,12 +2,13 @@ import { vec } from "@ipota/vec"
 import { Ease } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { Remodel, remodel } from "../../Game/Remodel"
+import { Behavior, Remodel, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { T } from "../../T"
 import { GenUtils } from "../../utils/Functions/GeneratorUtils"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
+import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 
 // ステージ「霜」
 // 空から小さな雪(ball 4)が降り、画面のあちこちで止まって大きな雪玉(ball 24)に育つ。
@@ -32,7 +33,7 @@ const DROP_FRAMES = 420
 const FALL_SPEED = 4
 const DROP_SPEED = 12
 // この面積(px²)につき雪を1つ降らせる。小さいほど多い
-const AREA_PER_SNOW = 8000
+const AREA_PER_SNOW = 9000
 
 export default class extends Stage {
     *G() {
@@ -45,7 +46,28 @@ export default class extends Stage {
         yield* this.game.textBox.say(["弾幕で熱くなろうかっ!"], { name: "ユキムシ" })
         this.hideFigure("hachinoko")
 
-        this.game.enemies.push(new EnemyFrost(this.game))
+        const boss = new EnemyFrost(this.game)
+        const core0 = new EnemyCore(this.game, boss, 0)
+        const core1 = new EnemyCore(this.game, boss, 1)
+        const core2 = new EnemyCore(this.game, boss, 2)
+
+        this.game.enemies.push(boss, core0, core1, core2)
+        core0.isInvincible = false
+
+        const phase = boss.start()
+        phase.next()
+
+        yield* this.waitDead([core0])
+        core1.isInvincible = false
+        phase.next()
+
+        yield* this.waitDead([core1])
+        core2.isInvincible = false
+        phase.next()
+
+        yield* this.waitDead([core2])
+        boss.isInvincible = false
+        phase.next()
 
         yield* this.waitAllEnemiesDead()
 
@@ -74,15 +96,19 @@ class EnemyFrost extends Enemy {
         this.addScript(() => this.enter())
     }
 
+    *start() {
+        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle" })
+        yield
+    }
+
     private *enter() {
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
         this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity })
     }
 
     private home() {
-        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.15)
+        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.3)
     }
 
     private *move() {
@@ -90,18 +116,17 @@ class EnemyFrost extends Enemy {
         yield
     }
 
-    private *cycle() {
+    private *cycle0() {
         yield* remodel(this)
-            .appearance("ball")
+            .format("small-ball")
             .color("#dff6ff")
             .p(this.p.clone())
-            .r(4)
             .speed(FALL_SPEED)
             .scatter(120, { p: 0.5, radian: [0, -T / 2], speed: [FALL_SPEED * 0.8, FALL_SPEED * 1.2] })
             .delete(120)
             .fire(this.game.bullets)
 
-        yield* Array(120)
+        yield* Array(180)
 
         yield* GenUtils.all({
             snow: this.snowfall(),
@@ -119,8 +144,7 @@ class EnemyFrost extends Enemy {
         const count = Math.floor((width * height) / AREA_PER_SNOW)
 
         yield* remodel(this)
-            .appearance("ball")
-            .r(4)
+            .format("small-ball")
             .speed(FALL_SPEED)
             .color("#dff6ff")
             .duplicate(count, (b, i) => {
@@ -134,17 +158,17 @@ class EnemyFrost extends Enemy {
                 const stopFrames = 10
 
                 yield* Array(fallFrames)
-                yield* Remodel.stop(me, stopFrames)
+                yield* Behavior.stop(me, stopFrames)
 
                 me.color = "#8fd8ff"
-                yield* Remodel.ease(me, "r", 24, GROW_FRAMES, Ease.Out)
+                yield* Behavior.ease(me, "r", 24, GROW_FRAMES, Ease.Out)
 
                 yield* Array(Math.max(0, DROP_FRAMES - me.delay - fallFrames - stopFrames - GROW_FRAMES))
 
                 // 全員が同じフレームに落ち始めるので、雪玉の並びを保ったまま画面が押し下がってくる。
                 // 画面下に抜けた雪玉はBulletのboundaryで消える
                 me.radian = T / 4
-                yield* Remodel.accel(me, 360, DROP_SPEED)
+                yield* Behavior.accel(me, 360, DROP_SPEED)
             })
             .fire(this.game.bullets)
     }
@@ -155,16 +179,14 @@ class EnemyFrost extends Enemy {
 
         for (let k = 0; k < 3; k++) {
             yield* remodel(this)
+                .format("arrow")
                 .p(this.p.clone())
-                .appearance("arrow")
-                .collision("arrow")
-                .r(24)
                 .speed(1.5)
                 .color("#bfe9ff")
                 .aim(this.game.player.p.clone())
                 .nway(7, T / 28)
                 .g(function* (me) {
-                    yield* Remodel.accel(me, 40, 5)
+                    yield* Behavior.accel(me, 40, 5)
                 })
                 .fire(this.game.bullets)
 
@@ -179,12 +201,25 @@ class EnemyFrost extends Enemy {
         const count = 120
 
         yield* remodel(this)
+            .format("donut")
             .p(this.p.clone())
-            .appearance("donut")
-            .r(12)
             .speed(1.4)
             .ex(count)
             .color("#bfe9ff")
             .fire(this.game.bullets)
+    }
+
+    private *cycle1() {
+        yield* remodel(this).p(this.p.clone()).fire(this.game.bullets)
+    }
+}
+
+class EnemyCore extends Enemy {
+    constructor(game: Game, parent: Enemy, index: number) {
+        super(game, 1200, 48, { renderer: new EnemyRendererCore() })
+        this.setParent(parent, () =>
+            vec.arg(this.frame / 360 + (T / 3) * index).scale(200 + 200 * Math.sin(this.frame / 720)),
+        )
+        this.isInvincible = true
     }
 }

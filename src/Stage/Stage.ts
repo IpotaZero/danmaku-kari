@@ -1,3 +1,4 @@
+import { Enemy } from "../Game/Actor/Enemy"
 import { Game } from "../Game/Game"
 import { IteratorQueue } from "../Game/IteratorQueue"
 
@@ -26,6 +27,12 @@ export abstract class Stage extends IteratorQueue {
 
     protected *waitAllEnemiesDead(): Generator<void, void, void> {
         while (this.game.enemies.length > 0) {
+            yield
+        }
+    }
+
+    protected *waitDead(enemies: readonly Enemy[]): Generator<void, void, void> {
+        while (enemies.some((e) => e.life > 0)) {
             yield
         }
     }

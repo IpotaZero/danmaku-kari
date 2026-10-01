@@ -22,6 +22,104 @@ type Mod<Parent extends Actor> = Remodel<Parent> & {
     [key in keyof Bullet]: (value: Bullet[key]) => Mod<Parent>
 }
 
+namespace Format {
+    export const r = {
+        "donut": 12,
+        "big-ball": 24,
+        "small-ball": 4,
+        "arrow": 24,
+        "line": 24,
+    } as const
+
+    export const collision = {
+        "donut": "circle",
+        "big-ball": "circle",
+        "small-ball": "circle",
+        "arrow": "arrow",
+        "line": "line",
+    } as const
+
+    export const appearance = {
+        "donut": "donut",
+        "big-ball": "ball",
+        "small-ball": "ball",
+        "arrow": "arrow",
+        "line": "line",
+    } as const
+}
+
+export namespace Behavior {
+    // 数フレームの間追尾する
+    export function* homing(me: Bullet, p: Vec, frame: number) {
+        for (let i = 0; i < frame; i++) {
+            me.radian = p.sub(me.p).radian()
+            yield
+        }
+    }
+
+    // 数フレームかけて現れる
+    export function* appear(me: Bullet, frame: number = 30) {
+        const r = me.r
+        me.r = 0
+        yield* ease(me, "r", r, frame, Ease.Out)
+    }
+
+    // 数フレームかけて停止し、数フレーム何もせず、数フレームかけて加速する
+    export function* reaccel(
+        me: Bullet & { speed: number },
+        stopFrame: number,
+        waitFrame: number,
+        accelFrame: number,
+        finalSpeed?: number,
+    ) {
+        const initialSpeed = me.speed
+        yield* stop(me, stopFrame)
+        yield* Array(waitFrame)
+        yield* accel(me, accelFrame, finalSpeed ?? initialSpeed)
+    }
+
+    // 数フレームかけて停止する
+    export function* stop(me: Bullet, stopFrame: number) {
+        yield* accel(me, stopFrame, 0)
+    }
+
+    // 数フレームかけて加速する
+    export function* accel(me: Bullet, frame: number, finalSpeed: number) {
+        yield* ease(me, "speed", finalSpeed, frame, Ease.Linear)
+    }
+
+    // 数フレームかけて消える。始まった時点で当たり判定は消える
+    export function* fadeout(me: Bullet, frame: number) {
+        me.type = "neutral"
+        yield* ease(me, "alpha", 0, frame, Ease.Linear)
+        me.life = 0
+    }
+
+    // 数フレームかけて値を変化させる
+    export function* ease(
+        me: Bullet,
+        key: NumberKeys<Bullet>,
+        target: number,
+        frame: number,
+        easing: (t: number) => number = Ease.Out,
+        floor?: number,
+    ) {
+        const start = me[key]
+
+        if (floor) {
+            for (let i = 1; i < frame + 1; i++) {
+                ;(me as any)[key] = Math.floor(((target - start) * easing(i / frame) + start) * floor) / floor
+                yield
+            }
+        } else {
+            for (let i = 1; i < frame + 1; i++) {
+                ;(me as any)[key] = (target - start) * easing(i / frame) + start
+                yield
+            }
+        }
+    }
+}
+
 export class Remodel<Parent extends Actor> {
     constructor(
         private bullets: Bullet[],
@@ -48,74 +146,11 @@ export class Remodel<Parent extends Actor> {
         }
     }
 
-    // 数フレームの間追尾する
-    static *homing(me: Bullet, p: Vec, frame: number) {
-        for (let i = 0; i < frame; i++) {
-            me.radian = p.sub(me.p).radian()
-            yield
-        }
-    }
-
-    // 数フレームかけて現れる
-    static *appear(me: Bullet, frame: number = 30) {
-        const r = me.r
-        me.r = 0
-        yield* this.ease(me, "r", r, frame, Ease.Out)
-    }
-
-    // 数フレームかけて停止し、数フレーム何もせず、数フレームかけて加速する
-    static *reaccel(
-        me: Bullet & { speed: number },
-        stopFrame: number,
-        waitFrame: number,
-        accelFrame: number,
-        finalSpeed?: number,
-    ) {
-        const initialSpeed = me.speed
-        yield* this.stop(me, stopFrame)
-        yield* Array(waitFrame)
-        yield* this.accel(me, accelFrame, finalSpeed ?? initialSpeed)
-    }
-
-    // 数フレームかけて停止する
-    static *stop(me: Bullet, stopFrame: number) {
-        yield* this.accel(me, stopFrame, 0)
-    }
-
-    // 数フレームかけて加速する
-    static *accel(me: Bullet, frame: number, finalSpeed: number) {
-        yield* this.ease(me, "speed", finalSpeed, frame, Ease.Linear)
-    }
-
-    // 数フレームかけて消える。始まった時点で当たり判定は消える
-    static *fadeout(me: Bullet, frame: number) {
-        me.type = "neutral"
-        yield* this.ease(me, "alpha", 0, frame, Ease.Linear)
-        me.life = 0
-    }
-
-    // 数フレームかけて値を変化させる
-    static *ease(
-        me: Bullet,
-        key: NumberKeys<Bullet>,
-        target: number,
-        frame: number,
-        easing: (t: number) => number = Ease.Out,
-        floor?: number,
-    ) {
-        const start = me[key]
-
-        if (floor) {
-            for (let i = 1; i < frame + 1; i++) {
-                ;(me as any)[key] = Math.floor(((target - start) * easing(i / frame) + start) * floor) / floor
-                yield
-            }
-        } else {
-            for (let i = 1; i < frame + 1; i++) {
-                ;(me as any)[key] = (target - start) * easing(i / frame) + start
-                yield
-            }
-        }
+    format(type: "donut" | "big-ball" | "small-ball" | "arrow" | "line") {
+        return (this as unknown as Mod<Parent>)
+            .appearance(Format.appearance[type])
+            .collision(Format.collision[type])
+            .r(Format.r[type])
     }
 
     // 出現を遅らせる
@@ -264,7 +299,7 @@ export class Remodel<Parent extends Actor> {
             .speed(0)
             .r(12)
             .appearance("beam")
-            .collision("laser")
+            .collision("rect")
             .isScorable(false)
             .g(function* (me) {
                 let i = 0
@@ -282,7 +317,7 @@ export class Remodel<Parent extends Actor> {
                     yield
                 }
 
-                yield* Remodel.fadeout(me, 15)
+                yield* Behavior.fadeout(me, 15)
             })
     }
 
@@ -294,23 +329,23 @@ export class Remodel<Parent extends Actor> {
             .type("neutral")
             .alpha(0)
             .appearance("laser")
-            .collision("laser")
+            .collision("rect")
             .r(2)
             .g(function* (me) {
-                yield* Remodel.ease(me, "alpha", 0.1, 30, Ease.Out)
+                yield* Behavior.ease(me, "alpha", 0.1, 30, Ease.Out)
                 yield* Array(waitFrame)
                 me.type = "enemy"
                 yield* GenUtils.parallel(
-                    Remodel.ease(me, "r", 8, 30, Ease.Out),
-                    Remodel.ease(me, "alpha", 1, 30, Ease.Out),
+                    Behavior.ease(me, "r", 8, 30, Ease.Out),
+                    Behavior.ease(me, "alpha", 1, 30, Ease.Out),
                     //
                 )
                 yield* Array(existsFrame)
-                yield* Remodel.fadeout(me, 15)
+                yield* Behavior.fadeout(me, 15)
             })
             .g(function* (me) {
                 while (this.life > 0) yield
-                yield* Remodel.fadeout(me, 30)
+                yield* Behavior.fadeout(me, 30)
             })
     }
 

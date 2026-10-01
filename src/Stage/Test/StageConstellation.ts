@@ -1,7 +1,7 @@
 import { vec } from "@ipota/vec"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { Remodel, remodel } from "../../Game/Remodel"
+import { Behavior, Remodel, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
@@ -151,9 +151,9 @@ class EnemyStar extends Enemy {
             .g(function* (me) {
                 const appearFrames = 16
                 // 自機の真上に突然出現しないよう、大きさ0から現れる(見た目と判定は常に一致)
-                yield* Remodel.appear(me, appearFrames)
+                yield* Behavior.appear(me, appearFrames)
                 yield* Array(LAUNCH_FRAMES - me.delay - appearFrames)
-                yield* Remodel.accel(me, 60, 6)
+                yield* Behavior.accel(me, 60, 6)
             })
             .fire(this.game.bullets)
     }
@@ -189,9 +189,9 @@ class EnemyStar2 extends Enemy {
             .ex(5)
             .speed(3.5)
             .g(function* (me) {
-                yield* Remodel.stop(me, 60)
-                yield* Remodel.ease(me, "radian", me.game.player.p.sub(me.p).radian(), 30)
-                yield* Remodel.accel(me, 60, 12)
+                yield* Behavior.stop(me, 60)
+                yield* Behavior.ease(me, "radian", me.game.player.p.sub(me.p).radian(), 30)
+                yield* Behavior.accel(me, 60, 12)
             })
             .fire(this.game.bullets)
     }

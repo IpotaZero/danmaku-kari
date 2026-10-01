@@ -1,7 +1,7 @@
 import { vec } from "@ipota/vec"
 import { T } from "../../T"
 import { GenUtils } from "../../utils/Functions/GeneratorUtils"
-import { Remodel, remodel } from "../Remodel"
+import { Behavior, Remodel, remodel } from "../Remodel"
 import type { Player } from "../Actor/Player"
 import type { MainEquipment } from "./types"
 
@@ -33,7 +33,7 @@ export const laser: MainEquipment = {
             .color("white")
             .alpha(通常時濃さ)
             .appearance("beam")
-            .collision("laser")
+            .collision("rect")
             .r(通常時太さ)
             .damage(通常時威力)
             .length(ビーム長さ)
@@ -120,7 +120,7 @@ function* リング弾を撃ち続ける(player: Player): Generator<void, void, 
                 .damage(リング弾威力)
                 .speed(0)
                 .shift(リング弾数, 60)
-                .g((me) => Remodel.accel(me, 30, 24))
+                .g((me) => Behavior.accel(me, 30, 24))
                 .fire(player.game.bullets)
         }
 

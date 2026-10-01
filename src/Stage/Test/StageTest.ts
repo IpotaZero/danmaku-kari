@@ -1,7 +1,7 @@
 import { vec } from "@ipota/vec"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { Remodel, remodel } from "../../Game/Remodel"
+import { Behavior, Remodel, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
@@ -45,6 +45,7 @@ export default class extends Stage {
         yield* this.waitAllEnemiesDead()
 
         if (isSmartPhone) {
+            // TODO: 現在のアクションに合わせたテキスト
             yield* this.game.textBox.say(
                 ["次に、二本指タップで技を発動じゃ。<br>今は高速移動ができるじゃろう。<br>発動中は無敵じゃ。"],
                 {
@@ -134,7 +135,7 @@ class EnemyBoss extends Enemy {
             .nway(13, T / 120)
             .delayByIndex()
             .g(function* (me, i) {
-                yield* Remodel.reaccel(me, stopFrames, waitFrames - i, accelFrames, launchSpeed)
+                yield* Behavior.reaccel(me, stopFrames, waitFrames - i, accelFrames, launchSpeed)
             })
             .fire(this.game.bullets)
     }
@@ -191,7 +192,7 @@ class EnemySatellite extends Enemy {
             .nway(nway, angle)
             .delayByIndex()
             .g(function* (me, i) {
-                yield* Remodel.reaccel(me, stopFrames, waitFrames - i, accelFrames, launchSpeed)
+                yield* Behavior.reaccel(me, stopFrames, waitFrames - i, accelFrames, launchSpeed)
             })
             .fire(this.game.bullets)
     }

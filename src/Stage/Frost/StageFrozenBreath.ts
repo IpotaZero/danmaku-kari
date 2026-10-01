@@ -1,7 +1,7 @@
 import { vec } from "@ipota/vec"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { Remodel, remodel } from "../../Game/Remodel"
+import { Behavior, Remodel, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
@@ -94,7 +94,7 @@ class EnemyPupil extends Enemy {
             })
             .g(function* (me) {
                 yield* Array(SPREAD_FRAMES)
-                yield* Remodel.stop(me, FREEZE_FRAMES)
+                yield* Behavior.stop(me, FREEZE_FRAMES)
 
                 // 凍ったことが一目で分かるよう色を変える(大きさは変えない。見た目と判定を一致させる)
                 me.color = "#2bb5ff"
@@ -103,7 +103,7 @@ class EnemyPupil extends Enemy {
                 // 全員が同じフレームに落ち始めるので、並びを保ったまま下へ滑っていく。
                 // 画面下に抜けた粒はBulletのboundaryで消える
                 me.radian = T / 4
-                yield* Remodel.accel(me, 60, DROP_SPEED)
+                yield* Behavior.accel(me, 60, DROP_SPEED)
             })
             .fire(this.game.bullets)
     }

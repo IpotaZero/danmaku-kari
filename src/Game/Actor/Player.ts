@@ -3,7 +3,7 @@ import { Game } from "../Game"
 import { vec, Vec } from "@ipota/vec"
 import { T } from "../../T"
 import { Ctx } from "../../utils/Functions/Ctx"
-import { Remodel, remodel } from "../Remodel"
+import { Behavior, Remodel, remodel } from "../Remodel"
 import { Ease } from "@ipota/functions"
 import type { MainEquipment, SubEquipment } from "../Equipment/PlayerEquipment"
 
@@ -181,7 +181,7 @@ export class Player extends Actor {
                 b.radian = Math.random() * T
                 return b
             })
-            .g((me) => Remodel.fadeout(me, 60))
+            .g((me) => Behavior.fadeout(me, 60))
             .fire(this.game.bullets)
     }
 
