@@ -1,7 +1,7 @@
 import { vec, Vec } from "@ipota/vec"
 import { Actor } from "./Actor"
 import { Ease } from "@ipota/functions"
-import { Remodel, remodel } from "../Remodel"
+import { Behavior, remodel } from "../Remodel"
 import { T } from "../../T"
 import { Game } from "../Game"
 import { IEnemyRenderer } from "./IEnemyRenderer"
@@ -68,7 +68,7 @@ export abstract class Enemy extends Actor {
                 return me
             })
             .g(function* (me) {
-                yield* Remodel.fadeout(me, 80)
+                yield* Behavior.fadeout(me, 80)
             })
             .fire(this.game.bullets)
     }
