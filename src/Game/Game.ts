@@ -159,7 +159,7 @@ export class Game extends IteratorQueue {
     update(): void {
         this.touchControls.update()
 
-        if (this.state === "playing" && this.input.isPushed("suicide")) {
+        if (this.state === "playing" && !this.textBox.isShowing && this.input.isPushed("suicide")) {
             this.player.selfDestruct()
         }
 
