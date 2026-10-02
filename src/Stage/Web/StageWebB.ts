@@ -58,7 +58,6 @@ class EnemyCore extends Enemy {
             .scatter({ hue: [0, 360] })
             .appear(30)
             .g(function* (me) {
-                this
                 while (1) {
                     me.speed += 0.1
                     yield
@@ -75,7 +74,7 @@ class EnemyCore extends Enemy {
             .p(this.p.clone())
             .radian(T / 4)
             .nway(2, T / 4)
-            .nway(7, T / 48)
+            .nway(3, T / 48)
             .sim(3, 2, 4)
             .scatter({ hue: [0, 360] })
             .bounce(1)
