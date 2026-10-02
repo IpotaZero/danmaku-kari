@@ -33,8 +33,8 @@ namespace Format {
         "donut": 12,
         "big-ball": 24,
         "small-ball": 4,
-        "arrow": 24,
-        "line": 24,
+        "arrow": 28,
+        "line": 28,
         "wedge": 16,
         "diamond": 16,
     } as const
