@@ -211,12 +211,11 @@ export class Remodel<Parent extends Actor> {
     // 大きさ0から frame フレームかけて現れる。interval を指定すると index 順に interval フレームずつ遅れて現れる。
     // 大きさは組み立てた時点で0にしておくので、最初の1フレームだけ元の大きさで表示されることがない
     appear(frame: number = 30, interval: number = 0) {
-        const rs = this.bullets.map((b) => b.r)
-        this.set("r", 0.001)
+        this.set("alpha", 0)
 
         return this.g(function* (me, i) {
             yield* Array(i * interval)
-            yield* Behavior.ease(me, "r", rs[i], frame)
+            yield* Behavior.ease(me, "alpha", 1, frame)
         })
     }
 
