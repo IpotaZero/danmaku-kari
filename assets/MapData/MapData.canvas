@@ -5,7 +5,7 @@
 		{"id":"31f7d87e5e5e2323","type":"text","text":"霜月道場・高弟\nStageRikka","x":330,"y":0,"width":80,"height":85},
 		{"id":"3b69dc58c8ff5df6","type":"text","text":"霜月道場・師範代\nStageTriangle","x":460,"y":0,"width":80,"height":85},
 		{"id":"751ab8850da9b699","type":"text","text":"霜月道場・道場主\nStageFrost\nbadge:霜月","x":590,"y":0,"width":80,"height":85},
-		{"id":"32d20b61aa81414f","type":"text","text":"疾風道場・門下生\nStageNotImplemented","x":790,"y":-250,"width":80,"height":85},
+		{"id":"32d20b61aa81414f","type":"text","text":"疾風道場・門下生\nStageGale0","x":790,"y":-250,"width":80,"height":85},
 		{"id":"d0f3ac057b2ec641","type":"text","text":"疾風道場・高弟\nStageNotImplemented","x":920,"y":-250,"width":80,"height":85},
 		{"id":"d29f8461010994af","type":"text","text":"疾風道場・師範代\nStageNotImplemented","x":1050,"y":-250,"width":80,"height":85},
 		{"id":"b645a540eecf50a7","type":"text","text":"疾風道場・道場主\nStageNotImplemented\nbadge:疾風","x":1180,"y":-250,"width":80,"height":85},

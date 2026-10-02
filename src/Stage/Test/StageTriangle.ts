@@ -87,7 +87,7 @@ class EnemySnow extends Enemy {
     }
 
     private *snow() {
-        yield* Array(128);
+        yield* Array(32);
         yield* remodel(this)
             .format("diamond")
             .color("#bfe9ff")
