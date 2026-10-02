@@ -243,20 +243,30 @@ export class Remodel<Parent extends Actor> {
         })
     }
 
-    // ばらつきを持たせて num 発複製する。数値プロパティは [min, max] の範囲でランダムに割り振り、
+    // 各弾にばらつきを持たせる。数値プロパティと x, y (座標) は [min, max] の範囲でランダムに割り振り、
     // p だけは特別扱いして、その場所を中心に半径 p 以内の円の中へ一様分布でランダムに散らす
     // (単純に半径だけ乱数にすると中心付近に偏るため、sqrtで面積が一様になるよう補正している)
-    scatter(ranges: Partial<Record<NumberKeys<Bullet>, [number, number]>> & { p?: number }) {
+    scatter(
+        ranges: Partial<Record<NumberKeys<Bullet>, [number, number]>> & {
+            p?: number
+            x?: [number, number]
+            y?: [number, number]
+        },
+    ) {
+        const random = ([min, max]: [number, number]) => min + Math.random() * (max - min)
+
         return this.forEach((b) => {
             for (const key in ranges) {
-                if (key === "p") continue
+                if (key === "p" || key === "x" || key === "y") continue
 
                 const range = ranges[key as NumberKeys<Bullet>]
                 if (!range) continue
 
-                const [min, max] = range
-                ;(b[key as NumberKeys<Bullet>] as number) = min + Math.random() * (max - min)
+                ;(b[key as NumberKeys<Bullet>] as number) = random(range)
             }
+
+            // p は複数の弾で同じ Vec を共有している場合があるので、書き換えずに新しく作る
+            b.p = vec(ranges.x ? random(ranges.x) : b.p.x, ranges.y ? random(ranges.y) : b.p.y)
 
             if (ranges.p !== undefined) {
                 const radius = ranges.p * Math.sqrt(Math.random())
