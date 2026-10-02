@@ -9,10 +9,10 @@
 		{"id":"d0f3ac057b2ec641","type":"text","text":"疾風道場・高弟\nStageNotImplemented","x":920,"y":-250,"width":80,"height":85},
 		{"id":"d29f8461010994af","type":"text","text":"疾風道場・師範代\nStageNotImplemented","x":1050,"y":-250,"width":80,"height":85},
 		{"id":"b645a540eecf50a7","type":"text","text":"疾風道場・道場主\nStageNotImplemented\nbadge:疾風","x":1180,"y":-250,"width":80,"height":85},
-		{"id":"8659e6c8a9cd5e2b","type":"text","text":"雷鼓道場・門下生\nStageNotImplemented","x":790,"y":250,"width":80,"height":85},
-		{"id":"830af84d77e4673c","type":"text","text":"雷鼓道場・高弟\nStageNotImplemented","x":920,"y":250,"width":80,"height":85},
-		{"id":"166d9f9191ad1a93","type":"text","text":"雷鼓道場・師範代\nStageNotImplemented","x":1050,"y":250,"width":80,"height":85},
-		{"id":"70041c417988cd82","type":"text","text":"雷鼓道場・道場主\nStageNotImplemented\nbadge:雷鼓","x":1180,"y":250,"width":80,"height":85},
+		{"id":"8659e6c8a9cd5e2b","type":"text","text":"網掛道場・門下生\nStageGaleA","x":790,"y":250,"width":80,"height":85},
+		{"id":"830af84d77e4673c","type":"text","text":"網掛道場・高弟\nStageNotImplemented","x":920,"y":250,"width":80,"height":85},
+		{"id":"166d9f9191ad1a93","type":"text","text":"網掛道場・師範代\nStageNotImplemented","x":1050,"y":250,"width":80,"height":85},
+		{"id":"70041c417988cd82","type":"text","text":"網掛道場・道場主\nStageNotImplemented\nbadge:雷鼓","x":1180,"y":250,"width":80,"height":85},
 		{"id":"478791923fb120a2","type":"text","text":"霧隠道場・門下生\nStageNotImplemented","x":1380,"y":-500,"width":80,"height":85},
 		{"id":"22d09d02a6ba8bc9","type":"text","text":"霧隠道場・高弟\nStageNotImplemented","x":1510,"y":-500,"width":80,"height":85},
 		{"id":"6b9ed5a8d80252c9","type":"text","text":"霧隠道場・師範代\nStageNotImplemented","x":1640,"y":-500,"width":80,"height":85},
@@ -41,7 +41,7 @@
 		{"id":"245cc775e55e2d24","type":"text","text":"月影道場・高弟\nStageNotImplemented","x":2360,"y":520,"width":80,"height":85},
 		{"id":"741a530ae89e9471","type":"text","text":"月影道場・師範代\nStageNotImplemented","x":2490,"y":520,"width":80,"height":85},
 		{"id":"f7f1907383d4c135","type":"text","text":"月影道場・道場主\nStageNotImplemented\nbadge:月影","x":2620,"y":520,"width":80,"height":85},
-		{"id":"2a0f289b578f41f4","type":"text","text":"陽炎道場・道場主\nStageNotImplemented\nbadge:陽炎","x":1810,"y":250,"width":80,"height":85}
+		{"id":"2a0f289b578f41f4","type":"text","text":"陽炎道場・道場主\nStageNotImplemented\nbadge:陽炎","x":1770,"y":250,"width":80,"height":85}
 	],
 	"edges":[
 		{"id":"3a6309e33f10111f","fromNode":"f840811f7f798aeb","fromSide":"right","toNode":"31f7d87e5e5e2323","toSide":"left"},

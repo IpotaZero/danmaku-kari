@@ -365,8 +365,8 @@ export class BulletDrawer {
 
         path(0.7)
         ctx.shadowColor = "white"
-        ctx.fillStyle = "white"
-        ctx.fill()
+        ctx.strokeStyle = "white"
+        ctx.stroke()
         return canvas
     }
 

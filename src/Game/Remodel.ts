@@ -2,9 +2,9 @@ import { Ease } from "@ipota/functions"
 import { Vec, vec } from "@ipota/vec"
 import { Bullet } from "./Actor/Bullet"
 import { T } from "../T"
-import { GenUtils } from "@ipota/functions"
 import type { NumberKeys } from "@ipota/my-utils"
 import { Actor } from "./Actor/Actor"
+import { GenUtils } from "../utils/Functions/GeneratorUtils"
 
 export function remodel<Parent extends Actor>(e: Parent) {
     return new Remodel([new Bullet(e.game)], e)
@@ -33,8 +33,8 @@ namespace Format {
         "donut": 12,
         "big-ball": 24,
         "small-ball": 4,
-        "arrow": 24,
-        "line": 24,
+        "arrow": 28,
+        "line": 28,
         "wedge": 16,
         "diamond": 16,
     } as const
@@ -156,6 +156,15 @@ export namespace Behavior {
             yield
         }
     }
+
+    export function* aim(me: Bullet, target: Vec, frame: number, easeFunc = Ease.Out) {
+        const diff = target.sub(me.p)
+
+        yield* GenUtils.all({
+            radian: ease(me, "radian", diff.radian(), frame, easeFunc),
+            speed: ease(me, "speed", diff.magnitude(), frame, easeFunc),
+        })
+    }
 }
 
 // BulletSetters は constructor が返す Proxy によって実装される
@@ -207,7 +216,7 @@ export class Remodel<Parent extends Actor> {
     // 大きさは組み立てた時点で0にしておくので、最初の1フレームだけ元の大きさで表示されることがない
     appear(frame: number = 30, interval: number = 0) {
         const rs = this.bullets.map((b) => b.r)
-        this.set("r", 0)
+        this.set("r", 0.001)
 
         return this.g(function* (me, i) {
             yield* Array(i * interval)
@@ -243,20 +252,35 @@ export class Remodel<Parent extends Actor> {
         })
     }
 
-    // ばらつきを持たせて num 発複製する。数値プロパティは [min, max] の範囲でランダムに割り振り、
+    // 各弾にばらつきを持たせる。数値プロパティと x, y (座標) は [min, max] の範囲でランダムに割り振り、
+    // hue は [min, max] の範囲の色相で色を決め (colorful と同じ彩度・明度)、
     // p だけは特別扱いして、その場所を中心に半径 p 以内の円の中へ一様分布でランダムに散らす
     // (単純に半径だけ乱数にすると中心付近に偏るため、sqrtで面積が一様になるよう補正している)
-    scatter(ranges: Partial<Record<NumberKeys<Bullet>, [number, number]>> & { p?: number }) {
+    scatter(
+        ranges: Partial<Record<NumberKeys<Bullet>, [number, number]>> & {
+            p?: number
+            x?: [number, number]
+            y?: [number, number]
+            hue?: [number, number]
+        },
+    ) {
+        const random = ([min, max]: [number, number]) => min + Math.random() * (max - min)
+
         return this.forEach((b) => {
             for (const key in ranges) {
-                if (key === "p") continue
+                if (key === "p" || key === "x" || key === "y" || key === "hue") continue
 
                 const range = ranges[key as NumberKeys<Bullet>]
                 if (!range) continue
-
-                const [min, max] = range
-                ;(b[key as NumberKeys<Bullet>] as number) = min + Math.random() * (max - min)
+                ;(b[key as NumberKeys<Bullet>] as number) = random(range)
             }
+
+            if (ranges.hue) {
+                b.color = `hsl(${random(ranges.hue) % 360},100%,50%)`
+            }
+
+            // p は複数の弾で同じ Vec を共有している場合があるので、書き換えずに新しく作る
+            b.p = vec(ranges.x ? random(ranges.x) : b.p.x, ranges.y ? random(ranges.y) : b.p.y)
 
             if (ranges.p !== undefined) {
                 const radius = ranges.p * Math.sqrt(Math.random())
@@ -413,11 +437,10 @@ export class Remodel<Parent extends Actor> {
                 yield* Behavior.ease(me, "alpha", 0.1, 30, Ease.Out)
                 yield* Array(waitFrame)
                 me.type = "enemy"
-                yield* GenUtils.parallel(
-                    Behavior.ease(me, "r", 8, 30, Ease.Out),
-                    Behavior.ease(me, "alpha", 1, 30, Ease.Out),
-                    //
-                )
+                yield* GenUtils.all({
+                    r: Behavior.ease(me, "r", 8, 30, Ease.Out),
+                    alpha: Behavior.ease(me, "alpha", 1, 30, Ease.Out),
+                })
                 yield* Array(existsFrame)
                 yield* Behavior.fadeout(me, 15)
             })

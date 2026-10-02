@@ -85,6 +85,11 @@ export class TextBox {
         this.box.remove()
     }
 
+    // テキスト表示中かどうか(自爆操作の抑制などに使う)
+    get isShowing(): boolean {
+        return !this.box.classList.contains("hidden")
+    }
+
     hide() {
         this.box.classList.add("hidden")
     }
