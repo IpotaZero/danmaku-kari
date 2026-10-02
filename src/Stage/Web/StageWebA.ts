@@ -31,17 +31,12 @@ class EnemyCore extends Enemy {
         yield* this.moveTo(this.center(), 120)
 
         this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.attack(), { loop: Infinity })
         this.addScript(() => this.attack2(), { loop: Infinity })
     }
 
     private *move() {
         this.p = this.path((this.frame - 120) / 900).add(this.center())
         yield
-    }
-
-    private *attack() {
-        yield* Array(120)
     }
 
     private *attack2() {

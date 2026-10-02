@@ -11,7 +11,7 @@ const 連射間隔 = 6
 const 弾数 = 7
 const 弾速 = 20
 const 弾半径 = 3
-const 弾威力 = 3
+const 弾威力 = 2
 const 通常時展開角度 = T / 32
 const 集中時展開角度 = T / 64
 

@@ -162,7 +162,6 @@ export namespace Behavior {
 
         yield* GenUtils.all({
             radian: ease(me, "radian", diff.radian(), frame, easeFunc),
-            speed: ease(me, "speed", diff.magnitude(), frame, easeFunc),
         })
     }
 }
@@ -175,7 +174,7 @@ export class Remodel<Parent extends Actor> {
 
     constructor(
         private bullets: Bullet[],
-        private readonly e: Parent,
+        private readonly parent: Parent,
     ) {
         this.indices = bullets.map(() => [])
 
@@ -374,19 +373,22 @@ export class Remodel<Parent extends Actor> {
     }
 
     // 弾を壁に当たったら跳ね返るようにする
-    bounce(count: number, width: number, height: number) {
-        let c = count
+    bounce(count: number) {
+        const width = this.parent.game.WIDTH
 
         return this.g(function* (b) {
+            // 跳ね返り回数は弾ごとに数える
+            let c = count
+
             while (c > 0) {
                 yield
 
-                if (b.p.x < -width / 2) {
-                    b.p.x = -width / 2
+                if (b.p.x < 0) {
+                    b.p.x = 0
                     b.radian = Math.PI - b.radian
                     c--
-                } else if (b.p.x > width / 2) {
-                    b.p.x = width / 2
+                } else if (b.p.x > width) {
+                    b.p.x = width
                     b.radian = Math.PI - b.radian
                     c--
                 }
@@ -396,7 +398,7 @@ export class Remodel<Parent extends Actor> {
 
     // ビームを生成する。length はビームの長さ
     beam(length: number) {
-        const e = this.e
+        const e = this.parent
 
         return this.length(length)
             .speed(0)
@@ -463,7 +465,7 @@ export class Remodel<Parent extends Actor> {
         g: (this: Parent, me: Bullet, index: number, ...generationIndices: number[]) => Generator,
         config: { loop?: number; margin?: number } = {},
     ) {
-        const e = this.e
+        const e = this.parent
         const indices = this.indices
 
         this.bullets.forEach((b, index) => {
