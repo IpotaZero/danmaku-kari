@@ -40,11 +40,13 @@ export default class extends Stage {
         yield* this.game.textBox.say(["霜の降りた道場。板張りの床が冷たい。"])
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
         yield* this.game.textBox.say(["うーさむさむ。冬眠したいなあ。"], { name: "ハチノコ" })
+        this.showFigure("yukimushi", "assets/figure/Yukimushi.png", { offsetPercent: 30 })
         yield* this.game.textBox.say(["よく来たね。ボクが霜月道場の長、ユキムシだよ。"], { name: "ユキムシ" })
         yield* this.game.textBox.say(["あなたは寒くないんですか?"], { name: "ハチノコ" })
         yield* this.game.textBox.say(["寒いよ。だから……"], { name: "ユキムシ" })
         yield* this.game.textBox.say(["弾幕で熱くなろうかっ!"], { name: "ユキムシ" })
         this.hideFigure("hachinoko")
+        this.hideFigure("yukimushi")
 
         const boss = new EnemyFrost(this.game)
         const core0 = new EnemyCore(this.game, boss, 0)
@@ -77,6 +79,7 @@ export default class extends Stage {
 
         yield* Array(300)
 
+        this.showFigure("yukimushi", "assets/figure/Yukimushi.png", { offsetPercent: 30 })
         yield* this.game.textBox.say(["あちちっ。暑さには弱いんだボク。"], { name: "ユキムシ" })
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
         yield* this.game.textBox.say(["あらそうなの。"], { name: "ハチノコ" })
@@ -89,6 +92,7 @@ export default class extends Stage {
         })
         yield* this.game.textBox.say(["ありがとー。"], { name: "ハチノコ" })
         this.hideFigure("hachinoko")
+        this.hideFigure("yukimushi")
     }
 }
 

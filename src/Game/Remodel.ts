@@ -145,6 +145,17 @@ export namespace Behavior {
         me.speed = (diff.magnitude() * 2) / frame
         yield* Behavior.stop(me, frame)
     }
+
+    // 隊形を保ったまま動く。center を中心に offset の位置へ置き、毎フレーム angularSpeed ずつ回しながら velocity で進める。
+    // 隊形の全員に同じ center / velocity / angularSpeed を渡せば、隊形全体が一枚の板のように回りながら動く
+    export function* revolve(me: Bullet, center: Vec, offset: Vec, velocity: Vec, angularSpeed: number) {
+        me.speed = 0
+
+        for (let i = 0; me.life > 0; i++) {
+            me.p = center.add(velocity.scale(i)).add(offset.rotate(angularSpeed * i))
+            yield
+        }
+    }
 }
 
 // BulletSetters は constructor が返す Proxy によって実装される
@@ -190,6 +201,18 @@ export class Remodel<Parent extends Actor> {
 
     format(type: keyof typeof Format.r) {
         return this.appearance(Format.appearance[type]).collision(Format.collision[type]).r(Format.r[type])
+    }
+
+    // 大きさ0から frame フレームかけて現れる。interval を指定すると index 順に interval フレームずつ遅れて現れる。
+    // 大きさは組み立てた時点で0にしておくので、最初の1フレームだけ元の大きさで表示されることがない
+    appear(frame: number = 30, interval: number = 0) {
+        const rs = this.bullets.map((b) => b.r)
+        this.set("r", 0)
+
+        return this.g(function* (me, i) {
+            yield* Array(i * interval)
+            yield* Behavior.ease(me, "r", rs[i], frame)
+        })
     }
 
     // 出現を遅らせる
