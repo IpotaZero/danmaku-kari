@@ -114,14 +114,12 @@ class EnemyPupil extends Enemy {
         if (this.life <= 0) return
 
         yield* remodel(this)
-            .appearance("arrow")
-            .collision("arrow")
+            .format("diamond")
             .color("#bfe9ff")
             .p(this.p.clone())
-            .r(20)
             .speed(2.5)
             .aim(this.game.player.p.clone())
-            .nway(3, T / 20)
+            .nway(7, T / 20)
             .fire(this.game.bullets)
     }
 }

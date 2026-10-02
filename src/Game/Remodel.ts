@@ -207,7 +207,7 @@ export class Remodel<Parent extends Actor> {
     // 大きさは組み立てた時点で0にしておくので、最初の1フレームだけ元の大きさで表示されることがない
     appear(frame: number = 30, interval: number = 0) {
         const rs = this.bullets.map((b) => b.r)
-        this.set("r", 0)
+        this.set("r", 0.001)
 
         return this.g(function* (me, i) {
             yield* Array(i * interval)
@@ -261,7 +261,6 @@ export class Remodel<Parent extends Actor> {
 
                 const range = ranges[key as NumberKeys<Bullet>]
                 if (!range) continue
-
                 ;(b[key as NumberKeys<Bullet>] as number) = random(range)
             }
 
