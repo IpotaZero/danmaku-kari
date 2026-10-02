@@ -43,8 +43,9 @@ export default class extends Stage {
         this.showFigure("yukimushi", "assets/figure/Yukimushi.webp", { offsetPercent: 30 })
         yield* this.game.textBox.say(["よく来たね。ボクが霜月道場の長、ユキムシだよ。"], { name: "ユキムシ" })
         yield* this.game.textBox.say(["あなたは寒くないんですか?"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["寒いよ。だから……"], { name: "ユキムシ" })
-        yield* this.game.textBox.say(["弾幕で熱くなろうかっ!"], { name: "ユキムシ" })
+        yield* this.game.textBox.say(["寒いよ。"], { name: "ユキムシ" })
+        yield* this.game.textBox.say(["あら。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["だから、弾幕で熱くなろうかっ!"], { name: "ユキムシ" })
         this.hideFigure("hachinoko")
         this.hideFigure("yukimushi")
 
