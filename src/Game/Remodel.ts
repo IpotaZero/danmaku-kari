@@ -159,10 +159,7 @@ export namespace Behavior {
 
     export function* aim(me: Bullet, target: Vec, frame: number, easeFunc = Ease.Out) {
         const diff = target.sub(me.p)
-
-        yield* GenUtils.all({
-            radian: ease(me, "radian", diff.radian(), frame, easeFunc),
-        })
+        yield* ease(me, "radian", diff.radian(), frame, easeFunc)
     }
 }
 
