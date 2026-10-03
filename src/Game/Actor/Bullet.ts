@@ -10,41 +10,42 @@ export class Bullet extends Actor {
     delay: number = 0
     isScorable: boolean = true
 
-    appearance:
-        | "donut"
-        | "ball"
-        | "line"
-        | "arrow"
-        | "laser"
-        | "beam"
-        | "player"
-        | "score"
-        | Polygon.Type = "donut"
+    appearance: "donut" | "ball" | "line" | "arrow" | "laser" | "beam" | "player" | "score" | Polygon.Type = "donut"
     collision: "circle" | "line" | "arrow" | "rect" | Polygon.Type = "circle"
     type: "friend" | "enemy" | "neutral" | "effect" | "score" = "enemy"
     color: Color = "black"
     alpha: number = 1
 
-    private genfs: [g: (me: Bullet) => Generator<void, void, void>, config: { loop?: number; margin?: number }][] = []
+    private scriptReservations: [
+        g: (me: Bullet) => Generator<unknown, unknown, void>,
+        config: { loop?: number; margin?: number },
+    ][] = []
 
     clone() {
         const b = Object.assign(new Bullet(this.game), this)
 
         // 参照型のプロパティは共有しないよう作り直す
         b.p = this.p.clone()
-        b.genfs = [...this.genfs]
+        b.scriptReservations = [...this.scriptReservations]
         b.scripts = new Map()
 
         return b
     }
 
     init() {
-        this.genfs.forEach((g) => {
+        this.scriptReservations.forEach((g) => {
             this.addScript(...g)
         })
 
         this.addScript(this.move.bind(this), { loop: Infinity, id: "move" })
         this.addScript(this.boundary.bind(this), { loop: Infinity, id: "boundary" })
+    }
+
+    bookScript(
+        g: (me: Bullet) => Generator<unknown, unknown, void>,
+        { loop = 1, margin = 0 }: { loop?: number; margin?: number } = {},
+    ) {
+        this.scriptReservations.push([g, { loop, margin }])
     }
 
     // scoreタイプに変え、自機へのホーミングを開始する
@@ -70,13 +71,6 @@ export class Bullet extends Actor {
         this.speed = Math.max(diff.magnitude() / 12, 16)
 
         yield
-    }
-
-    addScriptBook(
-        g: (me: Bullet) => Generator<void, void, void>,
-        { loop = 1, margin = 0 }: { loop?: number; margin?: number } = {},
-    ) {
-        this.genfs.push([g, { loop, margin }])
     }
 
     private *move() {

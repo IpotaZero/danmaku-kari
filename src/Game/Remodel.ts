@@ -478,16 +478,13 @@ export class Remodel<Parent extends Actor> {
         g: (this: Parent, me: Bullet, index: number, ...generationIndices: number[]) => Generator,
         config: { loop?: number; margin?: number } = {},
     ) {
-        const e = this.parent
+        const parent = this.parent
         const indices = this.indices
 
         this.bullets.forEach((b, index) => {
-            b.addScriptBook(
-                function* (me: Bullet) {
-                    yield* g.call(e, me, index, ...indices[index])
-                } as () => Generator<void, void, void>,
-                config,
-            )
+            b.bookScript(function* (me: Bullet) {
+                yield* g.call(parent, me, index, ...indices[index])
+            }, config)
         })
 
         return this

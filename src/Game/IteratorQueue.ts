@@ -30,7 +30,7 @@ export abstract class IteratorQueue {
     }
 
     addScript(
-        g: (me: this) => Iterable<void, void, void>,
+        g: (me: this) => Iterable<unknown, unknown, void>,
         { loop = 1, margin = 0, id = uid() }: { loop?: number; margin?: number; id?: string } = {},
     ) {
         const me = this
