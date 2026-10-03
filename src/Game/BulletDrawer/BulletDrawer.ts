@@ -8,6 +8,7 @@ export class BulletDrawer {
     private readonly cache = new Map<string, HTMLCanvasElement>()
     private readonly gpu = BulletGpuBatchRenderer.tryCreate()
 
+    // シャドーのために余白を設ける
     private getHalfCanvasSize(bullet: Bullet) {
         switch (bullet.appearance) {
             case "player":
@@ -299,9 +300,11 @@ export class BulletDrawer {
         const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
         if (!isSmartPhone) {
             ctx.shadowColor = bullet.color
-            ctx.shadowBlur = bullet.r * 2
+            ctx.shadowBlur = bullet.r * 3
         }
+
         ctx.translate(center, center)
+
         ctx.beginPath()
         ctx.moveTo(-bullet.r, 0)
         ctx.lineTo(bullet.r, 0)
@@ -310,10 +313,10 @@ export class BulletDrawer {
         ctx.lineWidth = 3
         ctx.stroke()
 
-        ctx.shadowBlur = 0
         ctx.strokeStyle = "white"
         ctx.lineWidth = 2
         ctx.stroke()
+
         return canvas
     }
 
@@ -336,10 +339,12 @@ export class BulletDrawer {
             ctx.shadowColor = bullet.color
             ctx.shadowBlur = 14
         }
-        ctx.fillStyle = bullet.color
-        ctx.fill()
+        ctx.lineWidth = 2
+        ctx.strokeStyle = bullet.color
+        ctx.stroke()
 
-        path(0.7)
+        path(1)
+        ctx.lineWidth = 1
         ctx.shadowColor = "white"
         ctx.strokeStyle = "white"
         ctx.stroke()
@@ -350,25 +355,30 @@ export class BulletDrawer {
         const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
         if (!isSmartPhone) {
             ctx.shadowColor = bullet.color
-            ctx.shadowBlur = bullet.r * 2
+            ctx.shadowBlur = bullet.r * 3
         }
+
+        const tipSize = bullet.r * (1 - Math.SQRT1_2)
+        const tipWidth = bullet.r * Math.SQRT1_2
+
         ctx.translate(center, center)
+
         ctx.beginPath()
         ctx.moveTo(-bullet.r, 0)
         ctx.lineTo(bullet.r, 0)
-        const tipSize = bullet.r * (1 - Math.SQRT1_2)
-        const tipWidth = bullet.r * Math.SQRT1_2
         ctx.moveTo(bullet.r, 0)
         ctx.lineTo(tipSize, tipWidth)
         ctx.moveTo(bullet.r, 0)
         ctx.lineTo(tipSize, -tipWidth)
+
         ctx.strokeStyle = bullet.color
         ctx.lineWidth = 3
         ctx.stroke()
-        ctx.shadowBlur = 0
+
         ctx.strokeStyle = "white"
         ctx.lineWidth = 2
         ctx.stroke()
+
         return canvas
     }
 }
