@@ -4,6 +4,10 @@ import { BadgeId, PlayerData } from "../Data/PlayerData"
 import { Stage } from "../Stage/Stage"
 import { EdgeCondition } from "./EdgeCondition"
 import { JsonCanvas, JsonCanvasNode } from "./JsonCanvas"
+import { isSmartPhone } from "../utils/Functions/isSmartPhone"
+
+// ノード間の距離の倍率。スマホは画面が狭いので、ノードの大きさはそのままに間隔だけ詰めて周りまで見えるようにする
+const POSITION_SCALE = isSmartPhone ? 0.5 : 1
 
 // マップの定義ファイル(Obsidian Canvas)。実行時に取得する。
 // new URL(..., import.meta.url)の形で書くと、Viteがビルド時にファイルを出力し、URLを書き換えてくれる
@@ -33,6 +37,9 @@ export class MapNode {
         // ワールド座標(px)。原点や単位に意味はなく、ノード間の相対位置だけが重要
         readonly x: number,
         readonly y: number,
+        // 見た目の大きさ(px)。Canvasのカードの大きさをそのまま使う
+        readonly width: number,
+        readonly height: number,
         // クリアすると授かる免状。道場主のノードにだけ付く
         readonly badge?: BadgeId,
     ) {
@@ -57,7 +64,9 @@ export class MapNode {
             badge = value.join(":").trim()
         }
 
-        return new MapNode(card.id, label, stageName, card.x + card.width / 2, card.y + card.height / 2, badge)
+        const x = (card.x + card.width / 2) * POSITION_SCALE
+        const y = (card.y + card.height / 2) * POSITION_SCALE
+        return new MapNode(card.id, label, stageName, x, y, card.width / 2, card.height / 2, badge)
     }
 
     // クリアを記録し、免状を授けるノードなら免状も授ける

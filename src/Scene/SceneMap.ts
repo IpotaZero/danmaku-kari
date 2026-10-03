@@ -100,6 +100,8 @@ export class SceneMap extends Scene {
             el.classList.toggle("no-miss", playerData.isStageClearedWithoutMiss(node.id))
             el.style.left = `${node.x}px`
             el.style.top = `${node.y}px`
+            el.style.width = `${node.width}px`
+            el.style.height = `${node.height}px`
             el.addEventListener("click", () => {
                 // スワイプの指を離した直後に発火するclickをタップ選択として扱わない
                 if (this.suppressNextClick) {
@@ -467,7 +469,8 @@ export class SceneMap extends Scene {
     private showInfo() {
         const node = this.graph.node(this.selectedId)
         this.infoEl.style.left = `${node.x}px`
-        this.infoEl.style.top = `${node.y}px`
+        // 説明の枠はノードの上端の少し上に出す
+        this.infoEl.style.top = `${node.y - node.height / 2}px`
         this.infoEl.querySelector(".map-node-info-label")!.textContent = node.label
         this.infoEl.classList.add("visible")
 
@@ -486,7 +489,7 @@ export class SceneMap extends Scene {
         else if (rect.right > window.innerWidth - margin) shiftX = window.innerWidth - margin - rect.right
 
         if (shiftX !== 0) {
-            this.infoEl.style.transform = `translate(calc(-50% + ${shiftX}px), calc(-100% - 1.6em))`
+            this.infoEl.style.transform = `translate(calc(-50% + ${shiftX}px), calc(-100% - 0.6em))`
         }
     }
 
