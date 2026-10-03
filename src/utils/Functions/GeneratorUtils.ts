@@ -10,16 +10,15 @@ export namespace GenUtils {
      *     attackB: this.attackB(),
      * })
      */
-    export function* all<T, K extends string>(
-        gens: Record<K, Generator<void, T, void> | Iterable<void>>,
-    ): Generator<void, Record<K, T>, void> {
+    export function* all<T, K extends string>(gens: Record<K, Iterable<void>>): Generator<void, Record<K, T>, void> {
         const keys = Object.keys(gens) as K[]
         const results = {} as Record<K, T>
         const activeKeys = new Set(keys)
-        const iterators = Object.fromEntries(keys.map((key) => [key, gens[key][Symbol.iterator]()])) as Record<
-            K,
-            Iterator<void, T, void>
-        >
+        const iterators = {} as Record<K, Iterator<void, T, void>>
+
+        for (const key of keys) {
+            iterators[key] = gens[key][Symbol.iterator]()
+        }
 
         while (activeKeys.size > 0) {
             for (const key of activeKeys) {
@@ -54,16 +53,16 @@ export namespace GenUtils {
      *     // タイムアウトで終了した場合の処理
      * }
      */
-    type GeneratorReturn<T> = T extends Generator<unknown, infer R, unknown> ? R : never
+    type GeneratorReturn<T> = T extends Iterator<unknown, infer R, unknown> ? R : never
 
-    type RaceResult<T extends Record<string, Generator<unknown, unknown, unknown>>> = {
+    type RaceResult<T extends Record<string, Iterator<unknown, unknown, unknown>>> = {
         [K in keyof T]: {
             key: K
             value: GeneratorReturn<T[K]>
         }
     }[keyof T]
 
-    export function* race<T extends Record<string, Generator<unknown, unknown, unknown>>>(
+    export function* race<T extends Record<string, IterableIterator<unknown, unknown, unknown>>>(
         gens: T,
     ): Generator<void, RaceResult<T>, void> {
         const G = Object.entries(gens) as [keyof T, T[keyof T]][]
@@ -96,7 +95,7 @@ export namespace GenUtils {
      */
     export function* repeat(
         n: number,
-        gen: (index: number) => Iterable<void, unknown, unknown>,
+        gen: (index: number) => IterableIterator<void, unknown, unknown>,
     ): Generator<void, void, unknown> {
         for (let i = 0; i < n; i++) {
             yield* gen(i)
@@ -114,7 +113,7 @@ export namespace GenUtils {
      *     this.phase3(),
      * ])
      */
-    export function* sequence(gens: Generator<void, void, unknown>[]): Generator<void, void, unknown> {
+    export function* sequence(gens: IterableIterator<void, void, unknown>[]): Generator<void, void, unknown> {
         for (const gen of gens) {
             yield* gen
         }

@@ -174,14 +174,16 @@ class EnemySpider extends Enemy {
         const width = this.game.WIDTH
         const height = this.game.HEIGHT
         const radius = RING_GAP * RINGS
-        const near = this.game.player.p.add(vec.arg(Math.random() * T).scale(Math.random() * AIM_SPREAD))
+        const near = this.game.player.p.add(
+            vec.arg(this.random() * T).scale(this.random() * AIM_SPREAD),
+        )
         // 巣が画面の外にはみ出すと、その糸はBulletのboundaryで消えてしまうので、画面の内側に収める
         const target = vec(
             Math.min(Math.max(near.x, radius), width - radius),
             Math.min(Math.max(near.y, height * 0.35), height - radius),
         )
         const start = this.p.clone()
-        const angle = Math.random() * T
+        const angle = this.random() * T
         const offsets = web().map((o) => o.rotate(angle))
         const folded = 0.2
 

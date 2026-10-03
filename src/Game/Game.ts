@@ -54,6 +54,11 @@ export class Game extends IteratorQueue {
     readonly camera: Camera
 
     enemies: Enemy[] = []
+
+    // 敵の乱数のシード。Game はステージに入るたびに作り直されるので、n 体目の敵は毎回同じシードになる
+    readonly enemySeeds = (function* () {
+        for (let i = 0; ; i++) yield i
+    })()
     bullets: Bullet[] = []
 
     readonly textBox: TextBox

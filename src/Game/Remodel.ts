@@ -4,6 +4,7 @@ import { Bullet } from "./Actor/Bullet"
 import { T } from "../T"
 import type { NumberKeys } from "@ipota/my-utils"
 import { Actor } from "./Actor/Actor"
+import type { Enemy } from "./Actor/Enemy"
 import { GenUtils } from "../utils/Functions/GeneratorUtils"
 
 export function remodel<Parent extends Actor>(e: Parent) {
@@ -107,8 +108,8 @@ export namespace Behavior {
         yield* ease(me, "speed", finalSpeed, frame, Ease.Linear)
     }
 
-    export function* rotating(me: Bullet, angularSpeed: number) {
-        while (me.life > 0) {
+    export function* rotating(me: Bullet, angularSpeed: number, frame: number = Infinity) {
+        for (let i = 0; i < frame; i++) {
             me.radian += angularSpeed
             yield
         }
@@ -265,6 +266,7 @@ export class Remodel<Parent extends Actor> {
     // p だけは特別扱いして、その場所を中心に半径 p 以内の円の中へ一様分布でランダムに散らす
     // (単純に半径だけ乱数にすると中心付近に偏るため、sqrtで面積が一様になるよう補正している)
     scatter(
+        this: Remodel<Parent & Enemy>,
         ranges: Partial<Record<NumberKeys<Bullet>, [number, number]>> & {
             p?: number
             x?: [number, number]
@@ -272,7 +274,8 @@ export class Remodel<Parent extends Actor> {
             hue?: [number, number]
         },
     ) {
-        const random = ([min, max]: [number, number]) => min + Math.random() * (max - min)
+        const parent = this.parent
+        const random = ([min, max]: [number, number]) => min + parent.random() * (max - min)
 
         return this.forEach((b) => {
             for (const key in ranges) {
@@ -292,8 +295,8 @@ export class Remodel<Parent extends Actor> {
             b.p = vec(ranges.x ? random(ranges.x) : b.p.x, ranges.y ? random(ranges.y) : b.p.y)
 
             if (ranges.p !== undefined) {
-                const radius = ranges.p * Math.sqrt(Math.random())
-                const angle = Math.random() * T
+                const radius = ranges.p * Math.sqrt(parent.random())
+                const angle = parent.random() * T
                 b.p = b.p.add(vec.arg(angle).scale(radius))
             }
         })

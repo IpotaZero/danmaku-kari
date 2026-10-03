@@ -4,6 +4,7 @@ import { Ease } from "@ipota/functions"
 import { Game } from "../Game"
 import { IEnemyRenderer } from "./IEnemyRenderer"
 import { EnemyRendererMob } from "./EnemyRendererMob"
+import { seededRandom } from "../../utils/Functions/seededRandom"
 
 export abstract class Enemy extends Actor {
     private readonly baseR: number
@@ -21,6 +22,9 @@ export abstract class Enemy extends Actor {
     isInvincible = false
 
     readonly renderer: IEnemyRenderer
+
+    // 弾幕用の乱数。敵ごとに独立しているので、プレイヤーの行動やほかの敵の生死に関係なく、ステージに入り直すたびに同じ列になる
+    readonly random = seededRandom(this.game.enemySeeds.next().value)
 
     constructor(
         game: Game,
@@ -100,6 +104,9 @@ export abstract class Enemy extends Actor {
     protected *randomMove(frames: number) {
         const w = this.game.WIDTH
         const h = this.game.HEIGHT
-        yield* this.moveTo(vec(w * (0.1 + 0.8 * Math.random()), h * (0.1 + 0.1 * Math.random())), frames)
+        yield* this.moveTo(
+            vec(w * (0.1 + 0.8 * this.random()), h * (0.1 + 0.1 * this.random())),
+            frames,
+        )
     }
 }

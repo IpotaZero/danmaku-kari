@@ -78,7 +78,7 @@ class EnemyPupil extends Enemy {
     // 放射状に息を吐く。粒は輪ごとに違う速さで広がって止まり、数重の輪になる。
     // 輪ごとに向きを半分ずらすので、落ちてくるときの列が互い違いに並ぶ
     private *breath() {
-        const base = Math.random() * T
+        const base = this.random() * T
 
         yield* remodel(this)
             .appearance("ball")

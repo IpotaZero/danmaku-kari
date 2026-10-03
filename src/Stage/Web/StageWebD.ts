@@ -86,7 +86,7 @@ class EnemyBoss extends Enemy {
         // 牙
         yield* GenUtils.repeat(4, () =>
             GenUtils.all({
-                "0": remodel(this)
+                upper: remodel(this)
                     .scatter({ x: [this.game.WIDTH / 2 - 30, this.game.WIDTH / 2 + 30] })
                     .format("diamond")
                     .radian(T / 4)
@@ -98,7 +98,7 @@ class EnemyBoss extends Enemy {
                     })
                     .fire(this.game.bullets),
 
-                "1": remodel(this)
+                lower: remodel(this)
                     .y(this.game.HEIGHT)
                     .scatter({ x: [this.game.WIDTH / 2 - 30, this.game.WIDTH / 2 + 30] })
                     .format("diamond")
@@ -114,18 +114,84 @@ class EnemyBoss extends Enemy {
             }),
         )
 
-        yield* Array(180)
+        yield* Array(120)
+
+        for (let i = 0; i < 4; i++) {
+            yield* this.randomMove(30)
+
+            yield* remodel(this)
+                .format("diamond")
+                .colorful(this.frame)
+                .p(this.p.clone())
+                .aim(this.game.player.p)
+                .speed(8)
+                .ex(63)
+                .g(function* (me) {
+                    yield* Behavior.rotating(me, 0.01 * ((i % 2) * 2 - 1), 60)
+                })
+                .fire(this.game.bullets)
+        }
+
+        yield* this.randomMove(60)
+
+        yield* Array(60)
     }
 
-    private *cycle1() {}
+    private *cycle1() {
+        yield* GenUtils.all({
+            web: GenUtils.repeat(Infinity, () => this.cycle1_0()),
+            fang: GenUtils.repeat(Infinity, () => this.cycle1_1()),
+        })
+    }
 
-    private *cycle2() {}
+    private *cycle1_0() {
+        for (let i = 0; i < 60; i++) {
+            yield* remodel(this)
+                .p(this.p.clone())
+                .format("small-ball")
+                .color("white")
+                .radian(T / 4)
+                .nway(2, ((Math.sin(T * (i / 60)) + 1) / 2) * (T / 15) + T / 30)
+                .speed(8)
+                .fire(this.game.bullets)
+            yield* Array(3)
+        }
+
+        yield* Array(60)
+    }
+
+    private *cycle1_1() {
+        yield* this.randomMove(60)
+
+        for (let i = 0; i < 8; i++) {
+            yield* remodel(this)
+                .p(this.p.clone())
+                .format("diamond")
+                .scatter({ p: 360, hue: [0, 360] })
+                .aim(this.game.player.p)
+                .speed(8)
+                .shift(16, 60)
+                .appear(30)
+                .g((me) => Behavior.reaccel(me, 30, 30, 30))
+                .fire(this.game.bullets)
+
+            yield* Array(10)
+        }
+
+        yield* Array(360)
+    }
+
+    private *cycle2() {
+        yield
+    }
 
     private *cycle2_0() {}
 
     private *cycle2_1() {}
 
-    private *cycle3() {}
+    private *cycle3() {
+        yield
+    }
 
     private *cycle3_0() {}
 
