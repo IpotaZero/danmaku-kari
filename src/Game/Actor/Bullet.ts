@@ -19,7 +19,6 @@ export class Bullet extends Actor {
         | "beam"
         | "player"
         | "score"
-        | "triangle"
         | Polygon.Type = "donut"
     collision: "circle" | "line" | "arrow" | "rect" | Polygon.Type = "circle"
     type: "friend" | "enemy" | "neutral" | "effect" | "score" = "enemy"

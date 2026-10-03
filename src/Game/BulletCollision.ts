@@ -47,7 +47,7 @@ export class BulletCollision {
                 this.isCollidingLine(circle, line1) ||
                 this.isCollidingLine(circle, line2)
             )
-        } else if (b.collision === "wedge" || b.collision === "diamond") {
+        } else if (b.collision === "wedge" || b.collision === "diamond" || b.collision === "triangle") {
             const vertices = Polygon.vertices(b.collision, b.r).map((v) => b.p.add(v.rotate(b.radian)))
             return this.isCollidingPolygon(e, vertices)
         } else if (b.collision === "rect") {
