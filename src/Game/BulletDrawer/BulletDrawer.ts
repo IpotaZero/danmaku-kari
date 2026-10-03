@@ -142,13 +142,13 @@ export class BulletDrawer {
         const isBeam = bullet.appearance === "beam"
 
         // 本体
-        ctx.shadowBlur = isBeam ? bullet.r : 0
+        ctx.shadowBlur = bullet.r
         ctx.shadowColor = bullet.color
         ctx.fillStyle = bullet.color
         ctx.fillRect(0, -bullet.r, bullet.length, bullet.r * 2)
 
         // 白い芯
-        ctx.shadowBlur = isBeam ? bullet.r : 0
+        ctx.shadowBlur = bullet.r
         ctx.shadowColor = "white"
         ctx.fillStyle = "white"
         ctx.fillRect(0, -bullet.r * 0.8, bullet.length, bullet.r * 1.6)

@@ -28,8 +28,12 @@ type BulletSetters<Self> = {
     [K in BulletProps]: (value: Bullet[K]) => Self
 }
 
-namespace Format {
-    export const r = {
+export namespace Format {
+    export const format = ["donut", "big-ball", "small-ball", "arrow", "line", "wedge", "diamond", "triangle"] as const
+
+    export type Type = (typeof format)[number]
+
+    export const r: Record<Type, number> = {
         "donut": 12,
         "big-ball": 24,
         "small-ball": 4,
@@ -37,9 +41,10 @@ namespace Format {
         "line": 28,
         "wedge": 16,
         "diamond": 16,
+        "triangle": 16,
     } as const
 
-    export const collision = {
+    export const collision: Record<Type, Bullet["collision"]> = {
         "donut": "circle",
         "big-ball": "circle",
         "small-ball": "circle",
@@ -47,9 +52,10 @@ namespace Format {
         "line": "line",
         "wedge": "wedge",
         "diamond": "diamond",
+        "triangle": "triangle",
     } as const
 
-    export const appearance = {
+    export const appearance: Record<Type, Bullet["appearance"]> = {
         "donut": "donut",
         "big-ball": "ball",
         "small-ball": "ball",
@@ -57,6 +63,7 @@ namespace Format {
         "line": "line",
         "wedge": "wedge",
         "diamond": "diamond",
+        "triangle": "triangle",
     } as const
 }
 

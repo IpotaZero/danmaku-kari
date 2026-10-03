@@ -1,7 +1,7 @@
 import { vec } from "@ipota/vec"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { Behavior, Remodel, remodel } from "../../Game/Remodel"
+import { Behavior, Format, Remodel, remodel } from "../../Game/Remodel"
 import { BulletCollision } from "../../Game/BulletCollision"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
@@ -18,14 +18,11 @@ const SPIN_FRAMES = 1200
 const COLOR_IDLE = "#ffffff"
 const COLOR_HIT = "#ff3355"
 
-type FormatType = Parameters<Remodel<Enemy>["format"]>[0]
-
 // 並べる弾。formatで作れるものに加え、formatにない多角形もそのまま並べる
 const SAMPLES: ((r: Remodel<Enemy>) => Remodel<Enemy>)[] = [
-    ...(["small-ball", "big-ball", "donut", "arrow", "line", "wedge", "diamond"] as FormatType[]).map(
-        (type) => (r: Remodel<Enemy>) => r.format(type),
-    ),
-    (r) => r.appearance("triangle").collision("triangle").r(16),
+    ...Format.format.map((type) => (r: Remodel<Enemy>) => r.format(type)),
+    (r) => r.beam(1000),
+    (r) => r.laser(30, 10000, 1000),
 ]
 
 export default class extends Stage {
@@ -67,6 +64,7 @@ class EnemyTarget extends Enemy {
                 .p(vec((width * (column + 1)) / (columns + 1), height * (0.3 + (0.6 * row) / (rows - 1))))
                 .g(function* (me) {
                     while (this.life > 0) {
+                        me.type = "neutral"
                         me.radian += T / SPIN_FRAMES
                         me.color = collision.isColliding(me, this.game.player) ? COLOR_HIT : COLOR_IDLE
                         yield
