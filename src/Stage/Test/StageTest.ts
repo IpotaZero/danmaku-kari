@@ -43,6 +43,7 @@ export default class extends Stage {
         }
 
         yield* this.waitAllEnemiesDead()
+        this.scorenizeAllBullets()
 
         if (isSmartPhone) {
             // TODO: 現在のアクションに合わせたテキスト
@@ -70,6 +71,7 @@ export default class extends Stage {
         }
 
         yield* this.waitAllEnemiesDead()
+        this.scorenizeAllBullets()
 
         yield* Array(60)
 

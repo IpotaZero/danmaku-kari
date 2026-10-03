@@ -88,7 +88,7 @@ export default class extends Stage {
         this.hideFigure("hachinoko")
         this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
         yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["次は……そうだな、疾風道場か雷鼓道場に行ってみるといいでしょう。頑張ってね。"], {
+        yield* this.game.textBox.say(["次は……そうだな、疾風道場か網掛道場に行ってみるといいでしょう。頑張ってね。"], {
             name: "ユキムシ",
         })
         yield* this.game.textBox.say(["ありがとー。"], { name: "ハチノコ" })

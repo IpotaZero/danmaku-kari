@@ -208,23 +208,22 @@ export class Remodel<Parent extends Actor> {
         return this.appearance(Format.appearance[type]).collision(Format.collision[type]).r(Format.r[type])
     }
 
-    // 大きさ0から frame フレームかけて現れる。interval を指定すると index 順に interval フレームずつ遅れて現れる。
-    // 大きさは組み立てた時点で0にしておくので、最初の1フレームだけ元の大きさで表示されることがない
+    // frame フレームかけて現れる。interval を指定すると index 順に interval フレームずつ遅れて現れる。
     appear(frame: number = 30, interval: number = 0) {
-        this.set("alpha", 0)
-
-        return this.g(function* (me, i) {
-            yield* Array(i * interval)
-            yield* Behavior.ease(me, "alpha", 1, frame)
-        })
+        return this.set("alpha", 0)
+            .set("type", "neutral")
+            .g(function* (me, i) {
+                yield* Array(i * interval)
+                yield* Behavior.ease(me, "alpha", 1, frame)
+                me.type = "enemy"
+            })
     }
 
     // 出現を遅らせる
     delayByIndex(scalar: number = 1) {
-        this.forEach((b, index) => {
+        return this.forEach((b, index) => {
             b.delay = index * scalar
         })
-        return this
     }
 
     // 色を変える
@@ -275,6 +274,7 @@ export class Remodel<Parent extends Actor> {
             }
 
             // p は複数の弾で同じ Vec を共有している場合があるので、書き換えずに新しく作る
+            // ↑そんなことあるか?
             b.p = vec(ranges.x ? random(ranges.x) : b.p.x, ranges.y ? random(ranges.y) : b.p.y)
 
             if (ranges.p !== undefined) {
@@ -345,6 +345,7 @@ export class Remodel<Parent extends Actor> {
     // 弾を円形に配置する。direction は弾の向きの方向を指定する
     circle(distance: number, radius: number, { direction = "none" }: { direction?: "inner" | "outer" | "none" } = {}) {
         const num = Math.ceil((T * radius) / distance)
+
         return this.duplicate(num, (b, i) => {
             const angle = (T / num) * i
             b.p = b.p.add(vec.arg(angle).scale(radius))
