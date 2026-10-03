@@ -17,8 +17,21 @@ type Rect = { p: Vec; w: number; h: number; rad: number }
 
 export class BulletCollision {
     isColliding(b: Bullet, e: Circle) {
+        if (b.collision === "rect") {
+            // ビーム判定: 始点を b.p に固定するため、中心を進行方向に length/2 だけオフセットする
+            return this.isCollidingRect(e, {
+                p: b.p.add(vec.arg(b.radian).scale(b.length / 2)),
+                w: b.length, // radian方向（ローカルX軸）の長さ
+                h: b.r * 2, // 垂直方向（ローカルY軸）の太さ
+                rad: b.radian,
+            })
+        }
+
+        // rect 以外の形はすべて半径 r の円に収まるので、その円に触れていなければ細かい判定をせずに打ち切る
+        if (!this.isCollidingCircle(b, e)) return false
+
         if (b.collision === "circle") {
-            return this.isCollidingCircle({ p: b.p, r: b.r }, { p: e.p, r: e.r })
+            return true
         } else if (b.collision === "line") {
             const circle: Circle = e
             const line = {
@@ -47,24 +60,14 @@ export class BulletCollision {
                 this.isCollidingLine(circle, line1) ||
                 this.isCollidingLine(circle, line2)
             )
-        } else if (b.collision === "wedge" || b.collision === "diamond" || b.collision === "triangle") {
+        } else {
             const vertices = Polygon.vertices(b.collision, b.r).map((v) => b.p.add(v.rotate(b.radian)))
             return this.isCollidingPolygon(e, vertices)
-        } else if (b.collision === "rect") {
-            // ビーム判定: 始点を b.p に固定するため、中心を進行方向に length/2 だけオフセットする
-            return this.isCollidingRect(e, {
-                p: b.p.add(vec.arg(b.radian).scale(b.length / 2)),
-                w: b.length, // radian方向（ローカルX軸）の長さ
-                h: b.r * 2, // 垂直方向（ローカルY軸）の太さ
-                rad: b.radian,
-            })
         }
     }
 
     private isCollidingCircle({ p: p1, r: r1 }: Circle, { p: p2, r: r2 }: Circle) {
-        const distance = p1.sub(p2).magnitude()
-        const radiusSum = r1 + r2
-        return distance <= radiusSum
+        return p1.sub(p2).magnitudeSquared() <= (r1 + r2) ** 2
     }
 
     private isCollidingLine({ p, r }: Circle, { start, end }: Line) {
