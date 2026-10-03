@@ -25,20 +25,16 @@ export const laser: MainEquipment = {
     *fire(player) {
         while (!player.game.isPlaying) yield
 
-        // 一度出したら消えない常設ビームなので、生成は最初の1回だけ
+        // 常設ビームなので、生成は最初の1回だけ。ゲームオーバーまで出し続ける
         yield* remodel(player)
             .p(player.p.clone())
+            .beam(ビーム長さ)
+            .r(通常時太さ)
+            .damage(通常時威力)
             .radian(-T / 4)
             .type("friend")
             .color("white")
-            .alpha(通常時濃さ)
-            .appearance("beam")
-            .collision("rect")
-            .r(通常時太さ)
-            .damage(通常時威力)
-            .length(ビーム長さ)
-            .speed(0)
-            .duplicate(ビーム本数, (b) => b)
+            .duplicate(ビーム本数)
             .g(function* (me, index) {
                 // 2本の間隔はこのオフセット分だけ左右に開く
                 const side = index - (ビーム本数 - 1) / 2
@@ -46,7 +42,7 @@ export const laser: MainEquipment = {
                 // 間隔はここに向かって毎フレーム少しずつ近づける(スナップさせず滑らかに変化させる)
                 let interval = 通常時間隔
 
-                while (true) {
+                while (!player.game.isGameOver) {
                     // 低速時は狭く強く、通常時は広く弱くなる
                     const isFocused = player.game.input.isPressed("slow")
                     const targetInterval = isFocused ? 集中時間隔 : 通常時間隔
@@ -61,6 +57,8 @@ export const laser: MainEquipment = {
 
                     yield
                 }
+
+                yield* Behavior.fadeout(me, 15)
             })
             .fire(player.game.bullets)
 

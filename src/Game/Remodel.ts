@@ -393,9 +393,11 @@ export class Remodel<Parent extends Actor> {
         })
     }
 
-    // ビームを生成する。length はビームの長さ
+    /** ビームを生成する。親が死ぬと消える。
+     * @param length ビームの長さ
+     * */
     beam(length: number) {
-        const e = this.parent
+        const parent = this.parent
 
         return this.length(length)
             .speed(0)
@@ -410,9 +412,9 @@ export class Remodel<Parent extends Actor> {
                     i++
                     me.alpha = 0.8 * (Math.sin(i / 10) + 1) + 0.8
 
-                    me.p = e.p
+                    me.p = parent.p
 
-                    if (e.life <= 0) {
+                    if (parent.life <= 0) {
                         break
                     }
 
