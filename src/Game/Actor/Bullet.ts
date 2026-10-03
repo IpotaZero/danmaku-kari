@@ -28,14 +28,13 @@ export class Bullet extends Actor {
 
     private genfs: [g: (me: Bullet) => Generator<void, void, void>, config: { loop?: number; margin?: number }][] = []
 
-    clone(): this {
-        const b = { ...this }
+    clone() {
+        const b = Object.assign(new Bullet(this.game), this)
 
+        // 参照型のプロパティは共有しないよう作り直す
         b.p = this.p.clone()
         b.genfs = [...this.genfs]
         b.scripts = new Map()
-        // @ts-ignore
-        b.__proto__ = this.__proto__
 
         return b
     }
