@@ -161,6 +161,13 @@ export namespace Behavior {
         const diff = target.sub(me.p)
         yield* ease(me, "radian", diff.radian(), frame, easeFunc)
     }
+
+    export function* force(me: Bullet, force: number, frame: number) {
+        for (let i = 0; i < frame; i++) {
+            me.speed += force
+            yield
+        }
+    }
 }
 
 // BulletSetters は constructor が返す Proxy によって実装される
@@ -492,5 +499,17 @@ export class Remodel<Parent extends Actor> {
         })
 
         return this
+    }
+
+    x(x: number) {
+        return this.forEach((me) => {
+            me.p.x = x
+        })
+    }
+
+    y(y: number) {
+        return this.forEach((me) => {
+            me.p.y = y
+        })
     }
 }

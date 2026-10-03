@@ -34,14 +34,15 @@
 		{"id":"741a530ae89e9471","type":"text","text":"月影道場・師範代\nStageNotImplemented","x":4980,"y":1040,"width":160,"height":160},
 		{"id":"751ab8850da9b699","type":"text","text":"霜月道場・道場主\nStageFrost\nbadge:霜月","x":1180,"y":-70,"width":320,"height":300},
 		{"id":"b645a540eecf50a7","type":"text","text":"疾風道場・道場主\nStageNotImplemented\nbadge:疾風","x":2360,"y":-570,"width":320,"height":300},
-		{"id":"70041c417988cd82","type":"text","text":"網掛道場・道場主\nStageNotImplemented\nbadge:雷鼓","x":2360,"y":420,"width":320,"height":320},
+		{"id":"70041c417988cd82","type":"text","text":"網掛道場・道場主\nStageWebD\nbadge:網掛","x":2360,"y":420,"width":320,"height":320},
 		{"id":"776f536c08216061","type":"text","text":"鉄壁道場・道場主\nStageNotImplemented\nbadge:鉄壁","x":3540,"y":960,"width":300,"height":320},
 		{"id":"2a0f289b578f41f4","type":"text","text":"陽炎道場・道場主\nStageNotImplemented\nbadge:陽炎","x":3560,"y":430,"width":300,"height":300},
 		{"id":"5675d716c5761d80","type":"text","text":"砂塵道場・道場主\nStageNotImplemented\nbadge:砂塵","x":3560,"y":-60,"width":300,"height":280},
 		{"id":"03e5df0075419b20","type":"text","text":"霧隠道場・道場主\nStageNotImplemented\nbadge:霧隠","x":3540,"y":-1080,"width":320,"height":320},
 		{"id":"5fbe65792de30064","type":"text","text":"流星道場・道場主\nStageNotImplemented\nbadge:流星","x":4710,"y":-590,"width":340,"height":340},
 		{"id":"f7f1907383d4c135","type":"text","text":"月影道場・道場主\nStageNotImplemented\nbadge:月影","x":5240,"y":980,"width":280,"height":280},
-		{"id":"ca68c9295dde0dbf","type":"text","text":"チャンピオン\nStageNotImplemented","x":7480,"y":-40,"width":240,"height":240}
+		{"id":"ca68c9295dde0dbf","type":"text","text":"チャンピオン\nStageNotImplemented","x":7480,"y":-40,"width":240,"height":240},
+		{"id":"7f2a99c197bc75b2","type":"text","text":"当たり判定\nStageHitbox","x":0,"y":280,"width":160,"height":160}
 	],
 	"edges":[
 		{"id":"3a6309e33f10111f","fromNode":"f840811f7f798aeb","fromSide":"right","toNode":"31f7d87e5e5e2323","toSide":"left"},
@@ -88,6 +89,7 @@
 		{"id":"bcaeeff0907faa6e","fromNode":"2a0f289b578f41f4","fromSide":"right","toNode":"94be0c796c5a45c2","toSide":"left"},
 		{"id":"930c44ba62266bbc","fromNode":"70041c417988cd82","fromSide":"right","toNode":"ed45c0b7fab66007","toSide":"left","label":"standard"},
 		{"id":"b6f7b13917ca7faa","fromNode":"5fbe65792de30064","fromSide":"right","toNode":"46e539f50437a678","toSide":"left","label":"badges"},
-		{"id":"4679701d62d5bf4e","fromNode":"5675d716c5761d80","fromSide":"right","toNode":"573084b0c44d937c","toSide":"left","label":"laser"}
+		{"id":"4679701d62d5bf4e","fromNode":"5675d716c5761d80","fromSide":"right","toNode":"573084b0c44d937c","toSide":"left","label":"laser"},
+		{"id":"b85c83c22b56ce0a","fromNode":"35c5577f1a6c4709","fromSide":"bottom","toNode":"7f2a99c197bc75b2","toSide":"top"}
 	]
 }

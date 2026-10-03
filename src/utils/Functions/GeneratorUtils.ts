@@ -96,7 +96,7 @@ export namespace GenUtils {
      */
     export function* repeat(
         n: number,
-        gen: (index: number) => Iterable<void, void, unknown>,
+        gen: (index: number) => Iterable<void, unknown, unknown>,
     ): Generator<void, void, unknown> {
         for (let i = 0; i < n; i++) {
             yield* gen(i)

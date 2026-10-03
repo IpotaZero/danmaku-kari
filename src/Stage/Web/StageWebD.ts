@@ -50,8 +50,6 @@ export default class extends Stage {
 }
 
 class EnemyBoss extends Enemy {
-    private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.1, 2, 3)
-
     constructor(game: Game) {
         super(game, 2400, 64, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
@@ -60,7 +58,7 @@ class EnemyBoss extends Enemy {
     }
 
     *start() {
-        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle" })
+        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
 
         this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 150 })
@@ -76,28 +74,48 @@ class EnemyBoss extends Enemy {
     private *enter() {
         this.p = vec(-200, -200)
         yield* this.moveTo(this.home(), 120)
-
-        this.addScript(() => this.move(), { loop: Infinity })
     }
 
     private home() {
         return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.3)
     }
 
-    private *move() {
-        this.p = this.path((this.frame - 120) / 600).add(this.home())
-        yield
+    private *cycle0() {
+        yield* this.randomMove(60)
+
+        // 牙
+        yield* GenUtils.repeat(4, () =>
+            GenUtils.all({
+                "0": remodel(this)
+                    .scatter({ x: [this.game.WIDTH / 2 - 30, this.game.WIDTH / 2 + 30] })
+                    .format("diamond")
+                    .radian(T / 4)
+                    .shift(13, 60)
+                    .scatter({ hue: [0, 360] })
+                    .appear(30)
+                    .g(function* (me) {
+                        yield* Behavior.force(me, 0.1, 80)
+                    })
+                    .fire(this.game.bullets),
+
+                "1": remodel(this)
+                    .y(this.game.HEIGHT)
+                    .scatter({ x: [this.game.WIDTH / 2 - 30, this.game.WIDTH / 2 + 30] })
+                    .format("diamond")
+                    .radian(-T / 4)
+                    .shift(13, 60)
+                    .scatter({ hue: [0, 360] })
+                    .appear(30)
+                    .g(function* (me) {
+                        yield* Behavior.force(me, 0.1, 80)
+                    })
+                    .fire(this.game.bullets),
+                wait: Array(60),
+            }),
+        )
+
+        yield* Array(180)
     }
-
-    private *cycle0() {}
-
-    private *snowfall() {}
-
-    // 氷がそろったところへ、つららを3回撃ち込む。氷の隙間を縫って避けるか、結界で受け止めるか
-    private *icicles() {}
-
-    // つららの合間に、ゆっくりした輪。自機狙いだけで終わらせないための混ぜもの
-    private *ring() {}
 
     private *cycle1() {}
 
@@ -117,9 +135,7 @@ class EnemyBoss extends Enemy {
 class EnemyCore extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
         super(game, 1800, 48, { renderer: new EnemyRendererCore() })
-        this.setParent(parent, () =>
-            vec.arg(this.frame / 360 + (T / 3) * index).scale(200 + 50 * Math.sin(this.frame / 720)),
-        )
+        this.setParent(parent, () => vec.arg(this.frame / 360 + (T / 3) * index).scale(100))
         this.isInvincible = true
     }
 }

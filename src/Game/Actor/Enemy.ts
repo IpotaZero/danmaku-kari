@@ -96,4 +96,10 @@ export abstract class Enemy extends Actor {
         this.p = parent.p.add(position())
         yield
     }
+
+    protected *randomMove(frames: number) {
+        const w = this.game.WIDTH
+        const h = this.game.HEIGHT
+        yield* this.moveTo(vec(w * (0.1 + 0.8 * Math.random()), h * (0.1 + 0.1 * Math.random())), frames)
+    }
 }
