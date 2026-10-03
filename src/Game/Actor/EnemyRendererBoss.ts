@@ -13,6 +13,8 @@ const CYAN = "rgba(0, 255, 255, 0.4)"
 const BLACK_VALE = "rgba(255, 255, 255, 0.2)"
 const BLUE = "rgba(60, 140, 255, 0.8)"
 const CHARGE_FILL = "rgba(140, 200, 255, 0.95)"
+const HITBOX_FILL = "rgba(255, 255, 255, 0.06)"
+const HITBOX_EDGE = "rgba(255, 255, 255, 0.75)"
 
 export class EnemyRendererBoss implements IEnemyRenderer {
     *onDead(e: Enemy) {
@@ -186,8 +188,12 @@ export class EnemyRendererBoss implements IEnemyRenderer {
     /**
      * 実際の当たり判定 (e.r) を示す円を描画
      */
-    private drawHitBox(ctx: CanvasRenderingContext2D, e: Enemy, puls: number): void {
-        Ctx.arc(ctx, e.p, e.r, WHITE, { lineWidth: 2 })
-        Ctx.arc(ctx, e.p, e.r * (1 + puls * 2), WHITE, { lineWidth: 1 })
+    private drawHitBox(ctx: CanvasRenderingContext2D, e: Enemy, pulse: number): void {
+        // 内側をうっすら塗り、周りの線の装飾と区別できる「面」にする
+        Ctx.arc(ctx, e.p, e.r, HITBOX_FILL)
+        // 縁は他のどの線よりも少しだけ太く明るくする
+        Ctx.arc(ctx, e.p, e.r, HITBOX_EDGE, { lineWidth: 3 })
+        // 鼓動するリングは縁の内側だけで動かし、当たり判定の外へはみ出させない
+        Ctx.arc(ctx, e.p, e.r * (0.95 + pulse), WHITE, { lineWidth: 1 })
     }
 }
