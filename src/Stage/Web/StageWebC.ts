@@ -129,7 +129,6 @@ class EnemyMother extends Enemy {
         })
     }
 
-    // 1枚目の巣が実体になったころから、ゆっくりした輪を2回。巣で狭まった場所で避けさせる
     private *rings() {
         yield* Array(FLIGHT_FRAMES + LAND_FRAMES + 20)
 
@@ -138,7 +137,7 @@ class EnemyMother extends Enemy {
                 .format("diamond")
                 .p(this.p.clone())
                 .duplicate(63)
-                .scatter({ p: 240, hue: [0, 360] })
+                .scatter({ p: 120, hue: [0, 360] })
                 .aim(this.game.player.p)
                 .delayByIndex()
                 .speed(12)
@@ -234,7 +233,10 @@ class EnemyDangler extends Enemy {
 
         this.addScript(() => this.move(side), { loop: Infinity })
         // 左右で途切れ目の来るタイミングをずらす
-        this.addScript(() => this.thread(), { loop: Infinity, margin: side > 0 ? (THREAD_FRAMES + THREAD_GAP_FRAMES) / 2 : 0 })
+        this.addScript(() => this.thread(), {
+            loop: Infinity,
+            margin: side > 0 ? (THREAD_FRAMES + THREAD_GAP_FRAMES) / 2 : 0,
+        })
     }
 
     // 糸の帯の幅がゆっくり変わるよう、左右に揺れる。左右の蜘蛛は逆向きに揺れる

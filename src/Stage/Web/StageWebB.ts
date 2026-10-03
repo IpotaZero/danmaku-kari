@@ -45,6 +45,7 @@ class EnemyCore extends Enemy {
 
     private *attack() {
         yield* GenUtils.repeat(4, () => this.attack1())
+        yield* Array(180)
         yield* GenUtils.repeat(4, () => this.attack2())
         yield* Array(360)
     }

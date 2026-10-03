@@ -8,6 +8,7 @@ import { T } from "../../T"
 import { GenUtils } from "../../utils/Functions/GeneratorUtils"
 import { Curves } from "../../utils/Functions/Curves"
 import { isSmartPhone } from "../../utils/Functions/isSmartPhone"
+import { dash } from "../../Game/Equipment/Dash"
 
 // ボスの登場演出にかかるフレーム数。衛星もこれだけ待ってから合わせて動き出す
 const ENTRANCE_FRAMES = 150
@@ -46,20 +47,37 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         if (isSmartPhone) {
-            // TODO: 現在のアクションに合わせたテキスト
-            yield* this.game.textBox.say(
-                ["次に、二本指タップで技を発動じゃ。<br>今は高速移動ができるじゃろう。<br>発動中は無敵じゃ。"],
-                {
-                    name: "師匠",
-                },
-            )
+            if (this.game.player.isEquipped(dash)) {
+                yield* this.game.textBox.say(
+                    ["次に、二本指タップで技を発動じゃ。<br>今は高速移動ができるじゃろう。<br>発動中は無敵じゃ。"],
+                    {
+                        name: "師匠",
+                    },
+                )
+            } else {
+                yield* this.game.textBox.say(
+                    ["次に、二本指タップで技を発動じゃ。<br>今は……わしの知らん技が出るじゃろう。"],
+                    {
+                        name: "師匠",
+                    },
+                )
+            }
         } else {
-            yield* this.game.textBox.say(
-                ["次に、Ctrlキーで技を発動じゃ。<br>今は高速移動ができるじゃろう。<br>発動中は無敵じゃ。"],
-                {
-                    name: "師匠",
-                },
-            )
+            if (this.game.player.isEquipped(dash)) {
+                yield* this.game.textBox.say(
+                    ["次に、Ctrlキーで技を発動じゃ。<br>今は高速移動ができるじゃろう。<br>発動中は無敵じゃ。"],
+                    {
+                        name: "師匠",
+                    },
+                )
+            } else {
+                yield* this.game.textBox.say(
+                    ["次に、Ctrlキーで技を発動じゃ。<br>今は……わしの知らん技が出るじゃろう。"],
+                    {
+                        name: "師匠",
+                    },
+                )
+            }
         }
 
         const parent2 = new EnemyBoss(this.game)

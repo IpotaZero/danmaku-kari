@@ -50,7 +50,7 @@ function* barrierField(player: Player): Generator<void, void, void> {
         const remaining = 持続フレーム - i
 
         player.game.bullets
-            .filter((b) => b.type === "enemy")
+            .filter((b) => b.type === "enemy" || b.type === "neutral")
             .filter((b) => b.isScorable)
             .filter((b) => b.p.sub(center).magnitude() <= radius)
             .forEach((b) => b.scorenize())
