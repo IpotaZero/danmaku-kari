@@ -194,9 +194,7 @@ class EnemyMist extends Enemy {
             for (let k = 0; k < SHURIKEN_COUNT; k++) {
                 const target = this.game.player.p.add(vec.arg(this.random() * T).scale(90 + this.random() * 80))
 
-                yield* Mist.shuriken(remodel(this), this.game, this.p.clone(), target, SHURIKEN).fire(
-                    this.game.bullets,
-                )
+                yield* Mist.shuriken(remodel(this), this.game, this.p.clone(), target, SHURIKEN).fire(this.game.bullets)
 
                 yield* Array(SHURIKEN_INTERVAL)
             }

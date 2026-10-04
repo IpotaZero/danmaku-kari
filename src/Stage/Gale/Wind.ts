@@ -88,7 +88,9 @@ export namespace Wind {
                     b.p.y = game.HEIGHT * random()
                     b.delay = Math.max(
                         0,
-                        Math.floor(gust.start - PREVIEW_FRAMES + ((PREVIEW_FRAMES + rise + hold) * k) / STREAKS_PER_GUST),
+                        Math.floor(
+                            gust.start - PREVIEW_FRAMES + ((PREVIEW_FRAMES + rise + hold) * k) / STREAKS_PER_GUST,
+                        ),
                     )
                     return b
                 })

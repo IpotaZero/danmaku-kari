@@ -18,8 +18,24 @@ import { Sand } from "./Sand"
 
 const ENTRANCE_FRAMES = 150
 
-const BAND0: Sand.Band = { rows: 9, rowGap: 40, speed: 1.7, spacing: 10, segment: [90, 170], gap: [70, 110], flow: [1.2, 3] }
-const BAND3: Sand.Band = { rows: 7, rowGap: 44, speed: 1.4, spacing: 10, segment: [80, 150], gap: [80, 120], flow: [1, 2.4] }
+const BAND0: Sand.Band = {
+    rows: 9,
+    rowGap: 40,
+    speed: 1.7,
+    spacing: 10,
+    segment: [90, 170],
+    gap: [70, 110],
+    flow: [1.2, 3],
+}
+const BAND3: Sand.Band = {
+    rows: 7,
+    rowGap: 44,
+    speed: 1.4,
+    spacing: 10,
+    segment: [80, 150],
+    gap: [80, 120],
+    flow: [1, 2.4],
+}
 
 // 二段目。吸い込みの提示と、吸い込みの長さ
 const SWIRL_FRAMES = 70
@@ -38,10 +54,9 @@ export default class extends Stage {
         yield* this.game.textBox.say(["のどがからから……。砂ばっかりだ。"], { name: "ハチノコ" })
         yield* this.game.textBox.say(["ようこそ、砂塵道場へ。私はウスバ。"], { name: "ウスバ" })
         yield* this.game.textBox.say(["あれ? さっきの高弟さんに似てる。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(
-            ["あの子はまだ幼虫なの。私も昔は、巣の底でじっと待っていたものよ。"],
-            { name: "ウスバ" },
-        )
+        yield* this.game.textBox.say(["あの子はまだ幼虫なの。私も昔は、巣の底でじっと待っていたものよ。"], {
+            name: "ウスバ",
+        })
         yield* this.game.textBox.say(["でも今は飛べる。さあ、砂に足を取られないでね。"], { name: "ウスバ" })
         this.hideFigure("hachinoko")
 
@@ -79,10 +94,9 @@ export default class extends Stage {
         this.hideFigure("hachinoko")
         this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
         yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(
-            ["流星道場は夜にならないと始まらないわ。月影道場なら、昼でも薄暗いけれど。"],
-            { name: "ウスバ" },
-        )
+        yield* this.game.textBox.say(["流星道場は夜にならないと始まらないわ。月影道場なら、昼でも薄暗いけれど。"], {
+            name: "ウスバ",
+        })
         this.hideFigure("hachinoko")
     }
 }

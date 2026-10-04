@@ -67,7 +67,10 @@ class EnemyGrain extends Enemy {
 
         this.setParent(parent, () => vec.arg(this.frame / 120 + (T / 2) * index).scale(90))
 
-        this.addScript(() => this.cycle(), { margin: ENTRANCE_FRAMES + Sand.Hourglass.DRAW_FRAMES + index * 50, loop: Infinity })
+        this.addScript(() => this.cycle(), {
+            margin: ENTRANCE_FRAMES + Sand.Hourglass.DRAW_FRAMES + index * 50,
+            loop: Infinity,
+        })
     }
 
     // ゆっくりした砂を3粒、自機へ投げる

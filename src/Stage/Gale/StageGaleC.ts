@@ -78,7 +78,10 @@ class EnemyLeaf extends Enemy {
 
         this.setParent(parent, () => vec.arg(this.frame / 200 + (T / 2) * index).scale(110))
 
-        this.addScript(() => this.cycle(), { margin: ENTRANCE_FRAMES + Tornado.FORM_FRAMES + index * 60, loop: Infinity })
+        this.addScript(() => this.cycle(), {
+            margin: ENTRANCE_FRAMES + Tornado.FORM_FRAMES + index * 60,
+            loop: Infinity,
+        })
     }
 
     // 3本の矢を、最初はゆっくり、だんだん速く投げる

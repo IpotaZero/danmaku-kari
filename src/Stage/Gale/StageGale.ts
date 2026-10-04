@@ -43,7 +43,9 @@ export default class extends Stage {
         yield* this.game.textBox.say(["おっそいなあ! 待ちくたびれて三回も昼寝しちゃったよ!"], { name: "ヤンマ" })
         yield* this.game.textBox.say(["あなたが疾風道場の長?"], { name: "ハチノコ" })
         yield* this.game.textBox.say(["そう、ボクがヤンマ! 風より速く飛ぶのが自慢さ!"], { name: "ヤンマ" })
-        yield* this.game.textBox.say(["風に流されても、慌てず一緒に流れればいいんだよ。できるかな?"], { name: "ヤンマ" })
+        yield* this.game.textBox.say(["風に流されても、慌てず一緒に流れればいいんだよ。できるかな?"], {
+            name: "ヤンマ",
+        })
         this.hideFigure("hachinoko")
 
         const boss = new EnemyGale(this.game)
@@ -76,14 +78,15 @@ export default class extends Stage {
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
         yield* this.game.textBox.say(["うわー、目が回るー。"], { name: "ヤンマ" })
         yield* this.game.textBox.say(["速さだけなら負けてたかも。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["へへ、でも流されなかったのはキミの勝ち。疾風道場の免状をあげる!"], { name: "ヤンマ" })
+        yield* this.game.textBox.say(["へへ、でも流されなかったのはキミの勝ち。疾風道場の免状をあげる!"], {
+            name: "ヤンマ",
+        })
         this.hideFigure("hachinoko")
         this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
         yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(
-            ["次は霧隠道場か砂塵道場かな。どっちも見通しが悪いから、目を凝らしていきなよ!"],
-            { name: "ヤンマ" },
-        )
+        yield* this.game.textBox.say(["次は霧隠道場か砂塵道場かな。どっちも見通しが悪いから、目を凝らしていきなよ!"], {
+            name: "ヤンマ",
+        })
         this.hideFigure("hachinoko")
     }
 }

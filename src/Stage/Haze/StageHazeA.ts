@@ -39,13 +39,14 @@ export default class extends Stage {
 class EnemyPupil extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.5, this.game.HEIGHT * 0.06, 1, 2)
     // 鏡の線は画面の真ん中を横に通る。上下対称なので、弾と双子は同時に画面から出る
-    private readonly mirror = vec(this.game.WIDTH / 2, this.game.HEIGHT / 2)
+    private readonly mirror = Mirage.horizontal(this.game)
 
     constructor(game: Game) {
         super(game, 3000, 48, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
-        this.addScript(() => Mirage.show(this, this.mirror, 0))
+        this.addScript(() => Mirage.lines(this, [this.mirror]))
+        this.addScript(() => Mirage.ghosts(this, [this.mirror]))
     }
 
     private *enter() {
@@ -91,7 +92,7 @@ class EnemyPupil extends Enemy {
                         yield
                     }
                 })
-                .mirror(this.mirror, 0)
+                .mirror(this.mirror.center, this.mirror.angle)
                 .fire(this.game.bullets)
 
             yield* Array(RING_INTERVAL)

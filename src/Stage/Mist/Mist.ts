@@ -122,7 +122,13 @@ export namespace Mist {
     }
 
     // start から target へ霧の手裏剣を投げる。刺さると実体になり、少しして輪になって弾ける
-    export function shuriken<Parent extends Actor>(r: Remodel<Parent>, game: Game, start: Vec, target: Vec, config: Shuriken) {
+    export function shuriken<Parent extends Actor>(
+        r: Remodel<Parent>,
+        game: Game,
+        start: Vec,
+        target: Vec,
+        config: Shuriken,
+    ) {
         return r
             .format("diamond")
             .color(config.color)

@@ -96,7 +96,9 @@ class EnemyLantern extends Enemy {
         super(game, LANTERN_LIFE, 24)
 
         const side = phase === 0 ? -1 : 1
-        this.setParent(parent, () => vec(side * game.WIDTH * 0.3, game.HEIGHT * 0.05 * Math.sin(this.frame / 120 + phase)))
+        this.setParent(parent, () =>
+            vec(side * game.WIDTH * 0.3, game.HEIGHT * 0.05 * Math.sin(this.frame / 120 + phase)),
+        )
 
         this.addScript(() => this.cycle(phase), { margin: ENTRANCE_FRAMES, loop: Infinity })
     }

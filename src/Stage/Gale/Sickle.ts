@@ -36,7 +36,13 @@ export namespace Sickle {
 
     // start から target へ鎌を投げる。loop は輪を描く向き(1か-1。逆にすると鏡写しの輪になり、鎌の回る向きも逆になる)。
     // angle は投げたときの刃の向き
-    export function cast<Parent extends Actor>(r: Remodel<Parent>, start: Vec, target: Vec, loop: number, angle: number) {
+    export function cast<Parent extends Actor>(
+        r: Remodel<Parent>,
+        start: Vec,
+        target: Vec,
+        loop: number,
+        angle: number,
+    ) {
         const forward = target.sub(start)
         const normal = vec(-forward.y, forward.x).normalize().scale(loop)
         const course = (t: number) =>
