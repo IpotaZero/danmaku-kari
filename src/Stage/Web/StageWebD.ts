@@ -89,6 +89,7 @@ class EnemyBoss extends Enemy {
                 upper: remodel(this)
                     .scatter({ x: [this.game.WIDTH / 2 - 30, this.game.WIDTH / 2 + 30] })
                     .format("diamond")
+                    .speed(1)
                     .radian(T / 4)
                     .shift(13, 60)
                     .scatter({ hue: [0, 360] })
@@ -102,6 +103,7 @@ class EnemyBoss extends Enemy {
                     .y(this.game.HEIGHT)
                     .scatter({ x: [this.game.WIDTH / 2 - 30, this.game.WIDTH / 2 + 30] })
                     .format("diamond")
+                    .speed(1)
                     .radian(-T / 4)
                     .shift(13, 60)
                     .scatter({ hue: [0, 360] })
@@ -152,6 +154,7 @@ class EnemyBoss extends Enemy {
                 .color("white")
                 .radian(T / 4)
                 .nway(2, ((Math.sin(T * (i / 60)) + 1) / 2) * (T / 15) + T / 30)
+                .nway(7, T / 12)
                 .speed(8)
                 .fire(this.game.bullets)
             yield* Array(3)
@@ -163,26 +166,43 @@ class EnemyBoss extends Enemy {
     private *cycle1_1() {
         yield* this.randomMove(60)
 
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 16; i++) {
             yield* remodel(this)
                 .p(this.p.clone())
                 .format("diamond")
                 .scatter({ p: 360, hue: [0, 360] })
                 .aim(this.game.player.p)
-                .speed(8)
                 .shift(16, 60)
                 .appear(30)
                 .g((me) => Behavior.reaccel(me, 30, 30, 30))
                 .fire(this.game.bullets)
 
-            yield* Array(10)
+            yield* Array(5)
         }
 
         yield* Array(360)
     }
 
     private *cycle2() {
-        yield
+        yield* remodel(this)
+            .format("diamond")
+            .p(this.p.clone())
+            .aim(this.game.player.p)
+            .duplicate(4)
+            .speed(8)
+            .delayByIndex(6)
+
+            .nway(8, T / 129)
+            .g(function* (me, _, __, j) {
+                const radian = me.radian
+                for (let i = 0; i < Infinity; i++) {
+                    me.radian = radian + Math.cos(i / 36) * (T / 12) * (2 * (j % 2) - 1)
+                    yield
+                }
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(30)
     }
 
     private *cycle2_0() {}

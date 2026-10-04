@@ -1,14 +1,17 @@
 import { Actor } from "./Actor"
 import { Polygon } from "../BulletDrawer/Polygon"
+import { uid } from "../../utils/Functions/uid"
+import { Game } from "../Game"
 
 export class Bullet extends Actor {
     r: number = 12
     radian: number = 0
-    speed: number = 1
+    speed: number = 8
     length: number = 0
     damage: number = 1
-    delay: number = 0
     isScorable: boolean = true
+
+    delay: number = 0
 
     appearance: "donut" | "ball" | "line" | "arrow" | "laser" | "beam" | "player" | "score" | Polygon.Type = "donut"
     collision: "circle" | "line" | "arrow" | "rect" | Polygon.Type = "circle"
@@ -18,7 +21,7 @@ export class Bullet extends Actor {
 
     private scriptReservations: [
         g: (me: Bullet) => Generator<unknown, unknown, void>,
-        config: { loop?: number; margin?: number },
+        config: { loop?: number; margin?: number; id?: string },
     ][] = []
 
     clone() {
@@ -33,19 +36,19 @@ export class Bullet extends Actor {
     }
 
     init() {
+        this.addScript(() => this.move(this), { loop: Infinity, id: "move" })
+        this.addScript(() => this.boundary(this), { loop: Infinity, id: "boundary" })
+
         this.scriptReservations.forEach((g) => {
             this.addScript(...g)
         })
-
-        this.addScript(this.move.bind(this), { loop: Infinity, id: "move" })
-        this.addScript(this.boundary.bind(this), { loop: Infinity, id: "boundary" })
     }
 
     bookScript(
         g: (me: Bullet) => Generator<unknown, unknown, void>,
-        { loop = 1, margin = 0 }: { loop?: number; margin?: number } = {},
+        { loop = 1, margin = 0, id = uid() }: { loop?: number; margin?: number; id?: string } = {},
     ) {
-        this.scriptReservations.push([g, { loop, margin }])
+        this.scriptReservations.push([g, { loop, margin, id }])
     }
 
     // scoreタイプに変え、自機へのホーミングを開始する
@@ -59,34 +62,29 @@ export class Bullet extends Actor {
 
         this.clearScripts()
 
-        this.addScript(() => this.homing(), { loop: Infinity, id: "score-homing" })
-        this.addScript(() => this.move(), { loop: Infinity, id: "move" })
+        this.addScript(() => this.homing(this), { loop: Infinity, id: "score-homing" })
+        this.addScript(() => this.move(this), { loop: Infinity, id: "move" })
     }
 
-    private *homing() {
-        const target = this.game.player.p.clone()
-        const diff = target.sub(this.p)
+    private *homing(me: Bullet) {
+        const target = me.game.player.p.clone()
+        const diff = target.sub(me.p)
 
-        this.radian = diff.radian()
-        this.speed = Math.max(diff.magnitude() / 12, 16)
+        me.radian = diff.radian()
+        me.speed = Math.max(diff.magnitude() / 12, 16)
 
         yield
     }
 
-    private *move() {
-        this.p.x += Math.cos(this.radian) * this.speed
-        this.p.y += Math.sin(this.radian) * this.speed
+    private *move(me: Bullet) {
+        me.p.x += Math.cos(me.radian) * me.speed
+        me.p.y += Math.sin(me.radian) * me.speed
         yield
     }
 
-    private *boundary() {
-        if (
-            this.p.x < -this.r ||
-            this.game.WIDTH + this.r < this.p.x ||
-            this.p.y < -this.r ||
-            this.game.HEIGHT + this.r < this.p.y
-        ) {
-            this.life = 0
+    private *boundary(me: Bullet) {
+        if (me.p.x < -me.r || me.game.WIDTH + me.r < me.p.x || me.p.y < -me.r || me.game.HEIGHT + me.r < me.p.y) {
+            me.life = 0
         }
         yield
     }

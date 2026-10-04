@@ -4,8 +4,9 @@ import { Bullet } from "./Actor/Bullet"
 import { T } from "../T"
 import type { NumberKeys } from "@ipota/my-utils"
 import { Actor } from "./Actor/Actor"
-import type { Enemy } from "./Actor/Enemy"
+import { Enemy } from "./Actor/Enemy"
 import { GenUtils } from "../utils/Functions/GeneratorUtils"
+import { seededRandom } from "../utils/Functions/seededRandom"
 
 export function remodel<Parent extends Actor>(e: Parent) {
     return new Remodel([new Bullet(e.game)], e)
@@ -479,14 +480,24 @@ export class Remodel<Parent extends Actor> {
     // 挙動を追加する。g の this は Remodel を呼び出した Actor になる
     g(
         g: (this: Parent, me: Bullet, index: number, ...generationIndices: number[]) => Generator,
-        config: { loop?: number; margin?: number } = {},
+        config: { loop?: number; margin?: number; id?: string } = {},
     ) {
         const parent = this.parent
         const indices = this.indices
 
         this.bullets.forEach((b, index) => {
+            // 敵の弾は、弾ごとに専用の乱数で動かす。シードは弾を作った時点で決めるので、
+            // ほかの弾が途中で消えても値がずれない
+            const seed = parent instanceof Enemy ? Math.floor(parent.random() * 2 ** 32) : 0
+
             b.bookScript(function* (me: Bullet) {
-                yield* g.call(parent, me, index, ...indices[index])
+                const behavior = g.call(parent, me, index, ...indices[index])
+
+                if (parent instanceof Enemy) {
+                    yield* parent.withRandom(seededRandom(seed), behavior)
+                } else {
+                    yield* behavior
+                }
             }, config)
         })
 
