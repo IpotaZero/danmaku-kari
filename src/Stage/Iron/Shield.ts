@@ -14,6 +14,10 @@ export namespace Shield {
 
     // 自機の弾が1フレームで進んだ線分が、盾に触れたかどうか。弾は速いので、すり抜けないよう線分で調べる
     function isTouching(me: Bullet, b: Bullet) {
+        // 盾は数が多いので、明らかに遠い弾はベクトルを作らずに先に除く
+        const reach = me.r + b.r + b.speed
+        if (Math.abs(b.p.x - me.p.x) > reach || Math.abs(b.p.y - me.p.y) > reach) return false
+
         const end = b.p
         const start = b.p.sub(vec.arg(b.radian).scale(b.speed))
         const edge = end.sub(start)
