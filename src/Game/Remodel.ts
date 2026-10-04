@@ -69,6 +69,13 @@ export namespace Format {
 }
 
 export namespace Behavior {
+    export function* hue(me: Bullet, start: number, end: number, frame: number) {
+        for (let i = 1; i < frame + 1; i++) {
+            me.color = `hsl(${start + (end - start) * (i / frame)},100%,50%)`
+            yield
+        }
+    }
+
     // 数フレームの間追尾する
     export function* homing(me: Bullet, p: Vec, frame: number) {
         for (let i = 0; i < frame; i++) {

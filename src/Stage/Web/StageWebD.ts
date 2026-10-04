@@ -2,7 +2,7 @@ import { vec } from "@ipota/vec"
 import { Ease, GenUtils } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { Behavior, Remodel, remodel } from "../../Game/Remodel"
+import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
@@ -208,6 +208,17 @@ class EnemyBoss extends Enemy {
             })
             .fire(this.game.bullets)
 
+        yield* remodel(this)
+            .format("arrow")
+            .p(this.p.clone())
+            .aim(this.game.player.p)
+            .sim(4, 3, 6)
+            .delayByIndex(10)
+            .nway(4, T / 24)
+            .scatter({ hue: [0, 360] })
+            .g((me) => Behavior.accel(me, 60, 8))
+            .fire(this.game.bullets)
+
         yield* Array(30)
     }
 
@@ -223,7 +234,10 @@ class EnemyBoss extends Enemy {
             .g(function* (me, i) {
                 yield* Behavior.fadein(me, 30)
 
-                yield* Behavior.ease(me, "radian", radian, 50, Ease.InBack)
+                yield* GenUtils.all({
+                    color: Behavior.hue(me, 180, 300, 50),
+                    fang: Behavior.ease(me, "radian", radian, 50, Ease.InBack),
+                })
 
                 yield* Behavior.fadeout(me, 30)
             })
@@ -238,8 +252,11 @@ class EnemyBoss extends Enemy {
             .delayByIndex(20)
             .duplicate(63)
             .scatter({ radian: [0, T], hue: [0, 360] })
-            .speed(0)
-            .g((me) => Behavior.accel(me, 60, 6))
+            .speed(8)
+            .g(function* (me) {
+                yield* Behavior.accel(me, 120, 1)
+                yield* Behavior.fadeout(me, 30)
+            })
             .fire(this.game.bullets)
 
         yield* Array(120)

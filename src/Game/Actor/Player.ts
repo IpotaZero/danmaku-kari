@@ -3,7 +3,7 @@ import { Game } from "../Game"
 import { vec, Vec } from "@ipota/vec"
 import { T } from "../../T"
 import { Ctx } from "../../utils/Functions/Ctx"
-import { Behavior, Remodel, remodel } from "../Remodel"
+import { Behavior, remodel } from "../Remodel"
 import { Ease } from "@ipota/functions"
 import type { MainEquipment, SubEquipment } from "../Equipment/PlayerEquipment"
 
@@ -211,7 +211,9 @@ export class Player extends Actor {
                 .filter((b) => b.p.sub(center).magnitude() <= radius)
                 .forEach((b) => b.scorenize())
 
-            this.game.drawInWorld((ctx) => Ctx.arc(ctx, center, radius, `rgba(255, 255, 255, ${alpha})`, { lineWidth: 2 }))
+            this.game.drawInWorld((ctx) =>
+                Ctx.arc(ctx, center, radius, `rgba(255, 255, 255, ${alpha})`, { lineWidth: 2 }),
+            )
 
             yield
         }
@@ -264,10 +266,7 @@ export class Player extends Actor {
         const maxFrame = isBoosted ? 30 : 20
         const speed = isBoosted ? 8 : 4
 
-        const offset = vec(
-            (Math.random() - 0.5) * this.GRAZE_R * 16,
-            (Math.random() - 0.5) * this.GRAZE_R * 4,
-        )
+        const offset = vec((Math.random() - 0.5) * this.GRAZE_R * 16, (Math.random() - 0.5) * this.GRAZE_R * 4)
         let p = this.p.add(offset)
         let v = vec((Math.random() - 0.5) * speed, (Math.random() - 0.5) * speed)
 
@@ -426,11 +425,7 @@ export class Player extends Actor {
         ctx.rotate((this.v.x / 20) * T * 0.02)
         ctx.translate(-256, -40)
 
-        ctx.drawImage(
-            isUpperFrame ? upperWing : lowerWing,
-            Math.random() - 0.5,
-            Math.random() - 0.5,
-        )
+        ctx.drawImage(isUpperFrame ? upperWing : lowerWing, Math.random() - 0.5, Math.random() - 0.5)
 
         ctx.restore()
     }
