@@ -35,7 +35,7 @@
 		{"id":"751ab8850da9b699","type":"text","text":"霜月道場・道場主\nStageFrost\nbadge:霜月","x":1180,"y":-70,"width":320,"height":300},
 		{"id":"b645a540eecf50a7","type":"text","text":"疾風道場・道場主\nStageGale\nbadge:疾風","x":2360,"y":-570,"width":320,"height":300},
 		{"id":"70041c417988cd82","type":"text","text":"網掛道場・道場主\nStageWebD\nbadge:網掛","x":2360,"y":420,"width":320,"height":320},
-		{"id":"776f536c08216061","type":"text","text":"鉄壁道場・道場主\nStageNotImplemented\nbadge:鉄壁","x":3540,"y":960,"width":300,"height":320},
+		{"id":"776f536c08216061","type":"text","text":"鉄壁道場・道場主\nStageIron\nbadge:鉄壁","x":3540,"y":960,"width":300,"height":320},
 		{"id":"2a0f289b578f41f4","type":"text","text":"陽炎道場・道場主\nStageHaze\nbadge:陽炎","x":3560,"y":430,"width":300,"height":300},
 		{"id":"5675d716c5761d80","type":"text","text":"砂塵道場・道場主\nStageSand\nbadge:砂塵","x":3560,"y":-60,"width":300,"height":280},
 		{"id":"03e5df0075419b20","type":"text","text":"霧隠道場・道場主\nStageMist\nbadge:霧隠","x":3540,"y":-1080,"width":320,"height":320},
