@@ -1,5 +1,5 @@
 import { Vec, vec } from "@ipota/vec"
-import { Ease } from "@ipota/functions"
+import { Ease, GenUtils } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
@@ -7,7 +7,6 @@ import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
-import { GenUtils } from "../../utils/Functions/GeneratorUtils"
 
 // 試作「蜘蛛の巣」
 // 親蜘蛛(ボス)の周りを回る3匹の子蜘蛛(衛星)が、順番に自機のそばへ巣を投げる。

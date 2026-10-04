@@ -5,7 +5,7 @@ import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
-import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { GenUtils } from "@ipota/functions"
 import { Curves } from "../../utils/Functions/Curves"
 
 // ステージ「六花」(霜月道場・門下生その2) 難易度 2/4

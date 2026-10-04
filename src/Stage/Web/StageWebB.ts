@@ -6,7 +6,7 @@ import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
-import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { GenUtils } from "@ipota/functions"
 
 export default class extends Stage {
     *G() {
@@ -54,6 +54,7 @@ class EnemyCore extends Enemy {
         yield* remodel(this)
             .scatter({ x: [this.game.WIDTH / 2 - 10, this.game.WIDTH / 2 + 10] })
             .format("diamond")
+            .speed(1)
             .radian(T / 4)
             .shift(13, 60)
             .scatter({ hue: [0, 360] })

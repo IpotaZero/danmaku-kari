@@ -1,6 +1,6 @@
 import { vec } from "@ipota/vec"
 import { T } from "../../T"
-import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { GenUtils } from "@ipota/functions"
 import { Behavior, Remodel, remodel } from "../Remodel"
 import type { Player } from "../Actor/Player"
 import type { MainEquipment } from "./types"

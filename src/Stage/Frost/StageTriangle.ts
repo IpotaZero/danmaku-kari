@@ -5,7 +5,7 @@ import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
-import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { GenUtils } from "@ipota/functions"
 import { Curves } from "../../utils/Functions/Curves"
 
 // 試作「三角」

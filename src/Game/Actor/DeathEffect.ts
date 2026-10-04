@@ -1,5 +1,4 @@
-import { Ease } from "@ipota/functions"
-import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { Ease, GenUtils } from "@ipota/functions"
 import { Vec } from "@ipota/vec"
 import { Behavior, remodel } from "../Remodel"
 import { T } from "../../T"

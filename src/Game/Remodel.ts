@@ -1,11 +1,10 @@
-import { Ease } from "@ipota/functions"
+import { Ease, GenUtils } from "@ipota/functions"
 import { Vec, vec } from "@ipota/vec"
 import { Bullet } from "./Actor/Bullet"
 import { T } from "../T"
 import type { NumberKeys } from "@ipota/my-utils"
 import { Actor } from "./Actor/Actor"
 import { Enemy } from "./Actor/Enemy"
-import { GenUtils } from "../utils/Functions/GeneratorUtils"
 import { seededRandom } from "../utils/Functions/seededRandom"
 
 export function remodel<Parent extends Actor>(e: Parent) {
