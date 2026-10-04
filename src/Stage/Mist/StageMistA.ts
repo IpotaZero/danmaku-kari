@@ -26,7 +26,7 @@ const RING_COUNT = 30
 const RING_SPEED = 2.2
 // 二色が一度ずつ実体になるまでの長さと、入れ替わりにかかる時間
 const CLOCK = new Mist.Clock(160, 36)
-const COLORS = ["#ffb0d0", "#a0c8ff"]
+const COLORS: Color[] = ["#ffb0d0", "#a0c8ff"]
 
 const LANTERN_LIFE = 700
 
