@@ -100,10 +100,10 @@ export abstract class Enemy extends Actor {
         this.r = this.baseR
     }
 
-    protected *moveTo(end: Vec, frame: number) {
+    protected *moveTo(end: Vec, frame: number, ratio: number = 1) {
         const start = this.p
 
-        for (let i = 0; i < frame; i++) {
+        for (let i = 1; i < (frame + 1) * ratio; i++) {
             this.p = start.add(end.sub(start).scale(Ease.Out(i / frame)))
             yield
         }

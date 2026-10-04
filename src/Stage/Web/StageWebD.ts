@@ -57,11 +57,11 @@ class EnemyBoss extends Enemy {
     }
 
     *start() {
-        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle", margin: 150 })
-        yield
+        // this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle", margin: 150 })
+        // yield
 
-        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 150 })
-        yield
+        // this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 150 })
+        // yield
 
         this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
@@ -171,7 +171,7 @@ class EnemyBoss extends Enemy {
                 .format("diamond")
                 .scatter({ p: 360, hue: [0, 360] })
                 .aim(this.game.player.p)
-                .shift(16, 60)
+                .shift(16, 120)
                 .appear(30)
                 .g((me) => Behavior.reaccel(me, 30, 30, 30))
                 .fire(this.game.bullets)
@@ -183,6 +183,14 @@ class EnemyBoss extends Enemy {
     }
 
     private *cycle2() {
+        yield* GenUtils.repeat(4, () => this.cycle2_0())
+        yield* Array(30)
+        yield* this.moveTo(this.game.player.p, 60, 0.3)
+        yield* this.cycle2_1()
+        yield* this.randomMove(60)
+    }
+
+    private *cycle2_0() {
         yield* remodel(this)
             .format("diamond")
             .p(this.p.clone())
@@ -190,7 +198,6 @@ class EnemyBoss extends Enemy {
             .duplicate(4)
             .speed(8)
             .delayByIndex(6)
-
             .nway(8, T / 129)
             .g(function* (me, _, __, j) {
                 const radian = me.radian
@@ -204,9 +211,39 @@ class EnemyBoss extends Enemy {
         yield* Array(30)
     }
 
-    private *cycle2_0() {}
+    private *cycle2_1() {
+        const radian = this.game.player.p.sub(this.p).radian()
 
-    private *cycle2_1() {}
+        yield* remodel(this)
+            .p(this.p.clone())
+            .beam(250)
+            .radian(radian)
+            .nway(2, T / 6)
+            .alpha(0)
+            .g(function* (me, i) {
+                yield* Behavior.fadein(me, 30)
+
+                yield* Behavior.ease(me, "radian", radian, 50, Ease.InBack)
+
+                yield* Behavior.fadeout(me, 30)
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(80)
+
+        yield* remodel(this)
+            .format("diamond")
+            .p(this.p.clone())
+            .duplicate(4)
+            .delayByIndex(20)
+            .duplicate(63)
+            .scatter({ radian: [0, T], hue: [0, 360] })
+            .speed(0)
+            .g((me) => Behavior.accel(me, 60, 6))
+            .fire(this.game.bullets)
+
+        yield* Array(120)
+    }
 
     private *cycle3() {
         yield

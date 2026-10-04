@@ -122,6 +122,11 @@ export namespace Behavior {
         me.life = 0
     }
 
+    export function* fadein(me: Bullet, frame: number) {
+        yield* ease(me, "alpha", 1, frame, Ease.Linear)
+        me.type = "enemy"
+    }
+
     // 数フレームかけて値を変化させる
     export function* ease(
         me: Bullet,
@@ -423,12 +428,7 @@ export class Remodel<Parent extends Actor> {
             .collision("rect")
             .isScorable(false)
             .g(function* (me) {
-                let i = 0
-
                 while (1) {
-                    i++
-                    me.alpha = 0.8 * (Math.sin(i / 10) + 1) + 0.8
-
                     me.p = parent.p
 
                     if (parent.life <= 0) {
