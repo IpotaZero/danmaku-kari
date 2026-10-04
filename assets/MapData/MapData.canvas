@@ -44,7 +44,8 @@
 		{"id":"ca68c9295dde0dbf","type":"text","text":"チャンピオン\nStageChampion","x":7480,"y":-40,"width":240,"height":240},
 		{"id":"7f2a99c197bc75b2","type":"text","text":"当たり判定\nStageHitbox","x":0,"y":280,"width":160,"height":160},
 		{"id":"e5bf38412c26e531","type":"text","text":"修行場・万華鏡\nStageKaleidoscope","x":0,"y":560,"width":160,"height":160},
-		{"id":"7ffad9e825c3ee4d","type":"text","text":"修行場・振り子\nStagePendulum","x":0,"y":840,"width":160,"height":160}
+		{"id":"7ffad9e825c3ee4d","type":"text","text":"修行場・振り子\nStagePendulum","x":0,"y":840,"width":160,"height":160},
+		{"id":"db446724e01017d8","type":"text","text":"修行場・波紋\nStageRipple","x":0,"y":1120,"width":160,"height":160}
 	],
 	"edges":[
 		{"id":"3a6309e33f10111f","fromNode":"f840811f7f798aeb","fromSide":"right","toNode":"31f7d87e5e5e2323","toSide":"left"},
@@ -94,6 +95,7 @@
 		{"id":"4679701d62d5bf4e","fromNode":"5675d716c5761d80","fromSide":"right","toNode":"573084b0c44d937c","toSide":"left","label":"laser"},
 		{"id":"b85c83c22b56ce0a","fromNode":"35c5577f1a6c4709","fromSide":"bottom","toNode":"7f2a99c197bc75b2","toSide":"top"},
 		{"id":"a72ce8de0a9addd6","fromNode":"7f2a99c197bc75b2","fromSide":"bottom","toNode":"e5bf38412c26e531","toSide":"top"},
-		{"id":"fa532db0c1161937","fromNode":"e5bf38412c26e531","fromSide":"bottom","toNode":"7ffad9e825c3ee4d","toSide":"top"}
+		{"id":"fa532db0c1161937","fromNode":"e5bf38412c26e531","fromSide":"bottom","toNode":"7ffad9e825c3ee4d","toSide":"top"},
+		{"id":"3f5c7f38190ba7d9","fromNode":"7ffad9e825c3ee4d","fromSide":"bottom","toNode":"db446724e01017d8","toSide":"top"}
 	]
 }
