@@ -22,7 +22,7 @@
 		{"id":"46e539f50437a678","type":"text","text":"四天王・青龍\nStageSeiryu","x":6300,"y":0,"width":160,"height":160},
 		{"id":"534a94c5e210d65c","type":"text","text":"四天王・朱雀\nStageSuzaku","x":6560,"y":0,"width":160,"height":160},
 		{"id":"98c07e56e131e418","type":"text","text":"四天王・白虎\nStageByakko","x":6820,"y":0,"width":160,"height":160},
-		{"id":"3bceb29a6b35762f","type":"text","text":"四天王・玄武\nStageNotImplemented","x":7080,"y":0,"width":160,"height":160},
+		{"id":"3bceb29a6b35762f","type":"text","text":"四天王・玄武\nStageGenbu","x":7080,"y":0,"width":160,"height":160},
 		{"id":"ed45c0b7fab66007","type":"text","text":"鉄壁道場・門下生\nStageIronA","x":2760,"y":1040,"width":160,"height":160},
 		{"id":"8aede485119c7180","type":"text","text":"鉄壁道場・高弟\nStageIronB","x":3020,"y":1040,"width":160,"height":160},
 		{"id":"f306d45e3016d5aa","type":"text","text":"鉄壁道場・師範代\nStageIronC","x":3280,"y":1040,"width":160,"height":160},
