@@ -1,12 +1,13 @@
-import { Vec, vec } from "@ipota/vec"
+import { vec } from "@ipota/vec"
 import { GenUtils } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { Behavior, remodel } from "../../Game/Remodel"
+import { remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
+import { Sickle } from "./Sickle"
 
 // ステージ「鎌鼬」(疾風道場・高弟)
 // 左右の鼬(衛星)が、弾を弧に並べた鎌を投げる。鎌は回りながら自機のそばまで飛び、輪を描いて鼬の手元へ戻ってくる。
@@ -17,20 +18,8 @@ import { T } from "../../T"
 const ENTRANCE_FRAMES = 150
 // 1周期の長さ。鎌が戻りきった後、2秒半ほど休憩が入る
 const CYCLE_FRAMES = 460
-// 鎌を研いでいる時間(提示)と、投げてから戻るまでの時間
-const SHARPEN_FRAMES = 40
-const FLIGHT_FRAMES = 160
 // 右の鼬が投げるのを遅らせる
 const THROW_LAG = 50
-// 鎌の刃。半径 BLADE_RADIUS の円弧を BLADE_SPAN だけ切り取った形に、BLADE_SPACING おきに弾を並べる。
-// 刃の弾の間隔は自機の当たり判定の8倍より狭いので、刃は抜けられない
-const BLADE_RADIUS = 80
-const BLADE_SPAN = T / 3
-const BLADE_SPACING = 14
-// 1フレームあたりの鎌の回転
-const SPIN = T / 70
-// 鎌が描く輪の膨らみ。行きと帰りで通り道がこれだけずれる
-const LOOP_SWELL = 110
 // 自機からどれだけずれた場所を狙うか
 const AIM_SPREAD = 60
 
@@ -43,19 +32,6 @@ export default class extends Stage {
 
         yield* this.waitAllEnemiesDead()
     }
-}
-
-// 鎌の形。回転の中心(刃の重心)から見た弾の位置を返す
-function blade(): Vec[] {
-    const count = Math.ceil((BLADE_RADIUS * BLADE_SPAN) / BLADE_SPACING)
-    const centroid = vec((BLADE_RADIUS * Math.sin(BLADE_SPAN / 2)) / (BLADE_SPAN / 2), 0)
-
-    return Array.from({ length: count + 1 }, (_, i) =>
-        vec
-            .arg(BLADE_SPAN * (i / count - 0.5))
-            .scale(BLADE_RADIUS)
-            .sub(centroid),
-    )
 }
 
 class EnemyMaster extends Enemy {
@@ -93,7 +69,7 @@ class EnemyMaster extends Enemy {
 
     // 鎌が自機のそばで交差するころに、ゆっくりした輪を2つ重ねる
     private *rings() {
-        yield* Array(SHARPEN_FRAMES + 50)
+        yield* Array(Sickle.SHARPEN_FRAMES + 50)
 
         for (let k = 0; k < 2; k++) {
             const count = 24
@@ -129,46 +105,15 @@ class EnemyWeasel extends Enemy {
         })
     }
 
-    // 手元で鎌を研ぎ、自機のそばへ向けて投げる。鎌は輪を描いて投げた場所へ戻る
+    // 手元で鎌を研ぎ、自機のそばへ向けて投げる。鎌は輪を描いて投げた場所へ戻る。左右の鼬で鏡写しの輪を描く
     private *sickle(side: number) {
         if (side > 0) yield* Array(THROW_LAG)
         if (this.life <= 0) return
 
-        const start = this.p.clone()
         const target = this.game.player.p.add(vec.arg(this.random() * T).scale(this.random() * AIM_SPREAD))
-        const forward = target.sub(start)
-        // 左右の鼬で鏡写しの輪を描く
-        const normal = vec(-forward.y, forward.x).normalize().scale(side)
-        const course = (t: number) =>
-            start.add(forward.scale(Math.sin(Math.PI * t))).add(normal.scale(LOOP_SWELL * Math.sin(T * t)))
 
-        const offsets = blade()
-        const base = this.random() * T
-        const spin = SPIN * -side
-
-        yield* remodel(this)
-            .format("wedge")
+        yield* Sickle.cast(remodel(this), this.p.clone(), target, side, this.random() * T)
             .color("#b8ffd8")
-            .speed(0)
-            .duplicate(offsets.length, (b, i) => {
-                b.p = start.add(offsets[i].rotate(base))
-                b.radian = offsets[i].radian() + base + T / 4
-                return b
-            })
-            .g(function* (me, i) {
-                // 刃が画面の外へはみ出しても、戻ってくるまで消さない
-                me.removeScript("boundary")
-                yield* Behavior.appear(me, SHARPEN_FRAMES)
-
-                for (let f = 1; f <= FLIGHT_FRAMES; f++) {
-                    const angle = base + spin * f
-                    me.p = course(f / FLIGHT_FRAMES).add(offsets[i].rotate(angle))
-                    me.radian = offsets[i].radian() + angle + T / 4
-                    yield
-                }
-
-                yield* Behavior.fadeout(me, 15)
-            })
             .fire(this.game.bullets)
     }
 }

@@ -1,3 +1,4 @@
+import { vec } from "@ipota/vec"
 import { Ease } from "@ipota/functions"
 import { Actor } from "../../Game/Actor/Actor"
 import { Game } from "../../Game/Game"
@@ -14,6 +15,16 @@ export namespace Wind {
         start: number
         // 1で右へ、-1で左へ吹く
         direction: number
+    }
+
+    export type Rain = {
+        // 列と列の間隔
+        gap: number
+        // 雨を降らせ続ける時間
+        frames: number
+        // 雨の弾を落とす間隔と速さ。列の中の弾の間隔は両者の積になる
+        interval: number
+        speed: number
     }
 
     export type Shape = {
@@ -56,11 +67,6 @@ export namespace Wind {
             return 0
         }
 
-        length(): number {
-            const { rise, hold, fall } = this.shape
-            return Math.max(...this.gusts.map((g) => g.start + rise + hold + fall))
-        }
-
         // 突風ごとに、風上の端から風下へ筋を流す。弾幕と同時に fire するので、delay は予報の始まりから数える
         streaks<Parent extends Actor>(r: Remodel<Parent>, game: Game, random: () => number) {
             const { rise, hold } = this.shape
@@ -85,6 +91,29 @@ export namespace Wind {
                         Math.floor(gust.start - PREVIEW_FRAMES + ((PREVIEW_FRAMES + rise + hold) * k) / STREAKS_PER_GUST),
                     )
                     return b
+                })
+        }
+
+        // 上端に等間隔に並んだ列から雨を降らせる。どの弾も予報を見て、同じ時刻に同じ向きへ曲がる。
+        // offset は一番左の列の位置
+        rain<Parent extends Actor>(r: Remodel<Parent>, game: Game, rain: Rain, offset: number) {
+            const forecast = this
+            const columns = Math.ceil((game.WIDTH - offset) / rain.gap)
+            const drops = Math.floor(rain.frames / rain.interval)
+
+            return r
+                .speed(rain.speed)
+                .duplicate(columns * drops, (b, i) => {
+                    b.p = vec(offset + rain.gap * (i % columns), 1)
+                    b.delay = Math.floor(i / columns) * rain.interval
+                    b.radian = forecast.fall(b.delay)
+                    return b
+                })
+                .g(function* (me) {
+                    for (let t = me.delay; me.life > 0; t++) {
+                        me.radian = forecast.fall(t)
+                        yield
+                    }
                 })
         }
     }
