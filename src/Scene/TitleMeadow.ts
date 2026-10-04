@@ -60,7 +60,16 @@ export class TitleMeadow {
 
         const far = this.element.querySelector(".meadow-bugs-far")!
         const near = this.element.querySelector(".meadow-bugs-near")!
-        const kinds = ["butterfly", "dragonfly", "bee", "ladybug", "butterfly", "dragonfly", "bee", "butterfly"] as const
+        const kinds = [
+            "butterfly",
+            "dragonfly",
+            "bee",
+            "ladybug",
+            "butterfly",
+            "dragonfly",
+            "bee",
+            "butterfly",
+        ] as const
         kinds.forEach((kind, i) => {
             const isNear = i % 2 === 0
             const bug = document.createElement("div")

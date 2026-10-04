@@ -82,11 +82,12 @@
     font-weight: 100;
     /* 幅が狭い(スマホ)・高さが低い(PCの横長ウィンドウ)のどちらでもはみ出さないよう、
        小さいほうの辺(vmin)を基準に縮小する */
-    font-size: clamp(3.2rem, 22vmin, 8.5rem);
+    font-size: clamp(3.2rem, 21vmin, 8.5rem);
     line-height: 0.92;
     letter-spacing: -0.01em;
 
     color: var(--title-forest);
+    max-width: 100%;
 }
 
 /* 1行ずつ静かに浮かび上がらせる。装飾は真ん中の行の金色だけに絞る */
