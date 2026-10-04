@@ -1,4 +1,10 @@
+import { Vec, vec } from "@ipota/vec"
+import { Ease, GenUtils } from "@ipota/functions"
+import { Actor } from "../../Game/Actor/Actor"
 import { Bullet } from "../../Game/Actor/Bullet"
+import { Game } from "../../Game/Game"
+import { Behavior, Remodel, remodel } from "../../Game/Remodel"
+import { T } from "../../T"
 
 // 霧隠道場の「霧」。
 // 弾は二つの組(phase 0 と 1)に分かれ、時計に合わせて交互に実体と霧(薄く、当たり判定なし)になる。
@@ -53,5 +59,100 @@ export namespace Mist {
                 yield
             }
         }
+    }
+
+    export type Field = {
+        // 石の間隔と、石を敷く範囲の上端(画面の高さに対する割合)
+        spacing: number
+        top: number
+        // 石が霧の姿で現れてから入れ替わりが始まるまで・入れ替わりを続ける時間・消えるまで
+        intro: number
+        active: number
+        fade: number
+    }
+
+    // 画面の下の方に、大きな石を市松模様に敷く。(列+行)の偶奇で組を分け、時計に合わせて交互に霧にする。
+    // 時計は入れ替わりが始まる時点を0として数える。offset は並びのずれ(0以上spacing未満)
+    export function stones<Parent extends Actor>(
+        r: Remodel<Parent>,
+        game: Game,
+        clock: Clock,
+        field: Field,
+        offset: Vec,
+        colors: readonly Color[],
+    ) {
+        const origin = vec(offset.x, game.HEIGHT * field.top + offset.y)
+        const columns = Math.ceil((game.WIDTH - origin.x) / field.spacing)
+        const rows = Math.ceil((game.HEIGHT - origin.y) / field.spacing)
+        const phaseOf = (i: number) => ((i % columns) + Math.floor(i / columns)) % 2
+
+        return r
+            .format("big-ball")
+            .speed(0)
+            .type("neutral")
+            .alpha(MIST_ALPHA)
+            .duplicate(columns * rows, (b, i) => {
+                b.p = origin.add(vec(i % columns, Math.floor(i / columns)).scale(field.spacing))
+                b.color = colors[phaseOf(i)]
+                return b
+            })
+            .g(function* (me, i) {
+                yield* GenUtils.all({
+                    appear: Behavior.appear(me, field.intro),
+                    clock: (function* () {
+                        for (let t = -field.intro; t < field.active; t++) {
+                            clock.apply(me, phaseOf(i), t)
+                            yield
+                        }
+                    })(),
+                })
+
+                yield* Behavior.fadeout(me, field.fade)
+            })
+    }
+
+    export type Shuriken = {
+        // 飛んでいる時間(霧)と、刺さってから弾けるまでの時間(実体)
+        flight: number
+        stuck: number
+        // 弾けたときの輪の弾の数と速さ
+        burstCount: number
+        burstSpeed: number
+        color: Color
+    }
+
+    // start から target へ霧の手裏剣を投げる。刺さると実体になり、少しして輪になって弾ける
+    export function shuriken<Parent extends Actor>(r: Remodel<Parent>, game: Game, start: Vec, target: Vec, config: Shuriken) {
+        return r
+            .format("diamond")
+            .color(config.color)
+            .p(start.clone())
+            .type("neutral")
+            .alpha(0.25)
+            .speed(0)
+            .g(function* (me) {
+                // 弾の向きは進む向きでもあるので、回して見せるために位置は直接動かす
+                for (let f = 1; f <= config.flight; f++) {
+                    me.p = start.add(target.sub(start).scale(Ease.Out(f / config.flight)))
+                    me.radian += T / 20
+                    yield
+                }
+
+                me.type = "enemy"
+                me.alpha = 1
+                yield* Behavior.rotating(me, T / 40, config.stuck)
+
+                yield* remodel(this)
+                    .format("small-ball")
+                    .color(config.color)
+                    .p(me.p.clone())
+                    .radian(me.radian)
+                    .speed(config.burstSpeed)
+                    .ex(config.burstCount)
+                    .appear(10)
+                    .fire(game.bullets)
+
+                me.life = 0
+            })
     }
 }

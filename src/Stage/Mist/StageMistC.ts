@@ -1,12 +1,13 @@
 import { Vec, vec } from "@ipota/vec"
-import { Ease, GenUtils } from "@ipota/functions"
+import { GenUtils } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { Behavior, remodel } from "../../Game/Remodel"
+import { remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
+import { Mist } from "./Mist"
 
 // ステージ「霞隠れ」(霧隠道場・師範代)
 // 師範代のまわりに4体の分身(衛星)が並ぶ。分身は自機のまわりへ、霧の手裏剣(薄く、当たり判定なし)を投げる。
@@ -21,15 +22,11 @@ const CYCLE_FRAMES = 540
 // 分身が手裏剣を投げる時刻。分身の番号ごとにずらし、1周期に2巡する
 const THROW_INTERVAL = 20
 const ROUND_INTERVAL = 110
-// 手裏剣が飛んでいる時間(霧)と、刺さってから弾けるまでの時間(実体)
-const FLIGHT_FRAMES = 40
-const STUCK_FRAMES = 45
 // 手裏剣が刺さる場所の、自機からの距離
 const LAND_MIN = 90
 const LAND_MAX = 170
-// 弾けたときの輪
-const BURST_COUNT = 14
-const BURST_SPEED = 1.8
+// 手裏剣は40フレーム霧のまま飛び、刺さって45フレーム後に弾ける
+const SHURIKEN: Mist.Shuriken = { flight: 40, stuck: 45, burstCount: 14, burstSpeed: 1.8, color: "#e0e0ff" }
 
 const CLONE_COUNT = 4
 const CLONE_LIFE = 450
@@ -93,7 +90,7 @@ class EnemyMaster extends Enemy {
     }
 
     private *ring() {
-        yield* Array(ROUND_INTERVAL + THROW_INTERVAL * CLONE_COUNT + FLIGHT_FRAMES + STUCK_FRAMES)
+        yield* Array(ROUND_INTERVAL + THROW_INTERVAL * CLONE_COUNT + SHURIKEN.flight + SHURIKEN.stuck)
 
         yield* remodel(this)
             .format("donut")
@@ -133,41 +130,7 @@ class EnemyClone extends Enemy {
         const target = this.game.player.p.add(
             vec.arg(this.random() * T).scale(LAND_MIN + this.random() * (LAND_MAX - LAND_MIN)),
         )
-        const game = this.game
 
-        yield* remodel(this)
-            .format("diamond")
-            .color("#e0e0ff")
-            .p(this.p.clone())
-            .type("neutral")
-            .alpha(0.25)
-            .speed(0)
-            .g(function* (me) {
-                // 弾の向きは進む向きでもあるので、回して見せるために位置は直接動かす
-                const start = me.p.clone()
-
-                for (let f = 1; f <= FLIGHT_FRAMES; f++) {
-                    me.p = start.add(target.sub(start).scale(Ease.Out(f / FLIGHT_FRAMES)))
-                    me.radian += T / 20
-                    yield
-                }
-
-                me.type = "enemy"
-                me.alpha = 1
-                yield* Behavior.rotating(me, T / 40, STUCK_FRAMES)
-
-                yield* remodel(this)
-                    .format("small-ball")
-                    .color("#e0e0ff")
-                    .p(me.p.clone())
-                    .speed(BURST_SPEED)
-                    .radian(me.radian)
-                    .ex(BURST_COUNT)
-                    .appear(10)
-                    .fire(game.bullets)
-
-                me.life = 0
-            })
-            .fire(this.game.bullets)
+        yield* Mist.shuriken(remodel(this), this.game, this.p.clone(), target, SHURIKEN).fire(this.game.bullets)
     }
 }
