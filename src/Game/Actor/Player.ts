@@ -245,11 +245,16 @@ export class Player extends Actor {
 
         if (this.v.magnitude() === 0) return
 
-        const next = this.p.add(this.v)
-
-        this.p = vec(Math.min(Math.max(next.x, 0), this.game.WIDTH), Math.min(Math.max(next.y, 0), this.game.HEIGHT))
+        this.drag(this.v)
 
         this.emitMoveParticles()
+    }
+
+    // 自機を v だけ動かす。ステージの吸い込みや流れからも呼ばれる。画面の外へは出さない
+    drag(v: Vec) {
+        const next = this.p.add(v)
+
+        this.p = vec(Math.min(Math.max(next.x, 0), this.game.WIDTH), Math.min(Math.max(next.y, 0), this.game.HEIGHT))
     }
 
     // 移動中に周りへ撒き散らす、縮小しながら消えていく三角形の粒子。ブースト中はより多く・長く残す
