@@ -38,7 +38,7 @@
 		{"id":"776f536c08216061","type":"text","text":"鉄壁道場・道場主\nStageNotImplemented\nbadge:鉄壁","x":3540,"y":960,"width":300,"height":320},
 		{"id":"2a0f289b578f41f4","type":"text","text":"陽炎道場・道場主\nStageNotImplemented\nbadge:陽炎","x":3560,"y":430,"width":300,"height":300},
 		{"id":"5675d716c5761d80","type":"text","text":"砂塵道場・道場主\nStageNotImplemented\nbadge:砂塵","x":3560,"y":-60,"width":300,"height":280},
-		{"id":"03e5df0075419b20","type":"text","text":"霧隠道場・道場主\nStageNotImplemented\nbadge:霧隠","x":3540,"y":-1080,"width":320,"height":320},
+		{"id":"03e5df0075419b20","type":"text","text":"霧隠道場・道場主\nStageMist\nbadge:霧隠","x":3540,"y":-1080,"width":320,"height":320},
 		{"id":"5fbe65792de30064","type":"text","text":"流星道場・道場主\nStageNotImplemented\nbadge:流星","x":4710,"y":-590,"width":340,"height":340},
 		{"id":"f7f1907383d4c135","type":"text","text":"月影道場・道場主\nStageNotImplemented\nbadge:月影","x":5240,"y":980,"width":280,"height":280},
 		{"id":"ca68c9295dde0dbf","type":"text","text":"チャンピオン\nStageNotImplemented","x":7480,"y":-40,"width":240,"height":240},
