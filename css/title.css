@@ -3,6 +3,21 @@
 .scene-title {
     position: absolute;
     inset: 0;
+    overflow: hidden;
+
+    /* タイトル画面で使う色はこの4色だけ。濃淡は透明度で作る */
+    --title-paper: #f2ecdc;
+    --title-sage: #a7b59a;
+    --title-forest: #26372c;
+    --title-gold: #b8964f;
+
+    background: var(--title-paper);
+    color: var(--title-forest);
+
+    .texture-overlay {
+        opacity: 0.12;
+        mix-blend-mode: multiply;
+    }
 }
 
 /* タイトルロゴ・バージョン表記・3Dモデルをまとめて1つの塊として扱う。
@@ -23,9 +38,9 @@
     top: 0.8em;
 
     font-family: "Courier New", monospace;
-    font-size: 0.7em;
-    letter-spacing: 0.05em;
-    opacity: 0.8;
+    font-size: 0.6em;
+    letter-spacing: 0.2em;
+    opacity: 0.6;
 }
 
 .title-version {
@@ -46,8 +61,8 @@
 
     background: none;
     border: none;
-    color: #ffffff;
-    opacity: 0.8;
+    color: var(--title-forest);
+    opacity: 0.6;
     font-size: 0.9em;
 
     cursor: pointer;
@@ -61,6 +76,9 @@
     bottom: 4.5rem;
     padding: 0 0.15em;
 
+    flex-direction: column;
+    align-items: flex-start;
+
     font-weight: 100;
     /* 幅が狭い(スマホ)・高さが低い(PCの横長ウィンドウ)のどちらでもはみ出さないよう、
        小さいほうの辺(vmin)を基準に縮小する */
@@ -68,7 +86,36 @@
     line-height: 0.92;
     letter-spacing: -0.01em;
 
-    color: #ffffff;
+    color: var(--title-forest);
+}
+
+/* 1行ずつ静かに浮かび上がらせる。装飾は真ん中の行の金色だけに絞る */
+.title-logo-line {
+    font-size: inherit;
+    opacity: 0;
+    animation: title-logo-rise 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+
+    &:nth-child(2) {
+        color: var(--title-gold);
+        animation-delay: 0.25s;
+    }
+
+    &:nth-child(3) {
+        animation-delay: 0.5s;
+    }
+}
+
+@keyframes title-logo-rise {
+    from {
+        opacity: 0;
+        transform: translateY(0.12em);
+        filter: blur(0.04em);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
 }
 
 .title-menu {
@@ -91,12 +138,21 @@
         height: fit-content;
         padding: 0.4em 0 0.5em;
 
-        background: #000000a8;
+        /* 細い罫線だけの控えめなボタン。選択中は墨色で塗りつぶし、金の下線を引く */
+        background: transparent;
+        border: 1px solid var(--title-forest);
+        border-radius: 0;
+        color: var(--title-forest);
+        letter-spacing: 0.3em;
 
-        transition: background 0.15s ease-out;
+        transition:
+            background 0.3s ease-out,
+            color 0.3s ease-out;
 
         &.selected {
-            background: #000000d0;
+            background: var(--title-forest);
+            color: var(--title-paper);
+            box-shadow: 0 0.25em 0 -0.15em var(--title-gold);
         }
     }
 

@@ -1,6 +1,7 @@
 import { App } from "../App"
 import { Menu } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
+import { TitleMeadow } from "./TitleMeadow"
 
 export class SceneTitle extends Scene {
     private menu?: Menu
@@ -9,13 +10,21 @@ export class SceneTitle extends Scene {
         console.log("SceneTitle")
 
         this.root.classList.add("scene-title")
-        this.root.innerHTML = `
+        this.root.appendChild(new TitleMeadow().element)
+        this.root.insertAdjacentHTML(
+            "beforeend",
+            `
             <div class="title-content">
                 <div class="title-version">ver. dev</div>
                 <div class="title-copyright">&copy; ososikirackets</div>
-                <div class="title-logo">The<br />(仮)<br />Days!</div>
+                <div class="title-logo">
+                    <span class="title-logo-line">The</span>
+                    <span class="title-logo-line">Scattered</span>
+                    <span class="title-logo-line">Days!</span>
+                </div>
             </div>
-        `
+        `,
+        )
 
         this.menu = new Menu(
             `<div class="title-menu-stack"><div id="root"></div></div>`,

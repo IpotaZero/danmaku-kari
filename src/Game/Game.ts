@@ -82,6 +82,8 @@ export class Game extends IteratorQueue {
     private score = 0
 
     private bulletDrawer = new BulletDrawer()
+    // スクリプトがupdate中に積む、ワールド座標の描画命令。描画はrAFごとに1回なので、update中に直接ctxへ描かず、ここに溜めてdraw()で再生する
+    private readonly worldDrawings: ((ctx: CanvasRenderingContext2D) => void)[] = []
     private bulletCollision = new BulletCollision()
 
     readonly WIDTH = 32 * 16
@@ -162,13 +164,14 @@ export class Game extends IteratorQueue {
     }
 
     update(): void {
+        // 1回のrAFで複数回updateされても、描かれるのは最後のupdateで積まれた分だけ
+        this.worldDrawings.length = 0
+
         this.touchControls.update()
 
         if (this.state === "playing" && !this.textBox.isShowing && this.input.isPushed("suicide")) {
             this.player.selfDestruct()
         }
-
-        this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT)
 
         this.stage.update()
         this.updateBulletAndEnemy()
@@ -179,9 +182,12 @@ export class Game extends IteratorQueue {
 
         if (this.stage.isCleared()) this.win()
 
-        this.draw()
-        this.stage.drawOverlay(this.ctx, this.WIDTH, this.HEIGHT)
         super.update()
+    }
+
+    // ワールド座標での描画を予約する。次のdraw()で、本体の描画の上に重ねて描かれる
+    drawInWorld(f: (ctx: CanvasRenderingContext2D) => void) {
+        this.worldDrawings.push(f)
     }
 
     // ステージクリア。何度呼ばれてもonWinは1度だけ発火する。
@@ -294,8 +300,10 @@ export class Game extends IteratorQueue {
         this.camera.update()
     }
 
-    private draw(): void {
+    draw(): void {
         const ctx = this.ctx
+
+        ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT)
 
         ctx.save()
         this.camera.apply(ctx, this.WIDTH, this.HEIGHT)
@@ -310,6 +318,13 @@ export class Game extends IteratorQueue {
         this.camera.apply(ctx, this.WIDTH, this.HEIGHT)
         this.enemies.forEach((e) => e.draw(ctx))
         if (this.state !== "game-over") this.player.draw(ctx)
+        this.worldDrawings.forEach((f) => {
+            ctx.save()
+            f(ctx)
+            ctx.restore()
+        })
         ctx.restore()
+
+        this.stage.drawOverlay(ctx, this.WIDTH, this.HEIGHT)
     }
 }

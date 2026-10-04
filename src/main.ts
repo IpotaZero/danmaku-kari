@@ -10,6 +10,10 @@ App.looper.addHandler((timeScale) => {
     App.input.update()
 })
 
+App.looper.addRenderHandler(() => {
+    App.sc.draw()
+})
+
 window.addEventListener("keydown", (e) => {
     if (["Tab", "Enter"].includes(e.code)) e.preventDefault()
 })

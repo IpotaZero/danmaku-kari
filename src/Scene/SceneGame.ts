@@ -53,6 +53,10 @@ export class SceneGame extends Scene {
         this.resultMenu?.update()
     }
 
+    draw(): void {
+        this.game?.draw()
+    }
+
     // クリア/ゲームオーバー時に、タイトルへ戻れるメニューを重ねて表示する
     private showResultMenu(title: string) {
         if (this.resultMenu) return
