@@ -28,6 +28,8 @@ export namespace Tornado {
     const STRIPE_GAP = 130
     const TWIST = T / SLOTS / STRIPE_GAP
 
+    // 輪の弾が手前にいるとみなす深さ(sin)。これより手前に来た弾だけが実体になる
+    const FRONT = 0.3
     const FRONT_R = 6
     const BACK_R = 4
 
@@ -59,12 +61,14 @@ export namespace Tornado {
                 for (let f = 0; f < FORM_FRAMES + TRAVEL_FRAMES; f++) {
                     const travel = Math.max(0, f - FORM_FRAMES) / TRAVEL_FRAMES
                     const theta = slot + SPIN * f
-                    const front = f >= FORM_FRAMES && Math.sin(theta) > 0
+                    // 奥から手前へ回ってくるにつれて濃くなり、はっきり手前に来てから実体になる
+                    const depth = f >= FORM_FRAMES ? Math.min(Math.max(Math.sin(theta) / FRONT, 0), 1) : 0
+                    const front = depth >= 1
 
                     me.p.x = startX + (endX - startX) * travel + (w / 2) * Math.cos(theta)
                     me.p.y = y + DEPTH * Math.sin(theta)
                     me.type = front ? "enemy" : "neutral"
-                    me.alpha = front ? 1 : 0.25
+                    me.alpha = 0.25 + 0.75 * depth
                     me.r = front ? FRONT_R : BACK_R
                     yield
                 }
