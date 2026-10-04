@@ -7,6 +7,7 @@ import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
+import { Sand } from "./Sand"
 
 // ステージ「蟻地獄」(砂塵道場・高弟)
 // 高弟(ボス)は蟻地獄の巣の底にいて、ときどき自機を巣の底へ吸い寄せる。
@@ -28,7 +29,6 @@ const RIM = 190
 // 蟻が砂粒を落とす間隔と、落ちた砂粒が滑り落ち始めるまで
 const DROP_INTERVAL = 7
 const DROP_REST = 40
-const SAND: Color = "#ffd890"
 
 const ANT_LIFE = 600
 
@@ -79,52 +79,12 @@ class EnemyAntlion extends Enemy {
     // 吸い込みの間ずっと、自機を巣の底へ引きずる
     private *suction() {
         yield* Array(SWIRL_FRAMES)
-
-        for (let i = 0; i < SUCTION_FRAMES; i++) {
-            const player = this.game.player
-            const diff = this.p.sub(player.p)
-            const distance = diff.magnitude()
-
-            if (distance > 1 && !this.game.textBox.isShowing) {
-                player.drag(diff.scale(Math.min(SUCTION, distance) / distance))
-            }
-
-            yield
-        }
+        yield* Sand.suction(this, SUCTION, SUCTION_FRAMES)
     }
 
     // 砂粒(当たり判定なし)が渦を巻いて巣の底へ流れ込む。吸い込みが始まる少し前から、終わるまで続く
     private *swirl() {
-        const center = this
-        const count = 90
-        const frames = 90
-
-        yield* remodel(this)
-            .format("small-ball")
-            .type("effect")
-            .alpha(0.3)
-            .color(SAND)
-            .speed(0)
-            .isScorable(false)
-            .duplicate(count, (b, i) => {
-                b.delay = Math.floor(((SWIRL_FRAMES + SUCTION_FRAMES - frames) * i) / count)
-                return b
-            })
-            .g(function* (me) {
-                const angle = this.random() * T
-                const radius = 260 + this.random() * 200
-
-                me.removeScript("boundary")
-
-                for (let f = 0; f < frames; f++) {
-                    const t = f / frames
-                    me.p = center.p.add(vec.arg(angle + t * T * 0.6).scale(radius * (1 - t)))
-                    yield
-                }
-
-                me.life = 0
-            })
-            .fire(this.game.bullets)
+        yield* Sand.swirl(this, SWIRL_FRAMES + SUCTION_FRAMES).fire(this.game.bullets)
     }
 
     // 吸い込みの間、自機へ向けて扇形に砂をかける
@@ -132,16 +92,7 @@ class EnemyAntlion extends Enemy {
         yield* Array(SWIRL_FRAMES + 30)
 
         for (let k = 0; k < 5; k++) {
-            const aim = this.game.player.p.sub(this.p).radian()
-
-            yield* remodel(this)
-                .format("small-ball")
-                .color(SAND)
-                .p(this.p.clone())
-                .duplicate(18)
-                .scatter({ radian: [aim - T / 10, aim + T / 10], speed: [2, 4.5] })
-                .fire(this.game.bullets)
-
+            yield* Sand.throwSand(this, 18).fire(this.game.bullets)
             yield* Array(55)
         }
     }
@@ -172,7 +123,7 @@ class EnemyAnt extends Enemy {
 
             yield* remodel(this)
                 .format("small-ball")
-                .color(SAND)
+                .color(Sand.COLOR)
                 .p(this.p.clone())
                 .speed(0)
                 .appear(10)
