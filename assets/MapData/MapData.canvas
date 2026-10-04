@@ -40,7 +40,7 @@
 		{"id":"5675d716c5761d80","type":"text","text":"砂塵道場・道場主\nStageSand\nbadge:砂塵","x":3560,"y":-60,"width":300,"height":280},
 		{"id":"03e5df0075419b20","type":"text","text":"霧隠道場・道場主\nStageMist\nbadge:霧隠","x":3540,"y":-1080,"width":320,"height":320},
 		{"id":"5fbe65792de30064","type":"text","text":"流星道場・道場主\nStageMeteor\nbadge:流星","x":4710,"y":-590,"width":340,"height":340},
-		{"id":"f7f1907383d4c135","type":"text","text":"月影道場・道場主\nStageNotImplemented\nbadge:月影","x":5240,"y":980,"width":280,"height":280},
+		{"id":"f7f1907383d4c135","type":"text","text":"月影道場・道場主\nStageMoon\nbadge:月影","x":5240,"y":980,"width":280,"height":280},
 		{"id":"ca68c9295dde0dbf","type":"text","text":"チャンピオン\nStageNotImplemented","x":7480,"y":-40,"width":240,"height":240},
 		{"id":"7f2a99c197bc75b2","type":"text","text":"当たり判定\nStageHitbox","x":0,"y":280,"width":160,"height":160}
 	],
