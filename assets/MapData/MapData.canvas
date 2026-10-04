@@ -20,7 +20,7 @@
 		{"id":"da5a0325d6b1823e","type":"text","text":"流星道場・高弟\nStageMeteorB","x":4200,"y":-500,"width":160,"height":160},
 		{"id":"7cdea32cffb53b26","type":"text","text":"流星道場・師範代\nStageMeteorC","x":4460,"y":-500,"width":160,"height":160},
 		{"id":"46e539f50437a678","type":"text","text":"四天王・青龍\nStageSeiryu","x":6300,"y":0,"width":160,"height":160},
-		{"id":"534a94c5e210d65c","type":"text","text":"四天王・朱雀\nStageNotImplemented","x":6560,"y":0,"width":160,"height":160},
+		{"id":"534a94c5e210d65c","type":"text","text":"四天王・朱雀\nStageSuzaku","x":6560,"y":0,"width":160,"height":160},
 		{"id":"98c07e56e131e418","type":"text","text":"四天王・白虎\nStageNotImplemented","x":6820,"y":0,"width":160,"height":160},
 		{"id":"3bceb29a6b35762f","type":"text","text":"四天王・玄武\nStageNotImplemented","x":7080,"y":0,"width":160,"height":160},
 		{"id":"ed45c0b7fab66007","type":"text","text":"鉄壁道場・門下生\nStageIronA","x":2760,"y":1040,"width":160,"height":160},
