@@ -1,4 +1,4 @@
-import { Vec } from "@ipota/vec"
+import { Vec, vec } from "@ipota/vec"
 import { MathEx } from "../../utils/Functions/MathEx"
 import { Actor } from "./Actor"
 import { Polygon } from "../BulletDrawer/Polygon"
@@ -37,22 +37,60 @@ export class Bullet extends Actor {
         return b
     }
 
-    // center を通る angle 向きの線を挟んで、自分と鏡写しになる弾(双子)を作る。
-    // 双子は自分では動かず、毎フレーム自分の位置・向き・見た目・当たり判定を写し取り、自分が消えると一緒に消える
+    // center を通る angle 向きの線を挟んで、自分と鏡写しになる弾(双子)を作る
     reflection(center: Vec, angle: number): Bullet {
+        return this.twin(
+            center,
+            (p) => MathEx.reflect(p, center, angle),
+            (radian) => 2 * angle - radian,
+        )
+    }
+
+    // center を中心に、自分を angle だけ回した位置にいる弾(双子)を作る
+    rotation(center: Vec, angle: number): Bullet {
+        return this.twin(
+            center,
+            (p) => center.add(p.sub(center).rotate(angle)),
+            (radian) => radian + angle,
+        )
+    }
+
+    // 自分の位置を point で、向きを direction で写した弾(双子)を作る。point は center からの距離を変えない写し方に限る。
+    // 双子は自分では動かず、毎フレーム自分の位置・向き・見た目・当たり判定を写し取り、自分が消えると一緒に消える。
+    // 自分だけ先に画面の外へ出て消えると、まだ画面の中にいる双子まで消えてしまう。
+    // そこで画面の端で消すのをやめ、center から画面のどの角よりも遠く離れたとき(=双子もみな画面の外にいるとき)に消える
+    private twin(center: Vec, point: (p: Vec) => Vec, direction: (radian: number) => number): Bullet {
         const original = this
-        const reflect = (p: Vec) => MathEx.reflect(p, center, angle)
 
         const twin = this.clone()
         twin.scriptReservations = []
         twin.speed = 0
-        twin.p = reflect(this.p)
-        twin.radian = 2 * angle - this.radian
+        twin.p = point(this.p)
+        twin.radian = direction(this.radian)
+
+        // 双子を何体作っても、この見張りは一つで足りる(同じidで上書きされる)
+        this.bookScript(
+            function* (me) {
+                me.removeScript("boundary")
+
+                const { WIDTH, HEIGHT } = me.game
+                const corners = [vec(0, 0), vec(WIDTH, 0), vec(0, HEIGHT), vec(WIDTH, HEIGHT)]
+                const far = Math.max(...corners.map((c) => c.sub(center).magnitude()))
+
+                while (me.life > 0) {
+                    if (me.p.sub(center).magnitude() > far + me.r) me.life = 0
+                    yield
+                }
+            },
+            { id: "twin-boundary" },
+        )
 
         twin.bookScript(function* (me) {
+            me.removeScript("boundary")
+
             while (original.life > 0) {
-                me.p = reflect(original.p)
-                me.radian = 2 * angle - original.radian
+                me.p = point(original.p)
+                me.radian = direction(original.radian)
                 me.r = original.r
                 me.alpha = original.alpha
                 me.color = original.color

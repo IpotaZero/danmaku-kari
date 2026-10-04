@@ -500,6 +500,28 @@ export class Remodel<Parent extends Actor> {
         return this
     }
 
+    // 弾ごとに、center を中心に一周を num 等分した向きへ回した双子の弾を加える(Bullet.rotation)。弾は num 倍になる。
+    // mirror と同じく、fire の直前に呼ぶ
+    rotational(center: Vec, num: number) {
+        const result: Bullet[] = []
+        const resultIndices: number[][] = []
+
+        this.bullets.forEach((b, i) => {
+            result.push(b)
+            resultIndices.push(this.indices[i])
+
+            for (let k = 1; k < num; k++) {
+                result.push(b.rotation(center, (T * k) / num))
+                resultIndices.push(this.indices[i])
+            }
+        })
+
+        this.bullets = result
+        this.indices.splice(0, this.indices.length, ...resultIndices)
+
+        return this
+    }
+
     // 複数の鏡に順に映す(mirror を重ねる)。弾は 2^(鏡の数) 個になる。fire の直前に呼ぶ
     mirrorAll(mirrors: readonly { center: Vec; angle: number }[]) {
         mirrors.forEach((m) => this.mirror(m.center, m.angle))

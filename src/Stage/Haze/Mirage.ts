@@ -53,11 +53,18 @@ export namespace Mirage {
 
     // e が生きている間ずっと、鏡に映った e の幻を描く。
     // 鏡が複数あるときは、鏡に映った幻がさらに別の鏡に映った幻も描く(Remodel.mirror を重ねたときの双子の双子)
-    export function* ghosts(e: Enemy, mirrors: readonly Mirror[]) {
+    export function ghosts(e: Enemy, mirrors: readonly Mirror[]) {
+        return images(e, (p) =>
+            mirrors
+                .reduce((points, m) => [...points, ...points.map((q) => MathEx.reflect(q, m.center, m.angle))], [p])
+                .slice(1),
+        )
+    }
+
+    // e が生きている間ずっと、e の幻を描く。幻の位置は e の位置から places で決める
+    export function* images(e: Enemy, places: (p: Vec) => Vec[]) {
         while (e.life > 0) {
-            const points = mirrors
-                .reduce((points, m) => [...points, ...points.map((q) => MathEx.reflect(q, m.center, m.angle))], [e.p])
-                .slice(1)
+            const points = places(e.p)
             const r = e.r
             const theta = -e.frame / 60
 
