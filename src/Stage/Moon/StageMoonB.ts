@@ -1,5 +1,4 @@
 import { vec } from "@ipota/vec"
-import { GenUtils } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
