@@ -1,4 +1,4 @@
-import { Vec, vec } from "@ipota/vec"
+import { vec } from "@ipota/vec"
 import { GenUtils } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
@@ -17,22 +17,20 @@ import { Shield } from "./Shield"
 // 甲羅の外を回る2匹の子亀(衛星)が、ゆっくりした弾を自機へ投げてくる。
 
 const ENTRANCE_FRAMES = 150
-// 甲羅をまとうのにかかる時間・甲羅でいる時間・明滅する時間
-const FORM_FRAMES = 40
-const HOLD_FRAMES = 460
-const WARN_FRAMES = 50
+// 甲羅。40フレームでまとい、460フレームこもり、50フレーム明滅してから弾け飛ぶ
+const SHELL: Shield.ShellConfig = {
+    spacing: 22,
+    inner: 46,
+    outer: 118,
+    durability: 10,
+    spin: T / 900,
+    form: 40,
+    hold: 460,
+    warn: 50,
+    shardSpeed: 2.6,
+}
 // 1周期の長さ。破片が飛び去った後、2秒ほど休憩が入る
-const CYCLE_FRAMES = FORM_FRAMES + HOLD_FRAMES + WARN_FRAMES + 180
-// 甲羅の弾の間隔と、甲羅の内側・外側の半径
-const SHELL_SPACING = 22
-const SHELL_INNER = 46
-const SHELL_OUTER = 118
-// 甲羅の一枚が砕けるまでに受け止める威力
-const DURABILITY = 10
-// 1フレームあたりの甲羅の回転
-const SHELL_SPIN = T / 900
-// 破片が飛ぶ速さ
-const SHARD_SPEED = 2.6
+const CYCLE_FRAMES = SHELL.form + SHELL.hold + SHELL.warn + 180
 
 const TURTLE_LIFE = 600
 
@@ -42,26 +40,6 @@ export default class extends Stage {
         this.game.enemies.push(master, new EnemyTurtle(this.game, master, 0), new EnemyTurtle(this.game, master, 1))
 
         yield* this.waitAllEnemiesDead()
-    }
-}
-
-namespace Tortoise {
-    // 中心から見た、甲羅の弾の位置。蜂の巣(六角格子)の点のうち、内側と外側の半径の間にあるもの
-    export function shell(): Vec[] {
-        const a = vec(SHELL_SPACING, 0)
-        const b = vec(SHELL_SPACING / 2, (SHELL_SPACING * Math.sqrt(3)) / 2)
-        const n = Math.ceil(SHELL_OUTER / SHELL_SPACING) + 1
-        const result: Vec[] = []
-
-        for (let i = -n; i <= n; i++) {
-            for (let j = -n; j <= n; j++) {
-                const p = a.scale(i).add(b.scale(j))
-                const d = p.magnitude()
-                if (SHELL_INNER < d && d < SHELL_OUTER) result.push(p)
-            }
-        }
-
-        return result
     }
 }
 
@@ -98,46 +76,8 @@ class EnemyMaster extends Enemy {
         })
     }
 
-    // 甲羅をまとう。甲羅は師範代について回りながら自機の弾を受け止め、時間が来ると砕け残った破片が外へ飛ぶ
     private *shell() {
-        const master = this
-        const offsets = Tortoise.shell()
-        const base = this.random() * T
-
-        yield* remodel(this)
-            .format("small-ball")
-            .r(8)
-            .color(Shield.COLOR)
-            .speed(0)
-            .duplicate(offsets.length)
-            .g(function* (me, i) {
-                const at = (f: number) => master.p.add(offsets[i].rotate(base + SHELL_SPIN * f))
-                me.p = at(0)
-
-                const result = yield* GenUtils.race({
-                    shield: Shield.breakable(me, DURABILITY),
-                    hold: (function* () {
-                        for (let f = 0; f < FORM_FRAMES + HOLD_FRAMES + WARN_FRAMES && master.life > 0; f++) {
-                            me.p = at(f)
-
-                            // 弾け飛ぶ前の明滅
-                            if (f >= FORM_FRAMES + HOLD_FRAMES) {
-                                me.alpha = Math.floor(f / 5) % 2 === 0 ? 1 : 0.5
-                            }
-
-                            yield
-                        }
-                    })(),
-                })
-
-                if (result.key === "shield" || me.life <= 0) return
-
-                me.alpha = 1
-                me.radian = me.p.sub(master.p).radian()
-                yield* Behavior.accel(me, 40, SHARD_SPEED)
-            })
-            .appear(FORM_FRAMES)
-            .fire(this.game.bullets)
+        yield* Shield.shell(this, SHELL, this.random() * T).fire(this.game.bullets)
     }
 }
 

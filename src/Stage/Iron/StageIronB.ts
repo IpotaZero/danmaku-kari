@@ -16,18 +16,15 @@ import { Shield } from "./Shield"
 // 左右の弓兵(衛星)が、城壁越しに矢を射かけてくる(敵の矢は城壁をすり抜ける)。
 
 const ENTRANCE_FRAMES = 150
-// 城壁を築く高さと、築いてから降り始めるまで(提示)
+// 城壁を築く高さ
 const BUILD_Y = 0.3
-const BUILD_FRAMES = 60
-const FALL_SPEED = 1.5
+// 城壁の弾の間隔(14px)は狭いので、窓(64px)以外は抜けられない。薄い姿で築かれて60フレーム後に降り始める
+const WALL: Shield.WallConfig = { spacing: 14, window: 64, build: 60, speed: 1.5 }
 // 1周期に築く城壁の数と、築く間隔
 const WALLS = 3
 const WALL_INTERVAL = 170
 // 1周期の長さ。最後の城壁が自機のところを過ぎた後、少し休憩が入る
 const CYCLE_FRAMES = 900
-// 城壁の弾の間隔と、窓の幅
-const BRICK_SPACING = 14
-const WINDOW = 64
 
 const ARCHER_LIFE = 700
 
@@ -82,32 +79,8 @@ class EnemyMaster extends Enemy {
     private *wall() {
         const width = this.game.WIDTH
         const windows = [0, 1].map((k) => (width * (k + 0.15 + 0.7 * this.random())) / 2)
-        const xs = Array.from({ length: Math.ceil(width / BRICK_SPACING) }, (_, i) => (i + 0.5) * BRICK_SPACING).filter(
-            (x) => windows.every((w) => Math.abs(x - w) > WINDOW / 2),
-        )
 
-        yield* remodel(this)
-            .format("small-ball")
-            .r(6)
-            .color(Shield.COLOR)
-            .speed(0)
-            .radian(T / 4)
-            .type("neutral")
-            .alpha(0.3)
-            .duplicate(xs.length, (b, i) => {
-                b.p = vec(xs[i], this.game.HEIGHT * BUILD_Y)
-                return b
-            })
-            .g(function* (me) {
-                yield* Array(BUILD_FRAMES)
-
-                me.type = "enemy"
-                me.alpha = 1
-                me.speed = FALL_SPEED
-
-                yield* Shield.block(me)
-            })
-            .fire(this.game.bullets)
+        yield* Shield.wall(this, this.game.HEIGHT * BUILD_Y, windows, WALL).fire(this.game.bullets)
     }
 }
 

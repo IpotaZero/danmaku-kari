@@ -16,12 +16,8 @@ import { Shield } from "./Shield"
 // 撃ち合いの合間に、門下生はゆっくりした輪も放つ(輪は盾をすり抜ける)。
 
 const ENTRANCE_FRAMES = 150
-// 盾の輪の半径と、輪に並べる弾の数・窓の幅(弾何個ぶんを抜くか)
-const SHIELD_RADIUS = 84
-const SHIELD_SLOTS = 28
-const WINDOW_SLOTS = 4
-// 1フレームあたりの盾の回転
-const SHIELD_SPIN = T / 720
+// 盾の輪。窓一つは弾4個ぶん(70px)ほど開く
+const RING: Shield.RingConfig = { radius: 84, slots: 28, windowSlots: 4, spin: T / 720 }
 // 窓から弾を撃ち続ける時間と、休む時間
 const FIRE_FRAMES = 90
 const REST_FRAMES = 110
@@ -39,7 +35,7 @@ export default class extends Stage {
 
 class EnemyPupil extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.05, 1, 2)
-    private readonly shieldPhase = this.random() * T
+    private readonly ring = new Shield.Ring(this, RING, this.random() * T)
 
     constructor(game: Game) {
         super(game, 2400, 40, { renderer: new EnemyRendererCore() })
@@ -51,7 +47,7 @@ class EnemyPupil extends Enemy {
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
         this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.shield())
+        this.addScript(() => this.ring.build().fire(this.game.bullets))
         this.addScript(() => this.cycle(), { loop: Infinity, margin: 60 })
     }
 
@@ -64,45 +60,10 @@ class EnemyPupil extends Enemy {
         yield
     }
 
-    // 盾の輪の傾き。窓の真ん中の向きは、これと、これを半周回した向き
-    private shieldAngle() {
-        return this.shieldPhase + SHIELD_SPIN * this.frame
-    }
-
-    // 窓のところを抜いて、盾の輪を並べる。輪は門下生について回る
-    private *shield() {
-        const pupil = this
-        const slots = Array.from({ length: SHIELD_SLOTS }, (_, k) => k).filter(
-            (k) => Math.abs((k % (SHIELD_SLOTS / 2)) - (SHIELD_SLOTS / 4 - 0.5)) >= WINDOW_SLOTS / 2,
-        )
-
-        yield* remodel(this)
-            .format("donut")
-            .color(Shield.COLOR)
-            .speed(0)
-            .isScorable(false)
-            .duplicate(slots.length)
-            .g(function* (me, i) {
-                const angle = (T * (slots[i] + 0.5)) / SHIELD_SLOTS - T / 4
-
-                yield* GenUtils.all({
-                    block: Shield.block(me),
-                    follow: (function* () {
-                        while (pupil.life > 0) {
-                            me.p = pupil.p.add(vec.arg(pupil.shieldAngle() + angle).scale(SHIELD_RADIUS))
-                            yield
-                        }
-                    })(),
-                })
-            })
-            .appear(30)
-            .fire(this.game.bullets)
-    }
-
     private *cycle() {
         yield* GenUtils.all({
             stream: this.stream(),
-            ring: this.ring(),
+            ring: this.burst(),
             wait: Array(FIRE_FRAMES + REST_FRAMES),
         })
     }
@@ -110,22 +71,18 @@ class EnemyPupil extends Enemy {
     // 二つの窓から、外へ向けて弾を撃ち続ける
     private *stream() {
         for (let f = 0; f < FIRE_FRAMES; f += STREAM_INTERVAL) {
-            const angle = this.shieldAngle()
+            const angle = this.ring.angle()
 
             yield* remodel(this)
                 .format("diamond")
                 .color(COLOR)
-                .p(this.p.add(vec.arg(angle).scale(SHIELD_RADIUS)))
-                .radian(angle)
                 .speed(STREAM_SPEED)
-                .nway(3, T / 40)
-                .duplicate(2, (b, i) => {
-                    if (i === 1) {
-                        b.p = this.p.add(vec.arg(angle + T / 2).scale(SHIELD_RADIUS))
-                        b.radian += T / 2
-                    }
+                .duplicate(2, (b, k) => {
+                    b.p = this.ring.window(k)
+                    b.radian = angle + (k * T) / 2
                     return b
                 })
+                .nway(3, T / 40)
                 .fire(this.game.bullets)
 
             yield* Array(STREAM_INTERVAL)
@@ -133,7 +90,7 @@ class EnemyPupil extends Enemy {
     }
 
     // 休んでいる間に、盾をすり抜けるゆっくりした輪を放つ
-    private *ring() {
+    private *burst() {
         yield* Array(FIRE_FRAMES + 20)
 
         yield* remodel(this)
