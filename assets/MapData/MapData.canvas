@@ -12,7 +12,7 @@
 		{"id":"166d9f9191ad1a93","type":"text","text":"網掛道場・師範代\nStageWebC","x":2100,"y":500,"width":160,"height":160},
 		{"id":"478791923fb120a2","type":"text","text":"霧隠道場・門下生\nStageMistA","x":2760,"y":-1000,"width":160,"height":160},
 		{"id":"22d09d02a6ba8bc9","type":"text","text":"霧隠道場・高弟\nStageMistB","x":3020,"y":-1000,"width":160,"height":160},
-		{"id":"6b9ed5a8d80252c9","type":"text","text":"霧隠道場・師範代\nStageNotImplemented","x":3280,"y":-1000,"width":160,"height":160},
+		{"id":"6b9ed5a8d80252c9","type":"text","text":"霧隠道場・師範代\nStageMistC","x":3280,"y":-1000,"width":160,"height":160},
 		{"id":"9f3742e71653f66f","type":"text","text":"砂塵道場・門下生\nStageNotImplemented","x":2760,"y":0,"width":160,"height":160},
 		{"id":"c9504a1b3bf6d77a","type":"text","text":"砂塵道場・高弟\nStageNotImplemented","x":3020,"y":0,"width":160,"height":160},
 		{"id":"54199e7166e6f1be","type":"text","text":"砂塵道場・師範代\nStageNotImplemented","x":3280,"y":0,"width":160,"height":160},
