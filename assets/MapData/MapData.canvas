@@ -28,7 +28,7 @@
 		{"id":"f306d45e3016d5aa","type":"text","text":"鉄壁道場・師範代\nStageNotImplemented","x":3280,"y":1040,"width":160,"height":160},
 		{"id":"7673bf8340f21db7","type":"text","text":"陽炎道場・門下生\nStageHazeA","x":2760,"y":500,"width":160,"height":160},
 		{"id":"3f068863a930d057","type":"text","text":"陽炎道場・高弟\nStageHazeB","x":3020,"y":500,"width":160,"height":160},
-		{"id":"9c20658750cdab8d","type":"text","text":"陽炎道場・師範代\nStageNotImplemented","x":3280,"y":500,"width":160,"height":160},
+		{"id":"9c20658750cdab8d","type":"text","text":"陽炎道場・師範代\nStageHazeC","x":3280,"y":500,"width":160,"height":160},
 		{"id":"573084b0c44d937c","type":"text","text":"月影道場・門下生\nStageNotImplemented","x":4460,"y":1040,"width":160,"height":160},
 		{"id":"245cc775e55e2d24","type":"text","text":"月影道場・高弟\nStageNotImplemented","x":4720,"y":1040,"width":160,"height":160},
 		{"id":"741a530ae89e9471","type":"text","text":"月影道場・師範代\nStageNotImplemented","x":4980,"y":1040,"width":160,"height":160},
