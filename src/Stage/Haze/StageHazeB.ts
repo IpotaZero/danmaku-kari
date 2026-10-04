@@ -73,24 +73,23 @@ class EnemyMaster extends Enemy {
         for (let k = 0; k < 2; k++) {
             const sign = k % 2 === 0 ? 1 : -1
 
-            yield* Mirage.reflect(
-                remodel(this)
-                    .format("diamond")
-                    .color(COLOR)
-                    .p(this.p.clone())
-                    .speed(1.6)
-                    .radian(this.random() * T)
-                    .ex(14)
-                    .g(function* (me) {
-                        const base = me.radian
+            yield* remodel(this)
+                .format("diamond")
+                .color(COLOR)
+                .p(this.p.clone())
+                .speed(1.6)
+                .radian(this.random() * T)
+                .ex(14)
+                .g(function* (me) {
+                    const base = me.radian
 
-                        for (let f = 0; ; f++) {
-                            me.radian = base + sign * 0.3 * Math.sin(f / 24)
-                            yield
-                        }
-                    }),
-                Mirage.cross(this.game),
-            ).fire(this.game.bullets)
+                    for (let f = 0; ; f++) {
+                        me.radian = base + sign * 0.3 * Math.sin(f / 24)
+                        yield
+                    }
+                })
+                .mirrorAll(Mirage.cross(this.game))
+                .fire(this.game.bullets)
 
             yield* Array(70)
         }
@@ -119,17 +118,16 @@ class EnemyFlame extends Enemy {
         yield* Array(140)
 
         for (let k = 0; k < 4; k++) {
-            yield* Mirage.reflect(
-                remodel(this)
-                    .format("arrow")
-                    .color(ARROW_COLOR)
-                    .p(this.p.clone())
-                    .speed(0.5)
-                    .aim(this.game.player.p)
-                    .nway(3, T / 30)
-                    .g((me) => Behavior.accel(me, 40, 4)),
-                Mirage.cross(this.game),
-            ).fire(this.game.bullets)
+            yield* remodel(this)
+                .format("arrow")
+                .color(ARROW_COLOR)
+                .p(this.p.clone())
+                .speed(0.5)
+                .aim(this.game.player.p)
+                .nway(3, T / 30)
+                .g((me) => Behavior.accel(me, 40, 4))
+                .mirrorAll(Mirage.cross(this.game))
+                .fire(this.game.bullets)
 
             yield* Array(14)
         }

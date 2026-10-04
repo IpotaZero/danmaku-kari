@@ -3,6 +3,7 @@ import { Ease, GenUtils } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { T } from "../../T"
+import { Mirage } from "./Mirage"
 
 // 陽炎道場の「熱」。床に落ちた熱の種から、揺らめく泡の柱が昇る
 export namespace Heat {
@@ -23,8 +24,9 @@ export namespace Heat {
     const SWAY = 26
     const SWAY_PERIOD = 18
 
-    // e から floor へ熱の種を投げ、そこから泡の柱を昇らせる。sway はうねる向き
-    export function* plume(e: Enemy, floor: Vec, sway: number) {
+    // e から floor へ熱の種を投げ、そこから泡の柱を昇らせる。sway はうねる向き。
+    // mirrors を渡すと、種も泡もその鏡に映る(Mirage.reflect)
+    export function* plume(e: Enemy, floor: Vec, sway: number, mirrors: readonly Mirage.Mirror[]) {
         // 種は当たり判定を持たない目印。だんだん濃くなりながら落ちていき、床で揺らめく
         yield* remodel(e)
             .format("big-ball")
@@ -42,6 +44,7 @@ export namespace Heat {
                 yield* Array(BLOW_FRAMES)
                 yield* Behavior.fadeout(me, 20)
             })
+            .mirrorAll(mirrors)
             .fire(e.game.bullets)
 
         yield* Array(SEED_FRAMES)
@@ -67,6 +70,19 @@ export namespace Heat {
                     yield
                 }
             })
+            .mirrorAll(mirrors)
             .fire(e.game.bullets)
+    }
+
+    // 画面の幅を count 個に分け、それぞれの中のどこかへ種を投げて、count 本の柱を同時に昇らせる。隣り合う柱は逆向きにうねる
+    export function* plumes(e: Enemy, count: number, mirrors: readonly Mirage.Mirror[]) {
+        const width = e.game.WIDTH
+        const floors = Array.from({ length: count }, (_, k) =>
+            vec((width * (k + 0.2 + 0.6 * e.random())) / count, e.game.HEIGHT * 0.94),
+        )
+
+        yield* GenUtils.all(
+            Object.fromEntries(floors.map((floor, k) => [`plume${k}`, plume(e, floor, k % 2 === 0 ? 1 : -1, mirrors)])),
+        )
     }
 }

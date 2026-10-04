@@ -500,6 +500,12 @@ export class Remodel<Parent extends Actor> {
         return this
     }
 
+    // 複数の鏡に順に映す(mirror を重ねる)。弾は 2^(鏡の数) 個になる。fire の直前に呼ぶ
+    mirrorAll(mirrors: readonly { center: Vec; angle: number }[]) {
+        mirrors.forEach((m) => this.mirror(m.center, m.angle))
+        return this
+    }
+
     // 指定したフレーム後に消える
     delete(frame: number = 0) {
         return this.g(function* (b) {

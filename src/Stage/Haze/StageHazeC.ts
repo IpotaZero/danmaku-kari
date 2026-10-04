@@ -58,17 +58,9 @@ class EnemyMaster extends Enemy {
         yield
     }
 
-    // 画面の幅を4つに分け、それぞれの中のどこかへ種を投げる
     private *cycle() {
-        const width = this.game.WIDTH
-
         yield* GenUtils.all({
-            ...Object.fromEntries(
-                Array.from({ length: PLUMES }, (_, k) => {
-                    const x = (width * (k + 0.2 + 0.6 * this.random())) / PLUMES
-                    return [`plume${k}`, Heat.plume(this, vec(x, this.game.HEIGHT * 0.94), k % 2 === 0 ? 1 : -1)]
-                }),
-            ),
+            plumes: Heat.plumes(this, PLUMES, []),
             wait: Array(CYCLE_FRAMES),
         })
     }

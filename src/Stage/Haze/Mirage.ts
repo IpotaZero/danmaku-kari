@@ -1,8 +1,6 @@
 import { Vec, vec } from "@ipota/vec"
-import { Actor } from "../../Game/Actor/Actor"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { Remodel } from "../../Game/Remodel"
 import { T } from "../../T"
 import { Ctx } from "../../utils/Functions/Ctx"
 import { MathEx } from "../../utils/Functions/MathEx"
@@ -30,11 +28,6 @@ export namespace Mirage {
     // 画面を縦と横に仕切る二枚の鏡
     export function cross(game: Game): Mirror[] {
         return [horizontal(game), vertical(game)]
-    }
-
-    // すべての鏡に映して、弾を 2^(鏡の数) 個にする。挙動を付け終えた後、fire の直前に呼ぶ
-    export function reflect<P extends Actor>(r: Remodel<P>, mirrors: readonly Mirror[]) {
-        return mirrors.reduce((result, m) => result.mirror(m.center, m.angle), r)
     }
 
     // e が生きている間ずっと、鏡の線を描く
