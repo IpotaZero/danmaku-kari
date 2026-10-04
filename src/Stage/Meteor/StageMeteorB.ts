@@ -75,8 +75,11 @@ class EnemySun extends Enemy {
                 for (let k = 0; k < COMETS; k++) {
                     const x = me.game.WIDTH * (0.1 + 0.8 * me.random())
                     const y = me.game.HEIGHT * (0.7 + 0.2 * me.random())
-                    // 自機の真上には出さない。近すぎたら左右反対側に出す
-                    const aphelion = Math.abs(x - me.game.player.p.x) < 120 ? vec(me.game.WIDTH - x, y) : vec(x, y)
+                    // 自機の真上には出さない。近すぎたら画面幅の半分だけずらす
+                    const aphelion =
+                        Math.abs(x - me.game.player.p.x) < 120
+                            ? vec((x + me.game.WIDTH / 2) % me.game.WIDTH, y)
+                            : vec(x, y)
 
                     yield* Comet.launch(me, aphelion, k % 2 === 0 ? 1 : -1, COMET).fire(me.game.bullets)
                     yield* Array(COMET_INTERVAL)
