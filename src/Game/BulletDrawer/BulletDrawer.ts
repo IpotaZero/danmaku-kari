@@ -300,7 +300,8 @@ export class BulletDrawer {
         const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
         if (!isSmartPhone) {
             ctx.shadowColor = bullet.color
-            ctx.shadowBlur = bullet.r * 3
+            // 光を広げすぎると色が薄まるので、本体付近に集める
+            ctx.shadowBlur = bullet.r
         }
 
         ctx.translate(center, center)
@@ -313,8 +314,9 @@ export class BulletDrawer {
         ctx.lineWidth = 3
         ctx.stroke()
 
+        // 白い芯は細くして、本来の色を見せる(全体の太さは3のまま)
         ctx.strokeStyle = "white"
-        ctx.lineWidth = 2
+        ctx.lineWidth = 1
         ctx.stroke()
 
         return canvas
@@ -355,7 +357,8 @@ export class BulletDrawer {
         const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
         if (!isSmartPhone) {
             ctx.shadowColor = bullet.color
-            ctx.shadowBlur = bullet.r * 3
+            // 光を広げすぎると色が薄まるので、本体付近に集める
+            ctx.shadowBlur = bullet.r
         }
 
         const tipSize = bullet.r * (1 - Math.SQRT1_2)
@@ -375,8 +378,9 @@ export class BulletDrawer {
         ctx.lineWidth = 3
         ctx.stroke()
 
+        // 白い芯は細くして、本来の色を見せる(全体の太さは3のまま)
         ctx.strokeStyle = "white"
-        ctx.lineWidth = 2
+        ctx.lineWidth = 1
         ctx.stroke()
 
         return canvas
