@@ -1,8 +1,9 @@
-import { Vec, vec } from "@ipota/vec"
-import { Ease, GenUtils } from "@ipota/functions"
+import { vec } from "@ipota/vec"
+import { GenUtils } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
+import { SpiderWeb } from "./SpiderWeb"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
@@ -28,12 +29,16 @@ const FLIGHT_FRAMES = 60
 const LAND_FRAMES = 40
 // 巣が実体でいる時間
 const SOLID_FRAMES = 150
-// 巣の形。縦糸の本数と、横糸の輪の数・間隔
-const SPOKES = 8
-const RINGS = 4
-const RING_GAP = 30
-// 糸を構成する弾の間隔。自機の当たり判定の8倍より狭いので、糸は抜けづらい
-const THREAD_SPACING = 14
+// 巣の形。糸を構成する弾の間隔は自機の当たり判定の8倍より狭いので、糸は抜けづらい
+const WEB: SpiderWeb.Config = {
+    spokes: 8,
+    rings: 4,
+    ringGap: 30,
+    spacing: 14,
+    flightFrames: FLIGHT_FRAMES,
+    landFrames: LAND_FRAMES,
+    solidFrames: SOLID_FRAMES,
+}
 // 自機からどれだけずれた場所に巣を投げるか
 const AIM_SPREAD = 80
 
@@ -58,41 +63,6 @@ export default class extends Stage {
 
         yield* this.waitAllEnemiesDead()
     }
-}
-
-// 巣の形。中心から見た弾の位置を返す。
-// 縦糸は中心から放射状に、横糸は隣り合う縦糸どうしを直線で結ぶ(本物の蜘蛛の巣と同じく多角形になる)
-function web(): Vec[] {
-    const result: Vec[] = []
-    const radius = RING_GAP * RINGS
-
-    for (let k = 0; k < SPOKES; k++) {
-        const spoke = vec.arg((T * k) / SPOKES)
-
-        for (let d = THREAD_SPACING; d <= radius; d += THREAD_SPACING) {
-            result.push(spoke.scale(d))
-        }
-    }
-
-    for (let ring = 1; ring <= RINGS; ring++) {
-        const r = RING_GAP * ring
-
-        for (let k = 0; k < SPOKES; k++) {
-            const from = vec.arg((T * k) / SPOKES).scale(r)
-            const edge = vec
-                .arg((T * (k + 1)) / SPOKES)
-                .scale(r)
-                .sub(from)
-            const count = Math.max(1, Math.ceil(edge.magnitude() / THREAD_SPACING))
-
-            // 縦糸の弾は横糸の輪とちょうど重なる位置にあるとは限らないので、角(縦糸との交点)にも弾を置く
-            for (let j = 0; j < count; j++) {
-                result.push(from.add(edge.scale(j / count)))
-            }
-        }
-    }
-
-    return result
 }
 
 class EnemyMother extends Enemy {
@@ -170,48 +140,11 @@ class EnemySpider extends Enemy {
         yield* Array(index * THROW_INTERVAL)
         if (this.life <= 0) return
 
-        const width = this.game.WIDTH
-        const height = this.game.HEIGHT
-        const radius = RING_GAP * RINGS
-        const near = this.game.player.p.add(
-            vec.arg(this.random() * T).scale(this.random() * AIM_SPREAD),
-        )
-        // 巣が画面の外にはみ出すと、その糸はBulletのboundaryで消えてしまうので、画面の内側に収める
-        const target = vec(
-            Math.min(Math.max(near.x, radius), width - radius),
-            Math.min(Math.max(near.y, height * 0.35), height - radius),
-        )
-        const start = this.p.clone()
-        const angle = this.random() * T
-        const offsets = web().map((o) => o.rotate(angle))
-        const folded = 0.2
+        const near = this.game.player.p.add(vec.arg(this.random() * T).scale(this.random() * AIM_SPREAD))
+        const target = SpiderWeb.landing(this.game, near, WEB)
 
-        yield* remodel(this)
-            .format("small-ball")
+        yield* SpiderWeb.cast(remodel(this), WEB, this.p.clone(), target, this.random() * T)
             .color("#f4f0ff")
-            .type("neutral")
-            .alpha(0.3)
-            .speed(0)
-            .duplicate(offsets.length, (b, i) => {
-                b.p = start.add(offsets[i].scale(folded))
-                return b
-            })
-            .g(function* (me, i) {
-                for (let f = 1; f <= FLIGHT_FRAMES; f++) {
-                    const t = Ease.Out(f / FLIGHT_FRAMES)
-                    me.p = start.add(target.sub(start).scale(t)).add(offsets[i].scale(folded + (1 - folded) * t))
-                    yield
-                }
-
-                yield* Array(LAND_FRAMES)
-
-                // ここから当たり判定が生まれる。見た目もはっきりさせる
-                me.type = "enemy"
-                me.alpha = 1
-                yield* Array(SOLID_FRAMES)
-
-                yield* Behavior.fadeout(me, 20)
-            })
             .fire(this.game.bullets)
     }
 }

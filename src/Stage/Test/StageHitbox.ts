@@ -22,7 +22,7 @@ const COLOR_HIT = "#ff3355"
 const SAMPLES: ((r: Remodel<Enemy>) => Remodel<Enemy>)[] = [
     ...Format.format.map((type) => (r: Remodel<Enemy>) => r.format(type)),
     (r) => r.beam(1000),
-    (r) => r.laser(30, 10000, 1000),
+    (r) => r.laser(30, 10000, vec(0, 0), vec(1000, 0)),
 ]
 
 export default class extends Stage {

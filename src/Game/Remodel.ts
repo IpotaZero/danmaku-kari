@@ -450,27 +450,35 @@ export class Remodel<Parent extends Actor> {
     }
 
     // レーザーを生成する。waitFrame は予告があってからレーザーが出るまでの時間、existsFrame はレーザーが存在する時間、length はレーザーの長さ
-    laser(waitFrame: number, existsFrame: number, length: number) {
-        return this.length(length)
+    laser(waitFrame: number, existsFrame: number, start: Vec, end: Vec) {
+        const diff = end.sub(start)
+
+        return this.p(start)
+            .radian(diff.radian())
+            .length(diff.magnitude())
             .speed(0)
             .type("neutral")
             .alpha(0)
             .appearance("laser")
             .collision("rect")
             .r(2)
-            .g(function* (me) {
-                yield* Behavior.ease(me, "alpha", 0.1, 30, Ease.Out)
-                yield* Array(waitFrame)
-                me.type = "enemy"
-                yield* GenUtils.all({
-                    r: Behavior.ease(me, "r", 8, 30, Ease.Out),
-                    alpha: Behavior.ease(me, "alpha", 1, 30, Ease.Out),
-                })
-                yield* Array(existsFrame)
-                yield* Behavior.fadeout(me, 15)
-            })
+            .g(
+                function* (me) {
+                    yield* Behavior.ease(me, "alpha", 0.1, 30, Ease.Out)
+                    yield* Array(waitFrame)
+                    me.type = "enemy"
+                    yield* GenUtils.all({
+                        r: Behavior.ease(me, "r", 8, 30, Ease.Out),
+                        alpha: Behavior.ease(me, "alpha", 1, 30, Ease.Out),
+                    })
+                    yield* Array(existsFrame)
+                    yield* Behavior.fadeout(me, 15)
+                },
+                { id: "laser" },
+            )
             .g(function* (me) {
                 while (this.life > 0) yield
+                me.removeScript("laser")
                 yield* Behavior.fadeout(me, 30)
             })
     }

@@ -38,7 +38,7 @@ export default class extends Stage {
     *G() {
         yield* this.game.textBox.say(["霜の降りた道場。板張りの床が冷たい。"])
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["うーさむさむ。冬眠したいなあ。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["うーさむさむ。巣に帰りたいなあ。"], { name: "ハチノコ" })
         this.showFigure("yukimushi", "assets/figure/Yukimushi.webp", { offsetPercent: 30 })
         yield* this.game.textBox.say(["よく来たね。ボクが霜月道場の長、ユキムシだよ。"], { name: "ユキムシ" })
         yield* this.game.textBox.say(["あなたは寒くないんですか?"], { name: "ハチノコ" })
