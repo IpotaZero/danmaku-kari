@@ -17,7 +17,7 @@
 		{"id":"c9504a1b3bf6d77a","type":"text","text":"砂塵道場・高弟\nStageSandB","x":3020,"y":0,"width":160,"height":160},
 		{"id":"54199e7166e6f1be","type":"text","text":"砂塵道場・師範代\nStageSandC","x":3280,"y":0,"width":160,"height":160},
 		{"id":"94be0c796c5a45c2","type":"text","text":"流星道場・門下生\nStageMeteorA","x":3940,"y":-500,"width":160,"height":160},
-		{"id":"da5a0325d6b1823e","type":"text","text":"流星道場・高弟\nStageNotImplemented","x":4200,"y":-500,"width":160,"height":160},
+		{"id":"da5a0325d6b1823e","type":"text","text":"流星道場・高弟\nStageMeteorB","x":4200,"y":-500,"width":160,"height":160},
 		{"id":"7cdea32cffb53b26","type":"text","text":"流星道場・師範代\nStageNotImplemented","x":4460,"y":-500,"width":160,"height":160},
 		{"id":"46e539f50437a678","type":"text","text":"四天王・青龍\nStageNotImplemented","x":6300,"y":0,"width":160,"height":160},
 		{"id":"534a94c5e210d65c","type":"text","text":"四天王・朱雀\nStageNotImplemented","x":6560,"y":0,"width":160,"height":160},
