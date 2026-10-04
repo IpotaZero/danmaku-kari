@@ -1,3 +1,5 @@
+import { Vec } from "@ipota/vec"
+import { MathEx } from "../../utils/Functions/MathEx"
 import { Actor } from "./Actor"
 import { Polygon } from "../BulletDrawer/Polygon"
 import { uid } from "../../utils/Functions/uid"
@@ -33,6 +35,35 @@ export class Bullet extends Actor {
         b.scripts = new Map()
 
         return b
+    }
+
+    // center を通る angle 向きの線を挟んで、自分と鏡写しになる弾(双子)を作る。
+    // 双子は自分では動かず、毎フレーム自分の位置・向き・見た目・当たり判定を写し取り、自分が消えると一緒に消える
+    reflection(center: Vec, angle: number): Bullet {
+        const original = this
+        const reflect = (p: Vec) => MathEx.reflect(p, center, angle)
+
+        const twin = this.clone()
+        twin.scriptReservations = []
+        twin.speed = 0
+        twin.p = reflect(this.p)
+        twin.radian = 2 * angle - this.radian
+
+        twin.bookScript(function* (me) {
+            while (original.life > 0) {
+                me.p = reflect(original.p)
+                me.radian = 2 * angle - original.radian
+                me.r = original.r
+                me.alpha = original.alpha
+                me.color = original.color
+                me.type = original.type
+                yield
+            }
+
+            me.life = 0
+        })
+
+        return twin
     }
 
     init() {

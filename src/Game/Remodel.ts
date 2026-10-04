@@ -483,6 +483,23 @@ export class Remodel<Parent extends Actor> {
             })
     }
 
+    // 弾ごとに、center を通る angle 向きの線を挟んで鏡写しになる双子の弾を加える(Bullet.reflection)。
+    // 双子は元の弾の姿を写し取るだけなので、挙動(g など)をすべて付け終えた後、fire の直前に呼ぶ
+    mirror(center: Vec, angle: number) {
+        const result: Bullet[] = []
+        const resultIndices: number[][] = []
+
+        this.bullets.forEach((b, i) => {
+            result.push(b, b.reflection(center, angle))
+            resultIndices.push(this.indices[i], this.indices[i])
+        })
+
+        this.bullets = result
+        this.indices.splice(0, this.indices.length, ...resultIndices)
+
+        return this
+    }
+
     // 指定したフレーム後に消える
     delete(frame: number = 0) {
         return this.g(function* (b) {
