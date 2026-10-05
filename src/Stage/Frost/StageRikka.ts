@@ -5,7 +5,7 @@ import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
-import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { GenUtils } from "@ipota/functions"
 import { Curves } from "../../utils/Functions/Curves"
 
 // ステージ「六花」(霜月道場・門下生その2) 難易度 2/4
@@ -146,7 +146,10 @@ class EnemyFlake extends Enemy {
 
         const width = this.game.WIDTH
         const height = this.game.HEIGHT
-        const center = vec(width * (0.5 + side * (0.1 + Math.random() * 0.25)), height * (0.45 + Math.random() * 0.25))
+        const center = vec(
+            width * (0.5 + side * (0.1 + this.random() * 0.25)),
+            height * (0.45 + this.random() * 0.25),
+        )
 
         const throwFrames = Math.min(Math.ceil(center.sub(this.p).magnitude() / THROW_SPEED), MAX_THROW_FRAMES)
 
@@ -171,7 +174,7 @@ class EnemyFlake extends Enemy {
 
     // 中心から外へ向かって腕が伸びるように育つ。砕けるときは中心から離れる向きに飛ぶので、形を保ったまま広がっていく
     private *grow(center: Vec, throwFrames: number) {
-        const offsets = crystal(Math.random() * T)
+        const offsets = crystal(this.random() * T)
         const maxDistance = Math.max(...offsets.map((o) => o.magnitude()))
 
         yield* remodel(this)

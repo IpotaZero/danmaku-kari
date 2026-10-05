@@ -3,7 +3,7 @@ import { Game } from "../Game"
 import { vec, Vec } from "@ipota/vec"
 import { T } from "../../T"
 import { Ctx } from "../../utils/Functions/Ctx"
-import { Behavior, Remodel, remodel } from "../Remodel"
+import { Behavior, remodel } from "../Remodel"
 import { Ease } from "@ipota/functions"
 import type { MainEquipment, SubEquipment } from "../Equipment/PlayerEquipment"
 
@@ -200,7 +200,6 @@ export class Player extends Actor {
     private *hitField() {
         const frame = 60
         const center = this.p.clone()
-        const ctx = this.game.ctx
 
         for (let i = 1; i < frame + 1; i++) {
             const radius = Ease.Out(i / frame) * this.game.WIDTH
@@ -212,10 +211,9 @@ export class Player extends Actor {
                 .filter((b) => b.p.sub(center).magnitude() <= radius)
                 .forEach((b) => b.scorenize())
 
-            ctx.save()
-            this.game.camera.apply(ctx, this.game.WIDTH, this.game.HEIGHT)
-            Ctx.arc(ctx, center, radius, `rgba(255, 255, 255, ${alpha})`, { lineWidth: 2 })
-            ctx.restore()
+            this.game.drawInWorld((ctx) =>
+                Ctx.arc(ctx, center, radius, `rgba(255, 255, 255, ${alpha})`, { lineWidth: 2 }),
+            )
 
             yield
         }
@@ -247,11 +245,16 @@ export class Player extends Actor {
 
         if (this.v.magnitude() === 0) return
 
-        const next = this.p.add(this.v)
-
-        this.p = vec(Math.min(Math.max(next.x, 0), this.game.WIDTH), Math.min(Math.max(next.y, 0), this.game.HEIGHT))
+        this.drag(this.v)
 
         this.emitMoveParticles()
+    }
+
+    // 自機を v だけ動かす。ステージの吸い込みや流れからも呼ばれる。画面の外へは出さない
+    drag(v: Vec) {
+        const next = this.p.add(v)
+
+        this.p = vec(Math.min(Math.max(next.x, 0), this.game.WIDTH), Math.min(Math.max(next.y, 0), this.game.HEIGHT))
     }
 
     // 移動中に周りへ撒き散らす、縮小しながら消えていく三角形の粒子。ブースト中はより多く・長く残す
@@ -276,16 +279,16 @@ export class Player extends Actor {
         let angle = Math.random() * T
         const angularVelocity = (Math.random() - 0.5) * 0.1
 
-        const ctx = this.game.ctx
-
         for (let i = 0; i < maxFrame; i++) {
             const alpha = (1 - i / maxFrame) * 0.15
+            // 描画はyield後のdraw()で行われるので、この後書き換わるp/angleはここで固定しておく
+            const drawP = p
+            const drawAngle = angle
 
-            ctx.save()
-            this.game.camera.apply(ctx, this.game.WIDTH, this.game.HEIGHT)
-            ctx.globalAlpha = alpha
-            Ctx.polygon(ctx, 3, 1, p, size, "#e0e0e0", { theta: angle })
-            ctx.restore()
+            this.game.drawInWorld((ctx) => {
+                ctx.globalAlpha = alpha
+                Ctx.polygon(ctx, 3, 1, drawP, size, "#e0e0e0", { theta: drawAngle })
+            })
 
             p = p.add(v)
             v = v.scale(0.96)

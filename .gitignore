@@ -1,5 +1,6 @@
 /.vscode
 /.claude
+/.obsidian
 
 /node_modules
 /package-lock.json

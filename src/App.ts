@@ -12,26 +12,30 @@ export namespace App {
     const master = context.createGain()
     master.connect(context.destination)
 
+    const base = `assets/se`
+
     export namespace se {
-        export const graze = set("assets/se/graze.wav", 0.1)
-        export const hit = set("assets/se/player_hit.mp3")
-        export const dash = set("assets/se/dash.mp3")
-        export const u = set("assets/se/u.mp3")
+        export const graze = set(`${base}/graze.wav`, 0.1)
+        export const hit = set(`${base}/player_hit.mp3`)
+        export const dash = set(`${base}/dash.mp3`)
+        export const u = set(`${base}/u.mp3`)
 
-        export const crush = set("assets/se/crush.mp3")
-        export const bossDefeatPre = set("assets/se/boss_defeat_pre.mp3")
-        export const bossDefeat = set("assets/se/boss_defeat.mp3")
-        export const charge = set("assets/se/se_charge.mp3")
+        export const crush = set(`${base}/crush.mp3`)
+        export const bossDefeatPre = set(`${base}/boss_defeat_pre.mp3`)
+        export const bossDefeat = set(`${base}/boss_defeat.mp3`)
+        export const charge = set(`${base}/se_charge.mp3`)
 
-        export const start = set("assets/se/mushi.mp3")
-        export const uhm = set("assets/se/uhm.mp3")
-        export const unlock = set("assets/se/ドアを開ける2.mp3")
-        export const gameover = set("assets/se/gameover.mp3")
+        export const start = set(`${base}/mushi.mp3`)
+        export const uhm = set(`${base}/uhm.mp3`)
+        export const unlock = set(`${base}/ドアを開ける2.mp3`)
+        export const gameover = set(`${base}/gameover.mp3`)
 
-        export const ok = set("assets/se/menu/ok.mp3")
-        export const cancel = set("assets/se/menu/cancel.mp3")
-        export const cursor = set("assets/se/menu/cursor.mp3")
-        export const disabled = set("assets/se/menu/disable.mp3")
+        export const ok = set(`${base}/menu/ok.mp3`)
+        export const cancel = set(`${base}/menu/cancel.mp3`)
+        export const cursor = set(`${base}/menu/cursor.mp3`)
+        export const disabled = set(`${base}/menu/disable.mp3`)
+
+        export const bulletSuzu = set(`${base}/bullet/鈴を鳴らす.mp3`)
 
         function set(path: string, volume?: number) {
             return new Sound(path, context, master, { volume })

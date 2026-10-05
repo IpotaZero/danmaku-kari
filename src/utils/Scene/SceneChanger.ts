@@ -17,6 +17,12 @@ export class SceneChanger {
         }
     }
 
+    draw() {
+        if (this.currentScene && !this.isTransitioning) {
+            this.currentScene.draw()
+        }
+    }
+
     async goto(newScene: () => Promise<Scene>): Promise<void> {
         if (this.isTransitioning) return
         this.isTransitioning = true

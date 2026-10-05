@@ -1,11 +1,10 @@
 import { vec } from "@ipota/vec"
-import { Ease } from "@ipota/functions"
+import { Ease, GenUtils } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { Behavior, Remodel, remodel } from "../../Game/Remodel"
+import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { T } from "../../T"
-import { GenUtils } from "../../utils/Functions/GeneratorUtils"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
@@ -39,7 +38,7 @@ export default class extends Stage {
     *G() {
         yield* this.game.textBox.say(["霜の降りた道場。板張りの床が冷たい。"])
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["うーさむさむ。冬眠したいなあ。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["うーさむさむ。巣に帰りたいなあ。"], { name: "ハチノコ" })
         this.showFigure("yukimushi", "assets/figure/Yukimushi.webp", { offsetPercent: 30 })
         yield* this.game.textBox.say(["よく来たね。ボクが霜月道場の長、ユキムシだよ。"], { name: "ユキムシ" })
         yield* this.game.textBox.say(["あなたは寒くないんですか?"], { name: "ハチノコ" })
@@ -170,13 +169,13 @@ class EnemyFrost extends Enemy {
             .speed(FALL_SPEED)
             .color("#dff6ff")
             .duplicate(count, (b, i) => {
-                b.p = vec(Math.random() * width, -3)
-                b.radian = T / 4 + (Math.random() - 0.5) * 0.3
+                b.p = vec(this.random() * width, -3)
+                b.radian = T / 4 + (this.random() - 0.5) * 0.3
                 b.delay = Math.floor((i * SNOW_FRAMES) / count)
                 return b
             })
             .g(function* (me) {
-                const fallFrames = Math.floor((Math.random() * height * 0.95) / FALL_SPEED)
+                const fallFrames = Math.floor((this.random() * height * 0.95) / FALL_SPEED)
                 const stopFrames = 10
 
                 yield* Array(fallFrames)
@@ -340,10 +339,11 @@ class EnemyFrost extends Enemy {
     private *cycle3_1() {
         while (1) {
             yield* remodel(this)
+                .speed(1)
                 .color("#bfe9ff")
                 .format("small-ball")
                 .duplicate(23, (me) => {
-                    me.p = vec(me.game.WIDTH * Math.random(), 0)
+                    me.p = vec(me.game.WIDTH * this.random(), 0)
                     return me
                 })
                 .scatter({ radian: [0, T / 2] })

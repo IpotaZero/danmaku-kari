@@ -56,6 +56,7 @@ class EnemyCore extends Enemy {
             .shift(13, 60)
             .scatter({ hue: [0, 360] })
             .appear(30)
+            .speed(1)
             .g(function* (me) {
                 while (1) {
                     me.speed += 0.1

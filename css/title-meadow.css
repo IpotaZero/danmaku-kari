@@ -1,0 +1,207 @@
+/* タイトル画面の背景(TitleMeadow.ts)。色は.scene-titleで定義した4色だけを使う。 */
+
+.title-meadow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+/* 輪郭のない大きな陽だまり。主張させず、紙の上に光が落ちている程度にする */
+.meadow-sun {
+    position: absolute;
+    top: -30vmin;
+    right: -20vmin;
+    width: 90vmin;
+    height: 90vmin;
+    border-radius: 50%;
+
+    background: radial-gradient(circle, var(--title-gold) 0%, transparent 65%);
+    opacity: 0.22;
+    animation: meadow-sun-breathe 9s ease-in-out infinite;
+}
+
+@keyframes meadow-sun-breathe {
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.18;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.26;
+    }
+}
+
+.meadow-grass {
+    position: absolute;
+    left: -2%;
+    width: 104%;
+    bottom: 0;
+    transform-origin: bottom center;
+    animation: meadow-grass-sway 7s ease-in-out infinite;
+}
+
+.meadow-grass-back {
+    height: 26vh;
+    color: var(--title-sage);
+    opacity: 0.7;
+    animation-delay: -3s;
+}
+
+/* 左下のロゴ・Startボタンと同じ墨色なので、左側は消して右側にだけ茂らせる */
+.meadow-grass-front {
+    height: 30vh;
+    color: var(--title-forest);
+    mask-image: linear-gradient(to right, transparent 35%, #000 75%);
+}
+
+@keyframes meadow-grass-sway {
+    0%,
+    100% {
+        transform: skewX(-1.5deg);
+    }
+    50% {
+        transform: skewX(1.5deg);
+    }
+}
+
+.meadow-bugs {
+    position: absolute;
+    inset: 0;
+}
+
+/* 奥の虫は小さく淡く、手前の虫は墨色でくっきり。2層で奥行きを出す */
+.meadow-bugs-far {
+    color: var(--title-sage);
+}
+
+.meadow-bugs-near {
+    color: var(--title-forest);
+}
+
+/* 横移動(外側)と上下のふわふわ(内側)を別要素に分けて合成する */
+.meadow-bug {
+    position: absolute;
+    top: var(--y);
+    left: 0;
+    width: var(--size);
+    height: var(--size);
+
+    animation: meadow-bug-cross var(--duration) linear infinite;
+    animation-delay: var(--delay);
+
+    svg {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    &.reverse {
+        animation-direction: reverse;
+
+        svg {
+            transform: scaleX(-1);
+        }
+    }
+}
+
+.meadow-bug-body {
+    width: 100%;
+    height: 100%;
+    animation: meadow-bug-bob var(--bob) ease-in-out infinite alternate;
+}
+
+@keyframes meadow-bug-cross {
+    from {
+        transform: translateX(-10vw);
+    }
+    to {
+        transform: translateX(110vw);
+    }
+}
+
+@keyframes meadow-bug-bob {
+    from {
+        transform: translateY(-0.5rem) rotate(-4deg);
+    }
+    to {
+        transform: translateY(0.5rem) rotate(4deg);
+    }
+}
+
+/* view-boxの参照箱は原点(0,0)から始まるので、centerだと(14,14)を軸にしてしまい翅が体からずれる。
+   虫はすべて(0,0)を体の中心として描いているので、原点を軸にする */
+.meadow-bug .wing {
+    transform-box: view-box;
+    transform-origin: 0 0;
+}
+
+.meadow-bug-butterfly .wing {
+    animation: meadow-wing-flap-butterfly 0.45s ease-in-out infinite alternate;
+}
+
+@keyframes meadow-wing-flap-butterfly {
+    from {
+        transform: scaleX(1);
+    }
+    to {
+        transform: scaleX(0.2);
+    }
+}
+
+.meadow-bug-dragonfly .wing,
+.meadow-bug-ladybug .wing {
+    animation: meadow-wing-flap-y 0.07s linear infinite alternate;
+}
+
+@keyframes meadow-wing-flap-y {
+    from {
+        transform: scaleY(1);
+    }
+    to {
+        transform: scaleY(0.7);
+    }
+}
+
+.meadow-bug-bee .wing {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+    animation: meadow-wing-flap-bee 0.07s linear infinite alternate;
+}
+
+@keyframes meadow-wing-flap-bee {
+    from {
+        transform: rotate(-20deg);
+    }
+    to {
+        transform: rotate(15deg);
+    }
+}
+
+.meadow-pollen {
+    position: absolute;
+    bottom: -1rem;
+    left: var(--x);
+    width: 0.16rem;
+    height: 0.16rem;
+    border-radius: 50%;
+
+    background: var(--title-gold);
+
+    animation: meadow-pollen-rise var(--duration) linear infinite;
+    animation-delay: var(--delay);
+}
+
+@keyframes meadow-pollen-rise {
+    0% {
+        transform: translate(0, 0);
+        opacity: 0;
+    }
+    20% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(var(--drift), -100dvh);
+        opacity: 0;
+    }
+}

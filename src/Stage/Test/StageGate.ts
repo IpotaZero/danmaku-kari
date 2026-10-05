@@ -1,11 +1,11 @@
 import { vec } from "@ipota/vec"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { Behavior, Remodel, remodel } from "../../Game/Remodel"
+import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
-import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { GenUtils } from "@ipota/functions"
 import { Curves } from "../../utils/Functions/Curves"
 
 // ステージ「門」(高難度)
@@ -96,7 +96,7 @@ class EnemyGatekeeper extends Enemy {
             .p(this.p.clone())
             .r(12)
             .speed(2.2)
-            .radian((T / count) * offset + Math.random() * T)
+            .radian((T / count) * offset + this.random() * T)
             .ex(count)
             .fire(this.game.bullets)
     }
@@ -151,7 +151,7 @@ class EnemyPillar extends Enemy {
         // 門は画面の上の方(門番の周り)には開けない。範囲からはみ出した分は反対側へ回り込ませる
         const top = height * 0.3
         const range = height - 32 - top
-        const offset = GATE_OFFSETS[index] + (Math.random() - 0.5) * 48
+        const offset = GATE_OFFSETS[index] + (this.random() - 0.5) * 48
         const gateY = top + ((((this.game.player.p.y + offset - top) % range) + range) % range)
 
         const ys = Array.from({ length: Math.ceil(height / WALL_SPACING) }, (_, i) => (i + 0.5) * WALL_SPACING).filter(

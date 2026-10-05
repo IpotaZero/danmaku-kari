@@ -1,5 +1,4 @@
-import { Ease } from "@ipota/functions"
-import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { Ease, GenUtils } from "@ipota/functions"
 import { Vec } from "@ipota/vec"
 import { Behavior, remodel } from "../Remodel"
 import { T } from "../../T"
@@ -14,7 +13,7 @@ const SCALE = 2
 // 前作はスロー明けに30FPS→37FPSまで上げたまま大爆発させていた。その速さ
 const RELEASE_SPEED = 1.2
 
-// 敵の撃破演出。Gameのスクリプト(描画後に走る)として実行されるので、ここでctxに描いたものはそのフレームの最前面に乗る
+// 敵の撃破演出。Gameのスクリプトとして実行され、描画はgame.drawInWorldで予約するのでそのフレームの最前面に乗る
 export namespace DeathEffect {
     // 雑魚の撃破
     export function* explode(e: Enemy): Generator<void, void, void> {
@@ -115,7 +114,7 @@ export namespace DeathEffect {
         for (let i = 0; i < frame; i++) {
             const alpha = i < frame / 2 ? i / (frame / 2) : (frame - i) / (frame / 2)
 
-            draw(game, (ctx) => {
+            game.drawInWorld((ctx) => {
                 ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.5})`
                 ctx.lineWidth = 3
                 for (let j = 0; j < num; j++) {
@@ -157,21 +156,12 @@ export namespace DeathEffect {
     }
 
     function ring(game: Game, p: Vec, r: number, color: string, lineWidth: number) {
-        draw(game, (ctx) => {
+        game.drawInWorld((ctx) => {
             ctx.strokeStyle = color
             ctx.lineWidth = lineWidth
             ctx.beginPath()
             ctx.arc(p.x, p.y, r, 0, T)
             ctx.stroke()
         })
-    }
-
-    // ワールド座標で描く
-    function draw(game: Game, f: (ctx: CanvasRenderingContext2D) => void) {
-        const ctx = game.ctx
-        ctx.save()
-        game.camera.apply(ctx, game.WIDTH, game.HEIGHT)
-        f(ctx)
-        ctx.restore()
     }
 }

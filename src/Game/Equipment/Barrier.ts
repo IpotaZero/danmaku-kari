@@ -41,7 +41,6 @@ export const barrier: SubEquipment = {
 
 // 展開した瞬間の自機位置に固定される。自機が動いても結界はついてこない
 function* barrierField(player: Player): Generator<void, void, void> {
-    const ctx = player.game.ctx
     const center = player.p.clone()
     const maxRadius = player.GRAZE_R * 半径倍率
 
@@ -55,13 +54,12 @@ function* barrierField(player: Player): Generator<void, void, void> {
             .filter((b) => b.p.sub(center).magnitude() <= radius)
             .forEach((b) => b.scorenize())
 
-        ctx.save()
-        player.game.camera.apply(ctx, player.game.WIDTH, player.game.HEIGHT)
-        ctx.globalAlpha = Math.min(1, remaining / 消滅フレーム)
-        Ctx.arc(ctx, center, radius, "#7fdfffc0", { lineWidth: 3 })
-        // 内側の円が縮んでいき、結界の残り時間を示す
-        Ctx.arc(ctx, center, radius * (remaining / 持続フレーム), "#ffffff80", { lineWidth: 1 })
-        ctx.restore()
+        player.game.drawInWorld((ctx) => {
+            ctx.globalAlpha = Math.min(1, remaining / 消滅フレーム)
+            Ctx.arc(ctx, center, radius, "#7fdfffc0", { lineWidth: 3 })
+            // 内側の円が縮んでいき、結界の残り時間を示す
+            Ctx.arc(ctx, center, radius * (remaining / 持続フレーム), "#ffffff80", { lineWidth: 1 })
+        })
 
         yield
     }

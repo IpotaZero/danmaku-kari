@@ -1,11 +1,11 @@
 import { vec } from "@ipota/vec"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { Behavior, Remodel, remodel } from "../../Game/Remodel"
+import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
-import { GenUtils } from "../../utils/Functions/GeneratorUtils"
+import { GenUtils } from "@ipota/functions"
 import { Curves } from "../../utils/Functions/Curves"
 
 // ステージ「凍てつく息」(霜月道場・門下生)
@@ -78,7 +78,7 @@ class EnemyPupil extends Enemy {
     // 放射状に息を吐く。粒は輪ごとに違う速さで広がって止まり、数重の輪になる。
     // 輪ごとに向きを半分ずらすので、落ちてくるときの列が互い違いに並ぶ
     private *breath() {
-        const base = Math.random() * T
+        const base = this.random() * T
 
         yield* remodel(this)
             .appearance("ball")

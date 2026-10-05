@@ -29,9 +29,8 @@ export abstract class IteratorQueue {
         this.scripts.clear()
     }
 
-    // 外部(装備など)からもエフェクト用の一時的なスクリプトを積めるようpublicにしている
     addScript(
-        g: (me: this) => Iterable<void, void, void>,
+        g: (me: this) => Iterable<unknown, unknown, void>,
         { loop = 1, margin = 0, id = uid() }: { loop?: number; margin?: number; id?: string } = {},
     ) {
         const me = this

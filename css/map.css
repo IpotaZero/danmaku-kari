@@ -165,6 +165,7 @@
     }
 
     .map-lives-count {
+        justify-content:start;
         font-size: 0.8em;
     }
 

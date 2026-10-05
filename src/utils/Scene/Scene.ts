@@ -21,5 +21,9 @@ export abstract class Scene {
     protected abstract onStart(): Promise<void>
     protected abstract onEnd(): Promise<void>
 
+    // ロジックの固定fps更新。1回のrAFで複数回呼ばれることがある
     abstract update(): void
+
+    // rAFごとに1回だけ呼ばれる描画。canvasを持たないシーンでは何もしない
+    draw(): void {}
 }

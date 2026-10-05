@@ -1,10 +1,11 @@
-import { Ease } from "@ipota/functions"
+import { Ease, GenUtils } from "@ipota/functions"
 import { Vec, vec } from "@ipota/vec"
-import { Bullet } from "./Actor/Bullet"
+import { Bullet, Reflector } from "./Actor/Bullet"
 import { T } from "../T"
 import type { NumberKeys } from "@ipota/my-utils"
 import { Actor } from "./Actor/Actor"
-import { GenUtils } from "../utils/Functions/GeneratorUtils"
+import { Enemy } from "./Actor/Enemy"
+import { seededRandom } from "../utils/Functions/seededRandom"
 
 export function remodel<Parent extends Actor>(e: Parent) {
     return new Remodel([new Bullet(e.game)], e)
@@ -28,8 +29,12 @@ type BulletSetters<Self> = {
     [K in BulletProps]: (value: Bullet[K]) => Self
 }
 
-namespace Format {
-    export const r = {
+export namespace Format {
+    export const format = ["donut", "big-ball", "small-ball", "arrow", "line", "wedge", "diamond", "triangle"] as const
+
+    export type Type = (typeof format)[number]
+
+    export const r: Record<Type, number> = {
         "donut": 12,
         "big-ball": 24,
         "small-ball": 4,
@@ -37,9 +42,10 @@ namespace Format {
         "line": 28,
         "wedge": 16,
         "diamond": 16,
+        "triangle": 16,
     } as const
 
-    export const collision = {
+    export const collision: Record<Type, Bullet["collision"]> = {
         "donut": "circle",
         "big-ball": "circle",
         "small-ball": "circle",
@@ -47,9 +53,10 @@ namespace Format {
         "line": "line",
         "wedge": "wedge",
         "diamond": "diamond",
+        "triangle": "triangle",
     } as const
 
-    export const appearance = {
+    export const appearance: Record<Type, Bullet["appearance"]> = {
         "donut": "donut",
         "big-ball": "ball",
         "small-ball": "ball",
@@ -57,10 +64,18 @@ namespace Format {
         "line": "line",
         "wedge": "wedge",
         "diamond": "diamond",
+        "triangle": "triangle",
     } as const
 }
 
 export namespace Behavior {
+    export function* hue(me: Bullet, start: number, end: number, frame: number) {
+        for (let i = 1; i < frame + 1; i++) {
+            me.color = `hsl(${start + (end - start) * (i / frame)},100%,50%)`
+            yield
+        }
+    }
+
     // 数フレームの間追尾する
     export function* homing(me: Bullet, p: Vec, frame: number) {
         for (let i = 0; i < frame; i++) {
@@ -100,8 +115,8 @@ export namespace Behavior {
         yield* ease(me, "speed", finalSpeed, frame, Ease.Linear)
     }
 
-    export function* rotating(me: Bullet, angularSpeed: number) {
-        while (me.life > 0) {
+    export function* rotating(me: Bullet, angularSpeed: number, frame: number = Infinity) {
+        for (let i = 0; i < frame; i++) {
             me.radian += angularSpeed
             yield
         }
@@ -112,6 +127,11 @@ export namespace Behavior {
         me.type = "neutral"
         yield* ease(me, "alpha", 0, frame, Ease.Linear)
         me.life = 0
+    }
+
+    export function* fadein(me: Bullet, frame: number) {
+        yield* ease(me, "alpha", 1, frame, Ease.Linear)
+        me.type = "enemy"
     }
 
     // 数フレームかけて値を変化させる
@@ -142,7 +162,7 @@ export namespace Behavior {
     export function* throwTo(me: Bullet, target: Vec, frame: number) {
         const diff = target.sub(me.p)
         me.radian = diff.radian()
-        me.speed = (diff.magnitude() * 2) / frame
+        me.speed = (diff.magnitude() * 2) / (frame - 1)
         yield* Behavior.stop(me, frame)
     }
 
@@ -160,6 +180,13 @@ export namespace Behavior {
     export function* aim(me: Bullet, target: Vec, frame: number, easeFunc = Ease.Out) {
         const diff = target.sub(me.p)
         yield* ease(me, "radian", diff.radian(), frame, easeFunc)
+    }
+
+    export function* force(me: Bullet, force: number, frame: number) {
+        for (let i = 0; i < frame; i++) {
+            me.speed += force
+            yield
+        }
     }
 }
 
@@ -251,6 +278,7 @@ export class Remodel<Parent extends Actor> {
     // p だけは特別扱いして、その場所を中心に半径 p 以内の円の中へ一様分布でランダムに散らす
     // (単純に半径だけ乱数にすると中心付近に偏るため、sqrtで面積が一様になるよう補正している)
     scatter(
+        this: Remodel<Parent & Enemy>,
         ranges: Partial<Record<NumberKeys<Bullet>, [number, number]>> & {
             p?: number
             x?: [number, number]
@@ -258,7 +286,8 @@ export class Remodel<Parent extends Actor> {
             hue?: [number, number]
         },
     ) {
-        const random = ([min, max]: [number, number]) => min + Math.random() * (max - min)
+        const parent = this.parent
+        const random = ([min, max]: [number, number]) => min + parent.random() * (max - min)
 
         return this.forEach((b) => {
             for (const key in ranges) {
@@ -278,8 +307,8 @@ export class Remodel<Parent extends Actor> {
             b.p = vec(ranges.x ? random(ranges.x) : b.p.x, ranges.y ? random(ranges.y) : b.p.y)
 
             if (ranges.p !== undefined) {
-                const radius = ranges.p * Math.sqrt(Math.random())
-                const angle = Math.random() * T
+                const radius = ranges.p * Math.sqrt(parent.random())
+                const angle = parent.random() * T
                 b.p = b.p.add(vec.arg(angle).scale(radius))
             }
         })
@@ -393,9 +422,11 @@ export class Remodel<Parent extends Actor> {
         })
     }
 
-    // ビームを生成する。length はビームの長さ
+    /** ビームを生成する。親が死ぬと消える。
+     * @param length ビームの長さ
+     * */
     beam(length: number) {
-        const e = this.parent
+        const parent = this.parent
 
         return this.length(length)
             .speed(0)
@@ -404,15 +435,10 @@ export class Remodel<Parent extends Actor> {
             .collision("rect")
             .isScorable(false)
             .g(function* (me) {
-                let i = 0
-
                 while (1) {
-                    i++
-                    me.alpha = 0.8 * (Math.sin(i / 10) + 1) + 0.8
+                    me.p = parent.p
 
-                    me.p = e.p
-
-                    if (e.life <= 0) {
+                    if (parent.life <= 0) {
                         break
                     }
 
@@ -424,29 +450,82 @@ export class Remodel<Parent extends Actor> {
     }
 
     // レーザーを生成する。waitFrame は予告があってからレーザーが出るまでの時間、existsFrame はレーザーが存在する時間、length はレーザーの長さ
-    laser(waitFrame: number, existsFrame: number, length: number) {
-        return this.length(length)
+    laser(waitFrame: number, existsFrame: number, start: Vec, end: Vec) {
+        const diff = end.sub(start)
+
+        return this.p(start)
+            .radian(diff.radian())
+            .length(diff.magnitude())
             .speed(0)
             .type("neutral")
             .alpha(0)
             .appearance("laser")
             .collision("rect")
             .r(2)
-            .g(function* (me) {
-                yield* Behavior.ease(me, "alpha", 0.1, 30, Ease.Out)
-                yield* Array(waitFrame)
-                me.type = "enemy"
-                yield* GenUtils.all({
-                    r: Behavior.ease(me, "r", 8, 30, Ease.Out),
-                    alpha: Behavior.ease(me, "alpha", 1, 30, Ease.Out),
-                })
-                yield* Array(existsFrame)
-                yield* Behavior.fadeout(me, 15)
-            })
+            .g(
+                function* (me) {
+                    yield* Behavior.ease(me, "alpha", 0.1, 30, Ease.Out)
+                    yield* Array(waitFrame)
+                    me.type = "enemy"
+                    yield* GenUtils.all({
+                        r: Behavior.ease(me, "r", 8, 30, Ease.Out),
+                        alpha: Behavior.ease(me, "alpha", 1, 30, Ease.Out),
+                    })
+                    yield* Array(existsFrame)
+                    yield* Behavior.fadeout(me, 15)
+                },
+                { id: "laser" },
+            )
             .g(function* (me) {
                 while (this.life > 0) yield
+                me.removeScript("laser")
                 yield* Behavior.fadeout(me, 30)
             })
+    }
+
+    // 弾ごとに、鏡 mirror を挟んで鏡写しになる双子の弾を加える(Bullet.reflection)。
+    // 双子は元の弾の姿を写し取るだけなので、挙動(g など)をすべて付け終えた後、fire の直前に呼ぶ
+    mirror(mirror: Reflector) {
+        const result: Bullet[] = []
+        const resultIndices: number[][] = []
+
+        this.bullets.forEach((b, i) => {
+            result.push(b, b.reflection(mirror))
+            resultIndices.push(this.indices[i], this.indices[i])
+        })
+
+        this.bullets = result
+        this.indices.splice(0, this.indices.length, ...resultIndices)
+
+        return this
+    }
+
+    // 弾ごとに、center を中心に一周を num 等分した向きへ回した双子の弾を加える(Bullet.rotation)。弾は num 倍になる。
+    // mirror と同じく、fire の直前に呼ぶ
+    rotational(center: Vec, num: number) {
+        const result: Bullet[] = []
+        const resultIndices: number[][] = []
+
+        this.bullets.forEach((b, i) => {
+            result.push(b)
+            resultIndices.push(this.indices[i])
+
+            for (let k = 1; k < num; k++) {
+                result.push(b.rotation(center, (T * k) / num))
+                resultIndices.push(this.indices[i])
+            }
+        })
+
+        this.bullets = result
+        this.indices.splice(0, this.indices.length, ...resultIndices)
+
+        return this
+    }
+
+    // 複数の鏡に順に映す(mirror を重ねる)。弾は 2^(鏡の数) 個になる。fire の直前に呼ぶ
+    mirrorAll(mirrors: readonly Reflector[]) {
+        mirrors.forEach((m) => this.mirror(m))
+        return this
     }
 
     // 指定したフレーム後に消える
@@ -460,18 +539,25 @@ export class Remodel<Parent extends Actor> {
     // 挙動を追加する。g の this は Remodel を呼び出した Actor になる
     g(
         g: (this: Parent, me: Bullet, index: number, ...generationIndices: number[]) => Generator,
-        config: { loop?: number; margin?: number } = {},
+        config: { loop?: number; margin?: number; id?: string } = {},
     ) {
-        const e = this.parent
+        const parent = this.parent
         const indices = this.indices
 
         this.bullets.forEach((b, index) => {
-            b.addScriptBook(
-                function* (me: Bullet) {
-                    yield* g.call(e, me, index, ...indices[index])
-                } as () => Generator<void, void, void>,
-                config,
-            )
+            // 敵の弾は、弾ごとに専用の乱数で動かす。シードは弾を作った時点で決めるので、
+            // ほかの弾が途中で消えても値がずれない
+            const seed = parent instanceof Enemy ? Math.floor(parent.random() * 2 ** 32) : 0
+
+            b.bookScript(function* (me: Bullet) {
+                const behavior = g.call(parent, me, index, ...indices[index])
+
+                if (parent instanceof Enemy) {
+                    yield* parent.withRandom(seededRandom(seed), behavior)
+                } else {
+                    yield* behavior
+                }
+            }, config)
         })
 
         return this
@@ -490,5 +576,17 @@ export class Remodel<Parent extends Actor> {
         })
 
         return this
+    }
+
+    x(x: number) {
+        return this.forEach((me) => {
+            me.p.x = x
+        })
+    }
+
+    y(y: number) {
+        return this.forEach((me) => {
+            me.p.y = y
+        })
     }
 }

@@ -8,6 +8,7 @@ export class BulletDrawer {
     private readonly cache = new Map<string, HTMLCanvasElement>()
     private readonly gpu = BulletGpuBatchRenderer.tryCreate()
 
+    // シャドーのために余白を設ける
     private getHalfCanvasSize(bullet: Bullet) {
         switch (bullet.appearance) {
             case "player":
@@ -107,10 +108,9 @@ export class BulletDrawer {
                 return this.drawLine(bullet, halfCanvasSize)
             case "ball":
                 return this.drawBall(bullet, halfCanvasSize)
-            case "triangle":
-                return this.drawTriangle(bullet, halfCanvasSize)
             case "wedge":
             case "diamond":
+            case "triangle":
                 return this.drawPolygon(bullet, bullet.appearance, halfCanvasSize)
             default:
                 return this.drawPlayer(bullet, halfCanvasSize)
@@ -142,13 +142,13 @@ export class BulletDrawer {
         const isBeam = bullet.appearance === "beam"
 
         // 本体
-        ctx.shadowBlur = isBeam ? bullet.r : 0
+        ctx.shadowBlur = bullet.r
         ctx.shadowColor = bullet.color
         ctx.fillStyle = bullet.color
         ctx.fillRect(0, -bullet.r, bullet.length, bullet.r * 2)
 
         // 白い芯
-        ctx.shadowBlur = isBeam ? bullet.r : 0
+        ctx.shadowBlur = bullet.r
         ctx.shadowColor = "white"
         ctx.fillStyle = "white"
         ctx.fillRect(0, -bullet.r * 0.8, bullet.length, bullet.r * 1.6)
@@ -300,9 +300,12 @@ export class BulletDrawer {
         const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
         if (!isSmartPhone) {
             ctx.shadowColor = bullet.color
-            ctx.shadowBlur = bullet.r * 2
+            // 光を広げすぎると色が薄まるので、本体付近に集める
+            ctx.shadowBlur = bullet.r
         }
+
         ctx.translate(center, center)
+
         ctx.beginPath()
         ctx.moveTo(-bullet.r, 0)
         ctx.lineTo(bullet.r, 0)
@@ -311,33 +314,11 @@ export class BulletDrawer {
         ctx.lineWidth = 3
         ctx.stroke()
 
-        ctx.shadowBlur = 0
+        // 白い芯は細くして、本来の色を見せる(全体の太さは3のまま)
         ctx.strokeStyle = "white"
-        ctx.lineWidth = 2
+        ctx.lineWidth = 1
         ctx.stroke()
-        return canvas
-    }
 
-    private drawTriangle(bullet: Bullet, halfCanvasSize: number) {
-        const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
-
-        if (!isSmartPhone) {
-            ctx.shadowColor = bullet.color
-            ctx.shadowBlur = bullet.r
-        }
-
-        ctx.beginPath()
-        for (let i = 0; i < 3; i++) {
-            const angle = -Math.PI / 2 + (i * Math.PI * 2) / 3
-            const x = center + Math.cos(angle) * bullet.r
-            const y = center + Math.sin(angle) * bullet.r
-            if (i === 0) ctx.moveTo(x, y)
-            else ctx.lineTo(x, y)
-        }
-        ctx.closePath()
-
-        ctx.strokeStyle = bullet.color
-        ctx.stroke()
         return canvas
     }
 
@@ -360,10 +341,12 @@ export class BulletDrawer {
             ctx.shadowColor = bullet.color
             ctx.shadowBlur = 14
         }
-        ctx.fillStyle = bullet.color
-        ctx.fill()
+        ctx.lineWidth = 2
+        ctx.strokeStyle = bullet.color
+        ctx.stroke()
 
-        path(0.7)
+        path(1)
+        ctx.lineWidth = 1
         ctx.shadowColor = "white"
         ctx.strokeStyle = "white"
         ctx.stroke()
@@ -374,25 +357,32 @@ export class BulletDrawer {
         const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
         if (!isSmartPhone) {
             ctx.shadowColor = bullet.color
-            ctx.shadowBlur = bullet.r * 2
+            // 光を広げすぎると色が薄まるので、本体付近に集める
+            ctx.shadowBlur = bullet.r
         }
+
+        const tipSize = bullet.r * (1 - Math.SQRT1_2)
+        const tipWidth = bullet.r * Math.SQRT1_2
+
         ctx.translate(center, center)
+
         ctx.beginPath()
         ctx.moveTo(-bullet.r, 0)
         ctx.lineTo(bullet.r, 0)
-        const tipSize = bullet.r * (1 - Math.SQRT1_2)
-        const tipWidth = bullet.r * Math.SQRT1_2
         ctx.moveTo(bullet.r, 0)
         ctx.lineTo(tipSize, tipWidth)
         ctx.moveTo(bullet.r, 0)
         ctx.lineTo(tipSize, -tipWidth)
+
         ctx.strokeStyle = bullet.color
         ctx.lineWidth = 3
         ctx.stroke()
-        ctx.shadowBlur = 0
+
+        // 白い芯は細くして、本来の色を見せる(全体の太さは3のまま)
         ctx.strokeStyle = "white"
-        ctx.lineWidth = 2
+        ctx.lineWidth = 1
         ctx.stroke()
+
         return canvas
     }
 }
