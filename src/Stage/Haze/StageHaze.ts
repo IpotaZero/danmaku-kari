@@ -12,7 +12,8 @@ import { Mirage } from "./Mirage"
 import { Heat } from "./Heat"
 
 // ステージ「陽炎」(陽炎道場・道場主)
-// 一段目: 逃げ水。画面の真ん中の鏡に、道場主の揺らめく輪と矢が映る。
+// 一段目: 逃げ水。画面の真ん中を通る鏡に、道場主の揺らめく輪と矢が映る。鏡は周期ごとに傾きを変えて引き直される。
+//   鏡が引かれる間(提示)に、幻がどこに映るか、つまり下からの弾がどこから来るかを読む。
 // 二段目: 合わせ鏡。縦横の鏡で、道場主の矢が四つに映る。鏡の線から離れた部屋の真ん中で戦う。
 // 三段目: 陽炎の柱。5本の泡の柱が下から昇る中へ、道場主がゆっくりした輪を落とす。
 // 最終段: 蝉時雨。泡の柱が真ん中の鏡に映り、上からも降りてくる。上下から伸びた柱が真ん中でつながり、画面を縦に仕切る。
@@ -22,6 +23,11 @@ const COLOR: Color = "#ffb070"
 const ARROW_COLOR: Color = "#ffe0b0"
 
 const CYCLE0_FRAMES = 460
+// 一段目の鏡を引くのにかかる時間と、鏡の傾きの範囲(水平からの角度)。
+// 傾けすぎると幻が画面の外に映ってしまうので、水平に近い範囲で左右交互に傾ける
+const DRAW_FRAMES = 50
+const TILT_MIN = T / 60
+const TILT_MAX = T / 20
 const CYCLE1_FRAMES = 400
 const CYCLE2_FRAMES = Heat.PLUME_TOTAL_FRAMES + 360
 const CYCLE3_FRAMES = Heat.PLUME_TOTAL_FRAMES + 300
@@ -88,8 +94,7 @@ class EnemyHaze extends Enemy {
     }
 
     *start() {
-        this.showMirrors([Mirage.horizontal(this.game)])
-        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.addScript(() => this.cycle0(), { id: "cycle", margin: 150 })
         yield
 
         this.showMirrors(Mirage.cross(this.game))
@@ -158,18 +163,36 @@ class EnemyHaze extends Enemy {
             .g((me) => Behavior.accel(me, 50, 3.6))
     }
 
+    // 周期ごとに鏡を引き直し、引き終わったら揺らめく輪と矢を鏡に映して撃つ。前の鏡の傾きを覚えておくため、自分でくり返す
     private *cycle0() {
-        const mirrors = [Mirage.horizontal(this.game)]
+        let previous: Mirage.Mirror | undefined
 
-        for (let k = 0; k < 3; k++) {
-            yield* this.ring(22, k % 2 === 0 ? 1 : -1)
-                .mirrorAll(mirrors)
-                .fire(this.game.bullets)
-            yield* Array(40)
+        for (let side = this.random() < 0.5 ? -1 : 1; ; side *= -1) {
+            const mirror: Mirage.Mirror = {
+                center: Mirage.horizontal(this.game).center,
+                angle: side * (TILT_MIN + this.random() * (TILT_MAX - TILT_MIN)),
+            }
+            const mirrors = [mirror]
+            // スクリプトは次のフレームに始まるので、前の鏡は今のうちに取っておく
+            const last = previous
+
+            // 鏡を引く。幻は引き終わってから映る
+            this.addScript(() => Mirage.draw(this, mirror, last, DRAW_FRAMES), { id: "mirror-lines" })
+            this.addScript(() => Mirage.ghosts(this, mirrors), { id: "mirror-ghosts", margin: DRAW_FRAMES })
+            previous = mirror
+
+            yield* Array(DRAW_FRAMES + 20)
+
+            for (let k = 0; k < 3; k++) {
+                yield* this.ring(22, k % 2 === 0 ? 1 : -1)
+                    .mirrorAll(mirrors)
+                    .fire(this.game.bullets)
+                yield* Array(40)
+            }
+
+            yield* this.arrows(5).mirrorAll(mirrors).fire(this.game.bullets)
+            yield* Array(CYCLE0_FRAMES - DRAW_FRAMES - 20 - 120)
         }
-
-        yield* this.arrows(5).mirrorAll(mirrors).fire(this.game.bullets)
-        yield* Array(CYCLE0_FRAMES - 120)
     }
 
     private *cycle1() {

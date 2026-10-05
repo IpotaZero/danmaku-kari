@@ -1,4 +1,5 @@
 import { Vec, vec } from "@ipota/vec"
+import { Ease } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { T } from "../../T"
@@ -30,20 +31,56 @@ export namespace Mirage {
         return [horizontal(game), vertical(game)]
     }
 
+    // 鏡の線を、center から両側へ length ずつ伸ばして描く
+    function stroke(
+        ctx: CanvasRenderingContext2D,
+        { center, angle }: Mirror,
+        length: number,
+        color: string,
+        width: number,
+    ) {
+        const d = vec.arg(angle).scale(length)
+        ctx.beginPath()
+        ctx.moveTo(center.x - d.x, center.y - d.y)
+        ctx.lineTo(center.x + d.x, center.y + d.y)
+        ctx.strokeStyle = color
+        ctx.lineWidth = width
+        ctx.stroke()
+    }
+
     // e が生きている間ずっと、鏡の線を描く
     export function* lines(e: Enemy, mirrors: readonly Mirror[]) {
         const reach = e.game.WIDTH + e.game.HEIGHT
 
         while (e.life > 0) {
             e.game.drawInWorld((ctx) => {
-                for (const { center, angle } of mirrors) {
-                    const d = vec.arg(angle).scale(reach)
-                    ctx.beginPath()
-                    ctx.moveTo(center.x - d.x, center.y - d.y)
-                    ctx.lineTo(center.x + d.x, center.y + d.y)
-                    ctx.strokeStyle = LINE_COLOR
-                    ctx.lineWidth = 2
-                    ctx.stroke()
+                for (const mirror of mirrors) stroke(ctx, mirror, reach, LINE_COLOR, 2)
+            })
+
+            yield
+        }
+    }
+
+    // 鏡を引く演出。鏡の線は center から両側へ frames かけて伸び、引き終わった瞬間にぱっと光ってから薄く残る。
+    // 伸びている線の先には光の粒が走る。前の鏡 previous は、新しい鏡が伸びる間に薄れて消える。
+    // 引き終わった後は、e が生きている間ずっと鏡の線を描き続ける
+    export function* draw(e: Enemy, mirror: Mirror, previous: Mirror | undefined, frames: number) {
+        const reach = e.game.WIDTH + e.game.HEIGHT
+        const glowFrames = 24
+
+        for (let f = 0; e.life > 0; f++) {
+            const t = Math.min(1, f / frames)
+            const length = reach * Ease.Out(t)
+            const glow = f < frames ? 0 : Math.max(0, 1 - (f - frames) / glowFrames)
+            const tips = [-1, 1].map((side) => mirror.center.add(vec.arg(mirror.angle).scale(side * length)))
+
+            e.game.drawInWorld((ctx) => {
+                if (previous && t < 1) stroke(ctx, previous, reach, `rgba(255, 210, 160, ${0.12 * (1 - t)})`, 2)
+
+                stroke(ctx, mirror, length, `rgba(255, 210, 160, ${0.12 + 0.6 * glow})`, 2 + 4 * glow)
+
+                if (t < 1) {
+                    for (const tip of tips) Ctx.arc(ctx, tip, 5, "rgba(255, 240, 210, 0.8)")
                 }
             })
 
