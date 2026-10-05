@@ -12,7 +12,7 @@ export abstract class Stage extends IteratorQueue {
     }
 
     // G()が最後まで到達したらステージクリア
-    get isCleared(): boolean {
+    isCleared(): boolean {
         return !this.scripts.has("runToEnd")
     }
 
@@ -21,7 +21,7 @@ export abstract class Stage extends IteratorQueue {
     private *H() {
         yield* this.G()
         this.shake(16, 60)
-        this.flash("#dff6ff", 20)
+        this.flash("#dff6ffc0", 20)
         this.scorenizeAllBullets()
     }
 
@@ -38,11 +38,11 @@ export abstract class Stage extends IteratorQueue {
     }
 
     protected scorenizeAllBullets() {
-        this.game.bullets.filter((b) => b.type === "enemy").forEach((b) => b.scorenize())
+        this.game.bullets.filter((b) => b.type === "enemy" || b.type === "neutral").forEach((b) => b.scorenize())
     }
 
     // 画面全体を指定色でフラッシュさせる(frameフレームかけて薄れて消える)
-    flash(color: string = "#ffffff", frame: number = 12) {
+    protected flash(color: string = "#ffffff", frame: number = 12) {
         this.flashColor = color
         this.addScript(() => this.flashG(frame), { id: "flash" })
     }
@@ -57,17 +57,17 @@ export abstract class Stage extends IteratorQueue {
     }
 
     // 画面全体を揺らす。実体はCameraの揺れなので、Player被弾時の揺れと共存できる
-    shake(intensity: number = 8, frame: number = 20) {
+    protected shake(intensity: number = 8, frame: number = 20) {
         this.game.camera.shake(intensity, frame)
     }
 
     // 立ち絵(APNG)を表示する。idを分ければ複数枚同時に並べられる。
     // offsetPercentは画面幅に対する左右のずれ(負で左、正で右。中央基準)
-    showFigure(id: string, src: string, { offsetPercent = 0 }: { offsetPercent?: number } = {}) {
+    protected showFigure(id: string, src: string, { offsetPercent = 0 }: { offsetPercent?: number } = {}) {
         this.game.figureLayer.show(id, src, offsetPercent)
     }
 
-    hideFigure(id: string) {
+    protected hideFigure(id: string) {
         this.game.figureLayer.hide(id)
     }
 

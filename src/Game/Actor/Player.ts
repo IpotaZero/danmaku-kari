@@ -88,6 +88,8 @@ export class Player extends Actor {
 
     private readonly onLifeChange: (life: number) => void
 
+    private readonly equipments: readonly (MainEquipment | SubEquipment)[]
+
     constructor(game: Game, startPosition: Vec, config: PlayerConfig) {
         super(game)
         this.p = startPosition
@@ -95,9 +97,15 @@ export class Player extends Actor {
         this.life = config.initialLife
         this.maxLife = config.maxLife
         this.onLifeChange = config.onLifeChange
+        this.equipments = [config.mainEquipment, ...(config.subEquipment ? [config.subEquipment] : [])]
 
         this.addScript(() => config.mainEquipment.fire(this), { loop: Infinity })
         if (config.subEquipment) this.addScript(() => config.subEquipment!.action(this))
+    }
+
+    // ステージの会話を装備で分岐させるためのもの。例: this.game.player.isEquipped(laser)
+    isEquipped(equipment: MainEquipment | SubEquipment): boolean {
+        return this.equipments.includes(equipment)
     }
 
     update(): void {
@@ -161,6 +169,7 @@ export class Player extends Actor {
         this.life = Math.max(-1, this.life - 1)
         this.onLifeChange(this.life)
 
+        this.game.se.hit.play()
         this.game.camera.shake(HIT_SHAKE_INTENSITY, HIT_SHAKE_FRAME)
 
         this.addScript(() => this.explode(), { id: "explode" })

@@ -62,9 +62,6 @@
         justify-content: center;
         align-items: center;
 
-        width: 2em;
-        height: 2em;
-
         background: #000000;
         border: 0.05em solid #ffffff60;
         border-radius: 0.05em;
@@ -115,7 +112,7 @@
 
     .map-node-info {
         position: absolute;
-        transform: translate(-50%, calc(-100% - 1.6em));
+        transform: translate(-50%, calc(-100% - 0.6em));
 
         display: flex;
         flex-direction: column;
@@ -126,7 +123,7 @@
 
         padding: 0.5em 0.8em;
 
-        background: #000000d0;
+        background: #000000;
         border: 0.05em solid yellow;
         border-radius: 0.1em;
 
@@ -136,6 +133,8 @@
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.15s ease-out;
+
+        z-index: 100;
 
         &.visible {
             opacity: 1;
