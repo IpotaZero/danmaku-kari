@@ -150,6 +150,51 @@
         opacity: 0.8;
     }
 
+    /* 全ノードを一画面に収めた全体図。SVGのviewBoxで縮尺を合わせる */
+    .map-minimap {
+        position: absolute;
+        inset: 0;
+        z-index: 200;
+
+        background: #000000e0;
+        cursor: default;
+
+        animation: fade-in 0.15s ease-out;
+    }
+
+    .map-minimap-svg {
+        width: 100%;
+        height: 100%;
+        padding: 3em 1em 6em;
+
+        line {
+            stroke: #ffffff60;
+            stroke-width: 2;
+            vector-effect: non-scaling-stroke;
+        }
+
+        rect {
+            fill: #000000;
+            stroke: #ffffff60;
+            stroke-width: 1.5;
+            vector-effect: non-scaling-stroke;
+            cursor: pointer;
+
+            &.cleared {
+                fill: #c8d0d8;
+            }
+
+            &.no-miss {
+                fill: #ffd24a;
+            }
+
+            &.selected {
+                stroke: blue;
+                stroke-width: 3;
+            }
+        }
+    }
+
     .map-lives {
         position: absolute;
         display: flex;
@@ -184,14 +229,16 @@
         bottom: 0.8em;
         left: 1em;
         right: 1em;
-        max-width: 30em;
+        max-width: 20em;
+        /* 全体図(.map-minimap)を開いている間も押せるようにその上に出す */
+        z-index: 300;
 
         display: flex;
         flex-direction: column;
         gap: 0.4em;
 
         font-family: "Courier New", monospace;
-        font-size: 0.6em;
+        font-size: 0.8em;
         letter-spacing: 0.05em;
 
         > div {
@@ -202,9 +249,12 @@
             /* 文の途中(「戻る」等)で改行されないようにする。それでも入りきらない場合は
                このspanの手前(和文の区切り)で改行される */
             .nowrap {
+                font-size: inherit;
                 white-space: nowrap;
             }
 
+            font-size: inherit;
+            
             cursor: pointer;
             padding: 0.5em 0.5em;
             /* 折り返して2行になるボタンとならないボタンとで高さが不揃いにならないようにする */

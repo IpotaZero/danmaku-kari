@@ -1,23 +1,23 @@
 {
   "main": {
-    "id": "5f1ea98ee67cf13a",
+    "id": "bb2e3ee3b0ce3209",
     "type": "split",
     "children": [
       {
-        "id": "c7d98d3e5cda5c4b",
+        "id": "c3c84a5138defc38",
         "type": "tabs",
         "children": [
           {
-            "id": "51c9d3cde5c50000",
+            "id": "9600eff95a84e536",
             "type": "leaf",
             "state": {
               "type": "canvas",
               "state": {
                 "file": "MapData.canvas",
                 "viewState": {
-                  "x": 1157.3205888184823,
-                  "y": 304.5910948441007,
-                  "zoom": -1.884344483961736
+                  "x": 3295.191658091778,
+                  "y": -222.95934805858178,
+                  "zoom": -2.5945685338478053
                 }
               },
               "icon": "lucide-layout-dashboard",
@@ -30,15 +30,15 @@
     "direction": "vertical"
   },
   "left": {
-    "id": "185ad394714c47e4",
+    "id": "85511de3bc36ee75",
     "type": "split",
     "children": [
       {
-        "id": "c33c5ee538b3d4a1",
+        "id": "3964cb031ac9c28a",
         "type": "tabs",
         "children": [
           {
-            "id": "26dab783a26b5d45",
+            "id": "56efffc817d6badb",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -53,7 +53,7 @@
             }
           },
           {
-            "id": "ae6d2808712bca73",
+            "id": "ebcd4ac624f176e4",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -70,7 +70,7 @@
             }
           },
           {
-            "id": "b3ec7a7e6f558753",
+            "id": "dca3bc8e7c392419",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -89,15 +89,15 @@
     "width": 300
   },
   "right": {
-    "id": "c06b1890412555ad",
+    "id": "3b91ac338502d65b",
     "type": "split",
     "children": [
       {
-        "id": "bb5f3f5322539a04",
+        "id": "a5902995a08b9e56",
         "type": "tabs",
         "children": [
           {
-            "id": "3fe44374b3ee79f0",
+            "id": "d0140325025467d9",
             "type": "leaf",
             "state": {
               "type": "backlink",
@@ -116,7 +116,7 @@
             }
           },
           {
-            "id": "c39b003f572bf546",
+            "id": "c41fe0b09ce662dd",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
@@ -130,7 +130,7 @@
             }
           },
           {
-            "id": "a18494daf4c99038",
+            "id": "1892aa1ce61318c3",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -145,7 +145,7 @@
             }
           },
           {
-            "id": "216e797467bd4fbf",
+            "id": "17e549dd5cd09e28",
             "type": "leaf",
             "state": {
               "type": "all-properties",
@@ -159,7 +159,7 @@
             }
           },
           {
-            "id": "eaa6e2763309afdf",
+            "id": "82221c05598dc2f9",
             "type": "leaf",
             "state": {
               "type": "outline",
@@ -191,6 +191,9 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "51c9d3cde5c50000",
-  "lastOpenFiles": []
+  "active": "9600eff95a84e536",
+  "lastOpenFiles": [
+    "ようこそ.md",
+    "MapData.canvas"
+  ]
 }

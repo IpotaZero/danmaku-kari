@@ -2,6 +2,7 @@ import { App } from "../App"
 import { playerData } from "../Data/PlayerData"
 import { mainEquipments, subEquipments } from "../Game/Equipment/PlayerEquipment"
 import { MapBounds, MapEdge, MapGraph, MapNode, MapNodeId } from "../Map/MapGraph"
+import { MapMinimap } from "../Map/MapMinimap"
 import { Menu, MenuOption, MenuOptionBox } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
 
@@ -35,6 +36,7 @@ export class SceneMap extends Scene {
     private livesRecoveryEl!: HTMLElement
     private equipMenu?: Menu
     private equipDescriptionEl?: HTMLElement
+    private minimap?: MapMinimap
 
     // ワールド座標系でのカメラ位置(=画面中央に表示されるワールド座標)
     private camera: Camera = { x: 0, y: 0 }
@@ -82,6 +84,7 @@ export class SceneMap extends Scene {
                 <div class="map-score"></div>
             </div>
             <div class="map-controls">
+                <div data-control="toggle-minimap"><span class="nowrap">全体図</span>: slow(Shift)</div>
                 <div data-control="open-equip"><span class="nowrap">型の変更</span>: action(Ctrl)</div>
                 <div data-control="back-to-title"><span class="nowrap">タイトルへ戻る</span>: cancel(X)</div>
             </div>
@@ -120,6 +123,10 @@ export class SceneMap extends Scene {
         this.root.querySelector<HTMLElement>('[data-control="back-to-title"]')?.addEventListener("click", () => {
             if (this.equipMenu) return
             App.sc.goto(async () => import("./SceneTitle").then(({ SceneTitle }) => new SceneTitle()))
+        })
+        this.root.querySelector<HTMLElement>('[data-control="toggle-minimap"]')?.addEventListener("click", () => {
+            if (this.equipMenu) return
+            this.toggleMinimap()
         })
         this.root.querySelector<HTMLElement>('[data-control="open-equip"]')?.addEventListener("click", () => {
             if (this.equipMenu) return
@@ -180,11 +187,18 @@ export class SceneMap extends Scene {
             this.move("left")
         } else if (App.input.isRepeatPushed("right", 100, 300)) {
             this.move("right")
+        } else if (App.input.isPushed("slow")) {
+            this.toggleMinimap()
         } else if (App.input.isPushed("ok")) {
             this.select()
         } else if (App.input.isPushed("action")) {
             this.openEquipMenu()
         } else if (App.input.isPushed("cancel")) {
+            // ミニマップが開いていればまずそれを閉じる
+            if (this.minimap) {
+                this.toggleMinimap()
+                return
+            }
             App.sc.goto(async () => import("./SceneTitle").then(({ SceneTitle }) => new SceneTitle()))
         }
     }
@@ -205,10 +219,27 @@ export class SceneMap extends Scene {
         this.selectedId = id
         playerData.moveOnMap(id)
         this.nodeElements.forEach((el, nodeId) => el.classList.toggle("selected", nodeId === this.selectedId))
+        this.minimap?.select(id)
         this.hideInfo()
 
         this.camera = this.clampCamera(this.graph.node(id))
         this.applyCamera(true)
+    }
+
+    // 全ノードを一画面に収めた全体図の開閉。開いている間も方向キーでの選択移動はそのまま使える
+    private toggleMinimap() {
+        App.se.cursor.play()
+
+        if (this.minimap) {
+            this.minimap.el.remove()
+            this.minimap = undefined
+            return
+        }
+
+        this.minimap = new MapMinimap(this.graph, (id) => this.handleNodeTap(id))
+        this.minimap.select(this.selectedId)
+        // 操作説明のボタンより下に置き、全体図を開いたままでも閉じるボタンを押せるようにする
+        this.root.querySelector(".map-controls")!.before(this.minimap.el)
     }
 
     // カメラをワールド座標posに向ける(=posが画面中央に来るようにする)。animateがtrueならアニメーションさせる
@@ -227,6 +258,7 @@ export class SceneMap extends Scene {
 
     private handlePointerDown = (e: PointerEvent) => {
         if (this.equipMenu) return
+        if (this.minimap) return // 全体図ではカメラを動かさない
         if (this.dragging) return // 既に別の指/ボタンでドラッグ中なら無視(多点タッチでの取り違え防止)
         if (e.button !== 0) return // 左クリック/タッチのみ(右クリック等でのドラッグ開始を防ぐ)
 
@@ -286,6 +318,8 @@ export class SceneMap extends Scene {
 
     // 所持している主装備・副装備の中から選び直せる、右側に開くモーダル
     private openEquipMenu() {
+        if (this.minimap) this.toggleMinimap()
+
         this.equipMenu = new Menu(
             `<div id="equip-root"></div>
              <div id="equip-main-options" class="fadeout"></div>
