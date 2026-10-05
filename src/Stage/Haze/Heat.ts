@@ -48,7 +48,6 @@ export namespace Heat {
             .fire(e.game.bullets)
 
         yield* Array(SEED_FRAMES)
-        if (e.life <= 0) return
 
         // 泡の横の位置は、生まれた時刻と昇った時間で決まる。同じ高さの泡は同じだけずれるので、柱がうねって見える
         yield* remodel(e)
@@ -78,7 +77,7 @@ export namespace Heat {
     export function* plumes(e: Enemy, count: number, mirrors: readonly Mirage.Mirror[]) {
         const width = e.game.WIDTH
         const floors = Array.from({ length: count }, (_, k) =>
-            vec((width * (k + 0.2 + 0.6 * e.random())) / count, e.game.HEIGHT * 0.94),
+            vec((width * (k + 0.2 + 0.6 * e.random())) / count, e.game.HEIGHT + 20),
         )
 
         yield* GenUtils.all(

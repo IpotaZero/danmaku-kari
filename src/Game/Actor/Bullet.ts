@@ -111,6 +111,8 @@ export class Bullet extends Actor {
         this.scriptReservations.forEach((g) => {
             this.addScript(...g)
         })
+
+        this.update()
     }
 
     bookScript(

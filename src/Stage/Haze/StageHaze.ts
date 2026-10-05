@@ -29,13 +29,13 @@ const CYCLE3_FRAMES = Heat.PLUME_TOTAL_FRAMES + 300
 export default class extends Stage {
     *G() {
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["あっつい……。景色がゆらゆらしてる。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["ミーン、ミンミンミン……ようこそ陽炎道場へ!"], { name: "セミ" })
-        yield* this.game.textBox.say(["声おっきい!"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(
-            ["七年も土の中にいたんだ。そりゃ叫びたくもなるさ! さあ、見えてるものが全部本物とは限らないぞ!"],
-            { name: "セミ" },
-        )
+        // yield* this.game.textBox.say(["あっつい……。景色がゆらゆらしてる。"], { name: "ハチノコ" })
+        // yield* this.game.textBox.say(["ミーン、ミンミンミン……ようこそ陽炎道場へ!"], { name: "セミ" })
+        // yield* this.game.textBox.say(["声おっきい!"], { name: "ハチノコ" })
+        // yield* this.game.textBox.say(
+        //     ["七年も土の中にいたんだ。そりゃ叫びたくもなるさ! さあ、見えてるものが全部本物とは限らないぞ!"],
+        //     { name: "セミ" },
+        // )
         this.hideFigure("hachinoko")
 
         const boss = new EnemyHaze(this.game)
@@ -66,13 +66,13 @@ export default class extends Stage {
         yield* Array(300)
 
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["ジジッ……。夏が、終わる……。"], { name: "セミ" })
-        yield* this.game.textBox.say(["大げさだなあ。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["へへ、言ってみたかったんだ。ほら、陽炎道場の免状だよ!"], { name: "セミ" })
-        this.hideFigure("hachinoko")
-        this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["次は流星道場だね。夜空を見上げるのを忘れずに!"], { name: "セミ" })
+        // yield* this.game.textBox.say(["ジジッ……。夏が、終わる……。"], { name: "セミ" })
+        // yield* this.game.textBox.say(["大げさだなあ。"], { name: "ハチノコ" })
+        // yield* this.game.textBox.say(["へへ、言ってみたかったんだ。ほら、陽炎道場の免状だよ!"], { name: "セミ" })
+        // this.hideFigure("hachinoko")
+        // this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
+        // yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
+        // yield* this.game.textBox.say(["次は流星道場だね。夜空を見上げるのを忘れずに!"], { name: "セミ" })
         this.hideFigure("hachinoko")
     }
 }
@@ -89,7 +89,7 @@ class EnemyHaze extends Enemy {
 
     *start() {
         this.showMirrors([Mirage.horizontal(this.game)])
-        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle" })
+        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
 
         this.showMirrors(Mirage.cross(this.game))

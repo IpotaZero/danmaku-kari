@@ -39,7 +39,7 @@ export default class extends Stage {
 
 class EnemyTarget extends Enemy {
     constructor(game: Game) {
-        super(game, 30000, 48, { renderer: new EnemyRendererCore() })
+        super(game, 3000, 48, { renderer: new EnemyRendererCore() })
 
         this.p = vec(game.WIDTH / 2, game.HEIGHT * 0.12)
         this.addScript(() => this.lineUp())

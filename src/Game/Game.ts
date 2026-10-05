@@ -26,7 +26,7 @@ export type GameInput = DigitalInput.Reader<GameAction> & {
 
 // ゲーム中に鳴らすSE。App.seをそのまま渡せるよう、play()できることだけを要求する
 export type GameSE = Record<
-    "graze" | "hit" | "dash" | "u" | "crush" | "bossDefeatPre" | "bossDefeat" | "charge" | "gameover",
+    "graze" | "hit" | "dash" | "u" | "crush" | "bossDefeatPre" | "bossDefeat" | "charge" | "gameover" | "bulletSuzu",
     { play(): void }
 >
 

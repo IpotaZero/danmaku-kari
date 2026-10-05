@@ -22,7 +22,7 @@ const CYCLE_FRAMES = 420
 const COLOR: Color = "#ffb070"
 const ARROW_COLOR: Color = "#ffe0b0"
 
-const FLAME_LIFE = 1100
+const FLAME_LIFE = 1600
 
 export default class extends Stage {
     *G() {
@@ -103,7 +103,7 @@ class EnemyFlame extends Enemy {
         this.setParent(parent, () => vec.arg(this.frame / 90).scale(70))
         this.addScript(() => Mirage.ghosts(this, Mirage.cross(game)))
 
-        this.addScript(() => this.cycle(), { margin: ENTRANCE_FRAMES + 60, loop: Infinity })
+        this.addScript(() => this.cycle(), { margin: ENTRANCE_FRAMES + 180, loop: Infinity })
     }
 
     private *cycle() {
@@ -113,23 +113,19 @@ class EnemyFlame extends Enemy {
         })
     }
 
-    // 自機を狙って矢を4回続けて撃つ。幻の矢は、自機を鏡に映した場所へ飛ぶ
     private *arrows() {
         yield* Array(140)
 
-        for (let k = 0; k < 4; k++) {
-            yield* remodel(this)
-                .format("arrow")
-                .color(ARROW_COLOR)
-                .p(this.p.clone())
-                .speed(0.5)
-                .aim(this.game.player.p)
-                .nway(3, T / 30)
-                .g((me) => Behavior.accel(me, 40, 4))
-                .mirrorAll(Mirage.cross(this.game))
-                .fire(this.game.bullets)
-
-            yield* Array(14)
-        }
+        yield* remodel(this)
+            .format("arrow")
+            .color(ARROW_COLOR)
+            .p(this.p.clone())
+            .aim(this.game.player.p)
+            .ex(13)
+            .delayByIndex()
+            .speed(4)
+            .g((me, i) => Behavior.reaccel(me, 40, 40 - i, 40, 2))
+            .mirrorAll(Mirage.cross(this.game))
+            .fire(this.game.bullets)
     }
 }

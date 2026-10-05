@@ -162,7 +162,7 @@ export namespace Behavior {
     export function* throwTo(me: Bullet, target: Vec, frame: number) {
         const diff = target.sub(me.p)
         me.radian = diff.radian()
-        me.speed = (diff.magnitude() * 2) / frame
+        me.speed = (diff.magnitude() * 2) / (frame - 1)
         yield* Behavior.stop(me, frame)
     }
 

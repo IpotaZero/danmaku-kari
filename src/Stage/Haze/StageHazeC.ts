@@ -19,9 +19,9 @@ import { Heat } from "./Heat"
 const ENTRANCE_FRAMES = 150
 // 1周期の長さ。柱が昇りきった後、2秒半ほど休憩が入る
 const CYCLE_FRAMES = Heat.PLUME_TOTAL_FRAMES + 360
-const PLUMES = 4
+const PLUMES = 6
 
-const SPARK_LIFE = 700
+const SPARK_LIFE = 1200
 
 export default class extends Stage {
     *G() {
@@ -84,10 +84,13 @@ class EnemySpark extends Enemy {
             .format("arrow")
             .color("#ffe0b0")
             .p(this.p.clone())
-            .speed(0.5)
             .aim(this.game.player.p)
             .nway(3, T / 20)
-            .g((me) => Behavior.accel(me, 60, 3))
+            .delayByIndex()
+            .speed(4)
+            .g(function* (me, i) {
+                yield* Behavior.reaccel(me, 30, 30 - i, 30)
+            })
             .fire(this.game.bullets)
 
         yield* Array(90)

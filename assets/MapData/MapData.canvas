@@ -13,9 +13,6 @@
 		{"id":"478791923fb120a2","type":"text","text":"霧隠道場・門下生\nStageMistA","x":2760,"y":-1000,"width":160,"height":160},
 		{"id":"22d09d02a6ba8bc9","type":"text","text":"霧隠道場・高弟\nStageMistB","x":3020,"y":-1000,"width":160,"height":160},
 		{"id":"6b9ed5a8d80252c9","type":"text","text":"霧隠道場・師範代\nStageMistC","x":3280,"y":-1000,"width":160,"height":160},
-		{"id":"9f3742e71653f66f","type":"text","text":"砂塵道場・門下生\nStageSandA","x":2760,"y":0,"width":160,"height":160},
-		{"id":"c9504a1b3bf6d77a","type":"text","text":"砂塵道場・高弟\nStageSandB","x":3020,"y":0,"width":160,"height":160},
-		{"id":"54199e7166e6f1be","type":"text","text":"砂塵道場・師範代\nStageSandC","x":3280,"y":0,"width":160,"height":160},
 		{"id":"94be0c796c5a45c2","type":"text","text":"流星道場・門下生\nStageMeteorA","x":3940,"y":-500,"width":160,"height":160},
 		{"id":"da5a0325d6b1823e","type":"text","text":"流星道場・高弟\nStageMeteorB","x":4200,"y":-500,"width":160,"height":160},
 		{"id":"7cdea32cffb53b26","type":"text","text":"流星道場・師範代\nStageMeteorC","x":4460,"y":-500,"width":160,"height":160},
@@ -37,7 +34,6 @@
 		{"id":"70041c417988cd82","type":"text","text":"網掛道場・道場主\nStageWebD\nbadge:網掛","x":2360,"y":420,"width":320,"height":320},
 		{"id":"776f536c08216061","type":"text","text":"鉄壁道場・道場主\nStageIron\nbadge:鉄壁","x":3540,"y":960,"width":300,"height":320},
 		{"id":"2a0f289b578f41f4","type":"text","text":"陽炎道場・道場主\nStageHaze\nbadge:陽炎","x":3560,"y":430,"width":300,"height":300},
-		{"id":"5675d716c5761d80","type":"text","text":"砂塵道場・道場主\nStageSand\nbadge:砂塵","x":3560,"y":-60,"width":300,"height":280},
 		{"id":"03e5df0075419b20","type":"text","text":"霧隠道場・道場主\nStageMist\nbadge:霧隠","x":3540,"y":-1080,"width":320,"height":320},
 		{"id":"5fbe65792de30064","type":"text","text":"流星道場・道場主\nStageMeteor\nbadge:流星","x":4710,"y":-590,"width":340,"height":340},
 		{"id":"f7f1907383d4c135","type":"text","text":"月影道場・道場主\nStageMoon\nbadge:月影","x":5240,"y":980,"width":280,"height":280},
@@ -46,7 +42,11 @@
 		{"id":"e5bf38412c26e531","type":"text","text":"修行場・万華鏡\nStageKaleidoscope","x":0,"y":560,"width":160,"height":160},
 		{"id":"7ffad9e825c3ee4d","type":"text","text":"修行場・振り子\nStagePendulum","x":0,"y":840,"width":160,"height":160},
 		{"id":"db446724e01017d8","type":"text","text":"修行場・波紋\nStageRipple","x":0,"y":1120,"width":160,"height":160},
-		{"id":"6f7d531dbb3567f7","type":"text","text":"修行場・花火\nStageFirework","x":0,"y":1400,"width":160,"height":160}
+		{"id":"6f7d531dbb3567f7","type":"text","text":"修行場・花火\nStageFirework","x":0,"y":1400,"width":160,"height":160},
+		{"id":"9f3742e71653f66f","type":"text","text":"砂塵道場・門下生\nStageSandA","x":2760,"y":-500,"width":160,"height":160},
+		{"id":"c9504a1b3bf6d77a","type":"text","text":"砂塵道場・高弟\nStageSandB","x":3020,"y":-500,"width":160,"height":160},
+		{"id":"54199e7166e6f1be","type":"text","text":"砂塵道場・師範代\nStageSandC","x":3280,"y":-500,"width":160,"height":160},
+		{"id":"5675d716c5761d80","type":"text","text":"砂塵道場・道場主\nStageSand\nbadge:砂塵","x":3560,"y":-560,"width":300,"height":280}
 	],
 	"edges":[
 		{"id":"3a6309e33f10111f","fromNode":"f840811f7f798aeb","fromSide":"right","toNode":"31f7d87e5e5e2323","toSide":"left"},
