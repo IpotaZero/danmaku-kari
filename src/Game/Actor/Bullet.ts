@@ -8,7 +8,7 @@ import { Game } from "../Game"
 // 鏡が取り去られた双子が薄れて消えるまで
 const TWIN_FADE_FRAMES = 24
 // 鏡に映った双子の濃さの上限。本物の弾より少し薄くして、どれが鏡に映った弾か分かるようにする
-const REFLECTION_ALPHA = 0.55
+const REFLECTION_ALPHA = 0.6
 
 // 弾を映す鏡。center を通る angle 向きの線。angle は途中で変わってもよく、双子は毎フレームいまの鏡に映る。
 // isActive() が偽になる(鏡が取り去られる)と、双子は薄れて消える
@@ -29,6 +29,9 @@ export class Bullet extends Actor {
     type: "friend" | "enemy" | "neutral" | "effect" | "score" = "enemy"
     color: Color = "black"
     alpha: number = 1
+
+    // 双子(ほかの弾の姿を写し取っている弾)かどうか
+    private isTwin = false
 
     private scriptReservations: [
         g: (me: Bullet) => Generator<unknown, unknown, void>,
@@ -101,11 +104,13 @@ export class Bullet extends Actor {
 
         const twin = this.clone()
         twin.scriptReservations = []
+        twin.isTwin = true
         twin.speed = 0
         twin.p = point(this.p)
         twin.radian = direction(this.radian)
 
         // 画面の端で消す見張り(id "boundary")を、center からの距離で消す見張りに置き換える。
+        // 自分が双子なら、見張りの代わりに元の弾を写し取る処理が同じidで動いていて、元の弾と一緒に消えるので、置き換えない。
         // 双子を何体作っても、この見張りは一つで足りる。自分がもう飛んでいるなら、予約ではなくすぐに置き換える
         const watch = function* (me: Bullet) {
             const { WIDTH, HEIGHT } = me.game
@@ -118,10 +123,12 @@ export class Bullet extends Actor {
             }
         }
 
-        if (this.scripts.has("move")) {
-            this.addScript(() => watch(this), { id: "boundary" })
-        } else {
-            this.bookScript(watch, { id: "boundary" })
+        if (!this.isTwin) {
+            if (this.scripts.has("move")) {
+                this.addScript(() => watch(this), { id: "boundary" })
+            } else {
+                this.bookScript(watch, { id: "boundary" })
+            }
         }
 
         // 双子は画面の端では消えないので、画面の端で消す見張りを、元の弾を写し取る処理で置き換える。

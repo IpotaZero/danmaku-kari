@@ -197,8 +197,8 @@ class EnemyHaze extends Enemy {
         }
     }
 
-    // 縦横の鏡に映る矢を撃ち、輪を放つ。輪が近づいてくるころ、鏡がゆっくり90度回る。
-    // 鏡に映った弾は鏡と一緒に大きく振れて(鏡の傾きの倍だけ回って)、画面を薙いでいく。
+    // 縦横の鏡に映る矢を撃ち、輪を放つ。輪が近づいてくるころ、二枚の鏡が逆向きにゆっくり90度ずつ回る。
+    // 鏡に映った弾や幻は鏡と一緒に大きく振れて、画面を薙いでいく。
     // 縦横の鏡は90度回ると元と同じ形に戻るので、次の周期はそこから始まる
     private *cycle1() {
         const mirrors = this.mirrors
@@ -216,9 +216,13 @@ class EnemyHaze extends Enemy {
 
         const starts = mirrors.map((m) => m.angle)
 
+        // 二枚の鏡を逆向きに回す。直交したまま同じ向きに回すと、二枚の鏡の両方に映った像(斜め向かいの幻)は
+        // 中心を挟んだ点対称の位置から動かない。逆向きに回せば、その像も中心のまわりをぐるりと回る。
+        // 90度ずつ回ると二枚はまた縦横に戻る
         for (let f = 1; f <= TURN_FRAMES; f++) {
             mirrors.forEach((m, i) => {
-                m.angle = starts[i] + turn * (T / 4) * Ease.InOut(f / TURN_FRAMES)
+                const direction = i % 2 === 0 ? turn : -turn
+                m.angle = starts[i] + direction * (T / 4) * Ease.InOut(f / TURN_FRAMES)
             })
             yield
         }
