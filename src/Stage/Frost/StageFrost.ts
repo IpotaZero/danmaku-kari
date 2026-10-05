@@ -339,6 +339,7 @@ class EnemyFrost extends Enemy {
     private *cycle3_1() {
         while (1) {
             yield* remodel(this)
+                .speed(1)
                 .color("#bfe9ff")
                 .format("small-ball")
                 .duplicate(23, (me) => {
