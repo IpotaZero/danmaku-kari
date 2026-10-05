@@ -48,12 +48,26 @@ export class Bullet extends Actor {
 
     // 鏡 mirror を挟んで、自分と鏡写しになる弾(双子)を作る。双子は本物より少し薄い
     reflection(mirror: Reflector): Bullet {
+        return this.reflect(mirror, 0)
+    }
+
+    // すでに飛んでいる自分を、いま現れた鏡 mirror に映す。
+    // 双子は急に現れないよう、薄い姿から濃くなっていき、濃くなりきってから当たり判定が生まれる。
+    // 返した双子は、呼び出した側が game.bullets に加える
+    reflectNow(mirror: Reflector): Bullet {
+        const twin = this.reflect(mirror, TWIN_FADE_FRAMES)
+        twin.init()
+        return twin
+    }
+
+    private reflect(mirror: Reflector, fadeIn: number): Bullet {
         return this.twin(
             mirror.center,
             () => mirror.isActive(),
             (p) => MathEx.reflect(p, mirror.center, mirror.angle),
             (radian) => 2 * mirror.angle - radian,
             REFLECTION_ALPHA,
+            fadeIn,
         )
     }
 
@@ -65,6 +79,7 @@ export class Bullet extends Actor {
             (p) => center.add(p.sub(center).rotate(angle)),
             (radian) => radian + angle,
             1,
+            0,
         )
     }
 
@@ -72,13 +87,15 @@ export class Bullet extends Actor {
     // 双子は自分では動かず、毎フレーム自分の位置・向き・見た目・当たり判定を写し取り、自分が消えると一緒に消える。
     // isActive() が偽になると、写し取るのをやめずに薄れて消える(薄れ始めた瞬間に当たり判定はなくなる)。
     // 自分だけ先に画面の外へ出て消えると、まだ画面の中にいる双子まで消えてしまう。
-    // そこで画面の端で消すのをやめ、center から画面のどの角よりも遠く離れたとき(=双子もみな画面の外にいるとき)に消える
+    // そこで画面の端で消すのをやめ、center から画面のどの角よりも遠く離れたとき(=双子もみな画面の外にいるとき)に消える。
+    // fadeIn フレームかけて薄い姿から現れる(その間は当たり判定がない)
     private twin(
         center: Vec,
         isActive: () => boolean,
         point: (p: Vec) => Vec,
         direction: (radian: number) => number,
         maxAlpha: number,
+        fadeIn: number,
     ): Bullet {
         const original = this
 
@@ -88,51 +105,58 @@ export class Bullet extends Actor {
         twin.p = point(this.p)
         twin.radian = direction(this.radian)
 
-        // 双子を何体作っても、この見張りは一つで足りる(同じidで上書きされる)
-        this.bookScript(
+        // 画面の端で消す見張り(id "boundary")を、center からの距離で消す見張りに置き換える。
+        // 双子を何体作っても、この見張りは一つで足りる。自分がもう飛んでいるなら、予約ではなくすぐに置き換える
+        const watch = function* (me: Bullet) {
+            const { WIDTH, HEIGHT } = me.game
+            const corners = [vec(0, 0), vec(WIDTH, 0), vec(0, HEIGHT), vec(WIDTH, HEIGHT)]
+            const far = Math.max(...corners.map((c) => c.sub(center).magnitude()))
+
+            while (me.life > 0) {
+                if (me.p.sub(center).magnitude() > far + me.r) me.life = 0
+                yield
+            }
+        }
+
+        if (this.scripts.has("move")) {
+            this.addScript(() => watch(this), { id: "boundary" })
+        } else {
+            this.bookScript(watch, { id: "boundary" })
+        }
+
+        // 双子は画面の端では消えないので、画面の端で消す見張りを、元の弾を写し取る処理で置き換える。
+        // (後から外すのでは、外す前の最初のフレームに画面の外にいると消えてしまう)
+        twin.bookScript(
             function* (me) {
-                me.removeScript("boundary")
+                const follow = () => {
+                    me.p = point(original.p)
+                    me.radian = direction(original.radian)
+                    me.r = original.r
+                    me.color = original.color
+                }
 
-                const { WIDTH, HEIGHT } = me.game
-                const corners = [vec(0, 0), vec(WIDTH, 0), vec(0, HEIGHT), vec(WIDTH, HEIGHT)]
-                const far = Math.max(...corners.map((c) => c.sub(center).magnitude()))
+                for (let f = 0; original.life > 0 && isActive(); f++) {
+                    const appear = fadeIn > 0 ? Math.min(1, f / fadeIn) : 1
 
-                while (me.life > 0) {
-                    if (me.p.sub(center).magnitude() > far + me.r) me.life = 0
+                    follow()
+                    me.alpha = Math.min(original.alpha, maxAlpha) * appear
+                    me.type = appear < 1 ? "neutral" : original.type
                     yield
                 }
+
+                me.type = "neutral"
+                const alpha = me.alpha
+
+                for (let f = 1; f <= TWIN_FADE_FRAMES && original.life > 0; f++) {
+                    follow()
+                    me.alpha = alpha * (1 - f / TWIN_FADE_FRAMES)
+                    yield
+                }
+
+                me.life = 0
             },
-            { id: "twin-boundary" },
+            { id: "boundary" },
         )
-
-        twin.bookScript(function* (me) {
-            me.removeScript("boundary")
-
-            const follow = () => {
-                me.p = point(original.p)
-                me.radian = direction(original.radian)
-                me.r = original.r
-                me.color = original.color
-            }
-
-            while (original.life > 0 && isActive()) {
-                follow()
-                me.alpha = Math.min(original.alpha, maxAlpha)
-                me.type = original.type
-                yield
-            }
-
-            me.type = "neutral"
-            const alpha = me.alpha
-
-            for (let f = 1; f <= TWIN_FADE_FRAMES && original.life > 0; f++) {
-                follow()
-                me.alpha = alpha * (1 - f / TWIN_FADE_FRAMES)
-                yield
-            }
-
-            me.life = 0
-        })
 
         return twin
     }

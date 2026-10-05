@@ -109,7 +109,7 @@ export namespace Mirage {
 
     // 鏡を引く。
     // 中心にまぶしい光が灯り、そこから両側へ、光の粒を散らしながら frames かけて一定の速さで画面の端まで線が伸びる。
-    // 引き終わった瞬間、線全体がまぶしく光って画面が揺れ、線に沿って光の粒が弾ける。
+    // 引き終わった瞬間、線全体がまぶしく光って画面が揺れ、線に沿って光の粒が弾ける。そのとき飛んでいる弾もすべて鏡に映る。
     // その後も線ははっきり残り、陽炎のように明るさが揺らめき、ときどき光が線の上を走る。
     // 鏡が取り去られると、線は薄れて消える
     export function* draw(e: Enemy, mirror: Mirror, frames: number) {
@@ -148,6 +148,10 @@ export namespace Mirage {
             // 引き終わった瞬間。最初から掛かっている鏡(frames が0)では何もしない
             if (frames > 0 && f === frames) {
                 e.game.camera.shake(6, 16)
+
+                // すでに飛んでいる弾も、いま現れた鏡に映る。映った弾は薄い姿から濃くなっていく
+                const bullets = e.game.bullets
+                for (const b of bullets.filter((b) => b.type === "enemy")) bullets.push(b.reflectNow(mirror))
 
                 for (let k = 0; k < 40; k++) {
                     const p = mirror.center.add(along.scale((e.random() * 2 - 1) * far))
