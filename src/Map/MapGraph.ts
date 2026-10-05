@@ -13,16 +13,26 @@ export type MapNodeId = string
 
 type StageModule = { default: new (game: Game) => Stage }
 
-// ステージはファイル名(拡張子なし)で参照する。遅延読み込みなので、マップ画面では各ステージのコードを読み込まない。
-// globのキーの形式(相対パスか絶対パスか)に依存しないよう、キーからファイル名だけを取り出して引く
-// @ts-ignore
-const stageLoaders: ReadonlyMap<string, () => Promise<StageModule>> = new Map(
+// ステージはStageフォルダからの相対パス(拡張子なし)で参照する。同名ファイルがなければファイル名だけでも参照できる。
+// 遅延読み込みなので、マップ画面では各ステージのコードを読み込まない。
+const stageLoaders: ReadonlyMap<string, () => Promise<StageModule>> = (() => {
     // @ts-ignore
-    Object.entries(import.meta.glob<StageModule>("../Stage/**/*.ts")).map(([path, load]) => [
-        path.replace(/^.*\//, "").replace(/\.ts$/, ""),
-        load,
-    ]),
-)
+    const modules: Record<string, () => Promise<StageModule>> = import.meta.glob<StageModule>("../Stage/**/*.ts")
+    const loaders = new Map<string, () => Promise<StageModule>>()
+    const pathsByName = new Map<string, string[]>()
+    for (const [path, load] of Object.entries(modules)) {
+        const stagePath = path.replace(/^.*\/Stage\//, "").replace(/\.ts$/, "")
+        const name = stagePath.replace(/^.*\//, "")
+        loaders.set(stagePath, load)
+        const paths = pathsByName.get(name) ?? []
+        paths.push(stagePath)
+        pathsByName.set(name, paths)
+    }
+    for (const [name, paths] of pathsByName) {
+        if (paths.length === 1) loaders.set(name, loaders.get(paths[0]!)!)
+    }
+    return loaders
+})()
 
 export class MapNode {
     constructor(
@@ -45,7 +55,7 @@ export class MapNode {
         }
     }
 
-    // カード本文の1行目をラベル、2行目をステージのファイル名として読む。座標はカードの中心。
+    // カード本文の1行目をラベル、2行目をステージの相対パスまたは一意なファイル名として読む。座標はカードの中心。
     // 3行目以降は「キー:値」の形の追加情報(今のところ免状を授ける"badge"だけ)
     static fromCanvas(card: JsonCanvasNode): MapNode {
         const [label = "", stageName = "", ...rest] = (card.text ?? "").split("\n").map((line) => line.trim())
