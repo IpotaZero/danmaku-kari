@@ -30,7 +30,7 @@ const TILT_MIN = T / 60
 const TILT_MAX = T / 20
 const CYCLE1_FRAMES = 600
 // 二段目で、輪を放ってから鏡が回り始めるまでと、90度回るのにかかる時間
-const TURN_WAIT = 60
+const TURN_WAIT = 120
 const TURN_FRAMES = 360
 const CYCLE2_FRAMES = Heat.PLUME_TOTAL_FRAMES + 360
 const CYCLE3_FRAMES = Heat.PLUME_TOTAL_FRAMES + 300
@@ -102,16 +102,23 @@ class EnemyHaze extends Enemy {
         this.addScript(() => this.cycle0(), { id: "cycle", margin: 150 })
         yield
 
-        this.reflectIn(Mirage.cross(this.game), DRAW_FRAMES)
-        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 300 })
+        this.addScript(function* (me) {
+            yield* Array(240)
+            me.reflectIn(Mirage.cross(me.game), DRAW_FRAMES)
+        })
         yield
 
         this.reflectIn([], DRAW_FRAMES)
-        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 300 })
         yield
 
-        this.reflectIn([Mirage.horizontal(this.game)], DRAW_FRAMES)
-        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.reflectIn([], DRAW_FRAMES)
+        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 300 })
+        this.addScript(function* (me) {
+            yield* Array(240)
+            me.reflectIn([Mirage.horizontal(me.game)], DRAW_FRAMES)
+        })
         yield
     }
 
@@ -183,7 +190,7 @@ class EnemyHaze extends Enemy {
 
             this.reflectIn(mirrors, DRAW_FRAMES)
 
-            yield* Array(DRAW_FRAMES + 20)
+            yield* Array(DRAW_FRAMES + 60)
 
             for (let k = 0; k < 3; k++) {
                 yield* this.ring(22, k % 2 === 0 ? 1 : -1)
@@ -193,7 +200,7 @@ class EnemyHaze extends Enemy {
             }
 
             yield* this.arrows(5).mirrorAll(mirrors).fire(this.game.bullets)
-            yield* Array(CYCLE0_FRAMES - DRAW_FRAMES - 20 - 120)
+            yield* Array(CYCLE0_FRAMES - DRAW_FRAMES - 20 - 60)
         }
     }
 
@@ -221,7 +228,7 @@ class EnemyHaze extends Enemy {
         // 90度ずつ回ると二枚はまた縦横に戻る
         for (let f = 1; f <= TURN_FRAMES; f++) {
             mirrors.forEach((m, i) => {
-                const direction = i % 2 === 0 ? turn : -turn
+                const direction = turn
                 m.angle = starts[i] + direction * (T / 4) * Ease.InOut(f / TURN_FRAMES)
             })
             yield
@@ -232,7 +239,7 @@ class EnemyHaze extends Enemy {
 
     private *cycle2() {
         yield* GenUtils.all({
-            plumes: Heat.plumes(this, 5, []),
+            plumes: Heat.plumes(this, 6, []),
             ring: (function* (me: EnemyHaze) {
                 yield* Array(Heat.SEED_FRAMES + 40)
                 yield* me.ring(18, 1).fire(me.game.bullets)
@@ -248,7 +255,7 @@ class EnemyHaze extends Enemy {
         const mirrors = this.mirrors
 
         yield* GenUtils.all({
-            plumes: Heat.plumes(this, 3, mirrors),
+            plumes: Heat.plumes(this, 6, mirrors),
             arrows: (function* (me: EnemyHaze) {
                 yield* Array(Heat.SEED_FRAMES + 60)
 

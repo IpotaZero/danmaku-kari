@@ -41,11 +41,12 @@ class EnemyMaster extends Enemy {
         super(game, FLAME_LIFE, 48, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
-        Mirage.show(this, Mirage.cross(game), 0)
     }
 
     private *enter() {
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
+
+        Mirage.show(this, Mirage.cross(this.game), 0)
 
         this.addScript(() => this.move(), { loop: Infinity })
         this.addScript(() => this.cycle(), { loop: Infinity })

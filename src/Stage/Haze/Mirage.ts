@@ -1,6 +1,5 @@
 import { Vec, vec } from "@ipota/vec"
 import { Enemy } from "../../Game/Actor/Enemy"
-import { Game } from "../../Game/Game"
 import { T } from "../../T"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Ctx } from "../../utils/Functions/Ctx"
@@ -35,18 +34,18 @@ export namespace Mirage {
     }
 
     // 画面の真ん中を横に通る鏡
-    export function horizontal(game: Game) {
-        return new Mirror(vec(game.WIDTH / 2, game.HEIGHT / 2), 0)
+    export function horizontal({ WIDTH, HEIGHT }: { WIDTH: number; HEIGHT: number }) {
+        return new Mirror(vec(WIDTH / 2, HEIGHT / 2), 0)
     }
 
     // 画面の真ん中を縦に通る鏡
-    export function vertical(game: Game) {
-        return new Mirror(vec(game.WIDTH / 2, game.HEIGHT / 2), T / 4)
+    export function vertical({ WIDTH, HEIGHT }: { WIDTH: number; HEIGHT: number }) {
+        return new Mirror(vec(WIDTH / 2, HEIGHT / 2), T / 4)
     }
 
     // 画面を縦と横に仕切る二枚の鏡
-    export function cross(game: Game) {
-        return [horizontal(game), vertical(game)]
+    export function cross(dims: { WIDTH: number; HEIGHT: number }) {
+        return [horizontal(dims), vertical(dims)]
     }
 
     function color(alpha: number) {

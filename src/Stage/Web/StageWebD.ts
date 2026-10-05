@@ -263,6 +263,8 @@ class EnemyBoss extends Enemy {
                     fang: Behavior.ease(me, "radian", radian, 50, Ease.InBack),
                 })
 
+                this.game.camera.shake(6, 16)
+
                 yield* Behavior.fadeout(me, 30)
             })
             .fire(this.game.bullets)

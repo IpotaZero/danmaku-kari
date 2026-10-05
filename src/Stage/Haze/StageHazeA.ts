@@ -45,11 +45,12 @@ class EnemyPupil extends Enemy {
         super(game, 3000, 48, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
-        Mirage.show(this, [this.mirror], 0)
     }
 
     private *enter() {
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
+
+        Mirage.show(this, [this.mirror], 0)
 
         this.addScript(() => this.move(), { loop: Infinity })
         this.addScript(() => this.cycle(), { loop: Infinity })
