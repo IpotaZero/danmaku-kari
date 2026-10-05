@@ -1,76 +1,157 @@
-import { vec } from "@ipota/vec"
-import { GenUtils } from "@ipota/functions"
+import { Vec, vec } from "@ipota/vec"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { remodel } from "../../Game/Remodel"
+import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
-import { Wind } from "./Wind"
-
-// ステージ「横風」(疾風道場・門下生)
-// 画面の上端から、等間隔に並んだ何本もの雨の列が降ってくる。列の中は弾が詰まっていて抜けられないので、列と列の間に立つ。
-// 雨が降っている途中で突風が吹き、すでに降っている雨は並びを保ったまま横へ流される。
-// 突風の前には風の筋(当たり判定なし)が風下へ流れるので、どちらへ流されるかを読んで一緒に動けば抜けられる。
-// 突風がやむと、流された雨の上に、まっすぐ降る雨がまた続いてくる。列の折れ目が通り過ぎるときにもう一度横へ動く。
-
-const ENTRANCE_FRAMES = 150
-// 1周期の長さ。雨が画面下へ抜けた後、3秒ほど休憩が入る
-const CYCLE_FRAMES = 620
-// 列の中の弾の間隔は 5 × 4.5 = 22.5px で、自機の当たり判定の8倍より狭い
-const RAIN: Wind.Rain = { gap: 64, frames: 180, interval: 5, speed: 4.5 }
-const WIND: Wind.Shape = { angle: T / 10, rise: 20, hold: 50, fall: 20 }
-// 周期の始まりから、突風が吹くまで
-const GUST_AT = [90, 230]
+import { GenUtils } from "@ipota/functions"
 
 export default class extends Stage {
     *G() {
-        this.game.enemies.push(new EnemyPupil(this.game))
-
+        const parent = new EnemyCore(this.game)
+        this.game.enemies.push(parent, new EnemyAim(this.game, parent, T / 2), new EnemyAim(this.game, parent, 0))
         yield* this.waitAllEnemiesDead()
     }
 }
 
-class EnemyPupil extends Enemy {
-    private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.06, 1, 2)
+class EnemyAim extends Enemy {
+    constructor(game: Game, parent: Enemy, radian: number) {
+        super(game, 750, 30)
+        this.setParent(parent, () => vec.arg(radian).scale(parent.r + this.r))
+        this.addScript(() => this.attack(), { loop: Infinity, margin: 120 })
+    }
+
+    private *attack() {
+        yield* Array(120)
+        yield* remodel(this)
+            .format("arrow")
+            .color("#ffcbaa")
+            .p(this.p)
+            .speed(4)
+            .radian(T / 4)
+            .nway(3, T / 8)
+            .g(function* (me) {
+                yield* Behavior.stop(me, 20)
+                yield* Behavior.aim(me, this.game.player.p, 30)
+                const startFrame = this.frame
+                const startRadian = me.radian
+
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 16) * Math.sin((T / 32) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 30, 8),
+                })
+            })
+            .fire(this.game.bullets)
+        yield
+    }
+}
+
+class EnemyCore extends Enemy {
+    private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.05, 5, 6)
+    private count: number = 0
 
     constructor(game: Game) {
-        super(game, 3000, 48, { renderer: new EnemyRendererCore() })
-
+        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
         this.addScript(() => this.enter())
     }
 
-    private *enter() {
-        yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
-
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity })
+    private center() {
+        return vec(this.game.WIDTH / 2, this.game.HEIGHT / 4)
     }
 
-    private home() {
-        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.15)
+    private *enter() {
+        yield* this.moveTo(this.center(), 120)
+
+        this.addScript(() => this.move(), { loop: Infinity })
+        this.addScript(() => this.attack(), { loop: Infinity })
+        // this.addScript(() => this.attack2(), { loop: Infinity });
     }
 
     private *move() {
-        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 1200).add(this.home())
+        this.p = this.path((this.frame - 120) / 900).add(this.center())
         yield
     }
 
-    private *cycle() {
-        const forecast = new Wind.Forecast(
-            GUST_AT.map((start) => ({ start, direction: this.random() < 0.5 ? -1 : 1 })),
-            WIND,
-        )
+    private *fire() {
+        yield* remodel(this)
+            .format("diamond")
+            .radian(40)
+            .color("#bbffaa")
+            .speed(4)
+            .duplicate(5, (b, i) => {
+                b.p = vec(this.game.WIDTH / 2 + (this.game.WIDTH / 8) * (5 / 2 - i), 15)
+                if (i == 4) {
+                    this.count++
+                }
+                return b
+            })
+            .scatter({ p: 15 })
+            .g(function* (me) {
+                yield* Behavior.stop(me, 1)
+                yield* Behavior.aim(me, vec(this.game.player.p.x, this.game.HEIGHT * 2), 1)
+                const startFrame = this.frame
+                const startRadian = me.radian
 
-        yield* GenUtils.all({
-            rain: forecast
-                .rain(remodel(this), this.game, RAIN, this.random() * RAIN.gap)
-                .format("diamond")
-                .color("#9dffc8")
-                .fire(this.game.bullets),
-            streaks: forecast.streaks(remodel(this), this.game, this.random).fire(this.game.bullets),
-            wait: Array(CYCLE_FRAMES),
-        })
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 4) * Math.sin((T / 64) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 240, 8),
+                })
+            })
+            .fire(this.game.bullets)
+    }
+
+    private *fire2() {
+        yield* remodel(this)
+            .format("diamond")
+            .radian(20)
+            .color("#aaaa44")
+            .speed(4)
+            .duplicate(10, (b, i) => {
+                b.p = vec(((this.game.WIDTH - 10) / 9) * i + 5 + 10 * (Math.random() - 0.5), 0)
+                return b
+            })
+            .g(function* (me) {
+                yield* Behavior.stop(me, 20)
+                yield* Behavior.aim(me, this.game.player.p, 1)
+                const startFrame = this.frame
+                const startRadian = me.radian
+
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 16) * Math.sin((T / 64) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 30, 4),
+                })
+            })
+            .scatter({ radian: [T / 2, (T * 3) / 2] })
+            .fire(this.game.bullets)
+    }
+
+    private *attack() {
+        yield* Array(40)
+        if (this.count == 5) {
+            yield* Array(360)
+            this.count = 0
+        }
+        if (this.count % 2 == 0) {
+            yield* GenUtils.all({ fire: this.fire(), fire2: this.fire2() })
+        } else {
+            yield* this.fire()
+        }
     }
 }

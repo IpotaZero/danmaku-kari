@@ -1,119 +1,254 @@
-import { vec } from "@ipota/vec"
-import { GenUtils } from "@ipota/functions"
+import { Vec, vec } from "@ipota/vec"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { remodel } from "../../Game/Remodel"
+import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
-import { Sickle } from "./Sickle"
-
-// ステージ「鎌鼬」(疾風道場・高弟)
-// 左右の鼬(衛星)が、弾を弧に並べた鎌を投げる。鎌は回りながら自機のそばまで飛び、輪を描いて鼬の手元へ戻ってくる。
-// 鎌の刃は弾が詰まっていて抜けられない。行きと帰りで違う側を通るので、一度かわしても帰りの鎌がもう一度来る。
-// 鎌は鼬の手元で研がれて(大きさ0から育って)から飛ぶので、それが提示になる。
-// 左右の鎌は少しずらして投げられ、自機のそばで交差する。そこへ高弟(ボス)がゆっくりした輪を重ねてくる。
-
-const ENTRANCE_FRAMES = 150
-// 1周期の長さ。鎌が戻りきった後、2秒半ほど休憩が入る
-const CYCLE_FRAMES = 460
-// 右の鼬が投げるのを遅らせる
-const THROW_LAG = 50
-// 自機からどれだけずれた場所を狙うか
-const AIM_SPREAD = 60
-
-const WEASEL_LIFE = 900
+import { GenUtils } from "@ipota/functions"
 
 export default class extends Stage {
     *G() {
-        const master = new EnemyMaster(this.game)
-        this.game.enemies.push(master, new EnemyWeasel(this.game, master, -1), new EnemyWeasel(this.game, master, 1))
-
+        const parent = new EnemyCore(this.game)
+        this.game.enemies.push(
+            parent,
+            new EnemyAim(this.game, parent, T / 2),
+            new EnemyAim(this.game, parent, 0),
+            new EnemyAim(this.game, parent, T / 4),
+            new EnemyAim(this.game, parent, (T * 3) / 4),
+        )
         yield* this.waitAllEnemiesDead()
     }
 }
 
-class EnemyMaster extends Enemy {
-    private readonly path = Curves.lissajous(this.game.WIDTH * 0.2, this.game.HEIGHT * 0.05, 1, 2)
+const loopTime = 680
 
-    constructor(game: Game) {
-        // 主機の体力は衛星の総和くらい
-        super(game, WEASEL_LIFE * 2, 48, { renderer: new EnemyRendererCore() })
-
-        this.addScript(() => this.enter())
+class EnemyAim extends Enemy {
+    constructor(game: Game, parent: Enemy, radian: number) {
+        super(game, 1000, 30)
+        this.setParent(parent, () => vec.arg(radian + this.frame / 300).scale(parent.r + this.r))
+        this.addScript(() => this.attack(), { loop: Infinity, margin: 120 })
     }
 
-    private *enter() {
-        yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
+    private *fire() {
+        yield* remodel(this)
+            .format("big-ball")
+            .color("#ffcbaa")
+            .p(this.p)
+            .speed(2)
+            .radian(T / 4)
+            .g(function* (me) {
+                yield* Behavior.stop(me, 30)
+                yield* Behavior.aim(me, this.game.player.p, 30)
+                const startFrame = this.frame
+                const startRadian = me.radian
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity })
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 16) * Math.sin((T / 32) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 30, 8),
+                })
+            })
+            .fire(this.game.bullets)
     }
 
-    private home() {
-        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.15)
+    private *fire2() {
+        yield* remodel(this)
+            .format("diamond")
+            .color("#ffcbaa")
+            .p(this.p)
+            .speed(2)
+            .nway(10, T / 10)
+            .appear(20, 2)
+            .colorful(Math.random() * 100)
+            // .radian(T / 4)
+            .g(function* (me) {
+                yield* Behavior.stop(me, 30)
+                // yield* Behavior.aim(me, this.game.player.p, 30);
+                const startFrame = this.frame
+                const startRadian = me.radian
+
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 16) * Math.sin((T / 32) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 30, 4),
+                })
+            })
+            .fire(this.game.bullets)
     }
 
-    private *move() {
-        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 1500).add(this.home())
-        yield
-    }
-
-    private *cycle() {
-        yield* GenUtils.all({
-            rings: this.rings(),
-            wait: Array(CYCLE_FRAMES),
-        })
-    }
-
-    // 鎌が自機のそばで交差するころに、ゆっくりした輪を2つ重ねる
-    private *rings() {
-        yield* Array(Sickle.SHARPEN_FRAMES + 50)
-
-        for (let k = 0; k < 2; k++) {
-            const count = 24
-
-            yield* remodel(this)
-                .format("donut")
-                .color("#b8ffd8")
-                .p(this.p.clone())
-                .speed(2)
-                .radian((T / count) * (k / 2) + this.random() * T)
-                .ex(count)
-                .fire(this.game.bullets)
-
-            yield* Array(60)
+    private *multipleFire() {
+        for (let i = 0; i < 4; i++) {
+            yield* Array(120)
+            yield* this.fire()
+            yield* this.fire2()
         }
+        yield* Array(120)
+    }
+
+    private *attack(): Generator<void, void, void> {
+        yield* GenUtils.all({ attack: this.multipleFire(), wait: Array(loopTime) })
     }
 }
 
-class EnemyWeasel extends Enemy {
-    // side: -1で左、1で右
-    constructor(game: Game, parent: Enemy, side: number) {
-        super(game, WEASEL_LIFE, 24)
+class EnemyCore extends Enemy {
+    private readonly path = Curves.lissajous(this.game.WIDTH * 0.2, this.game.HEIGHT * 0.3, 3, 3)
 
-        this.setParent(parent, () => vec(side * game.WIDTH * 0.32, game.HEIGHT * 0.04 * Math.sin(this.frame / 150)))
-
-        this.addScript(() => this.cycle(side), { margin: ENTRANCE_FRAMES, loop: Infinity })
+    constructor(game: Game) {
+        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
+        this.addScript(() => this.enter())
     }
 
-    private *cycle(side: number) {
-        yield* GenUtils.all({
-            sickle: this.sickle(side),
-            wait: Array(CYCLE_FRAMES),
-        })
+    private center() {
+        return vec(this.game.WIDTH / 2, this.game.HEIGHT / 4)
     }
 
-    // 手元で鎌を研ぎ、自機のそばへ向けて投げる。鎌は輪を描いて投げた場所へ戻る。左右の鼬で鏡写しの輪を描く
-    private *sickle(side: number) {
-        if (side > 0) yield* Array(THROW_LAG)
-        if (this.life <= 0) return
+    private *enter() {
+        yield* this.moveTo(this.center(), 120)
 
-        const target = this.game.player.p.add(vec.arg(this.random() * T).scale(this.random() * AIM_SPREAD))
+        this.addScript(() => this.move(), { loop: Infinity })
+        this.addScript(() => this.attack(), { loop: Infinity })
+        // this.addScript(() => this.attack2(), { loop: Infinity });
+    }
 
-        yield* Sickle.cast(remodel(this), this.p.clone(), target, side, this.random() * T)
-            .color("#b8ffd8")
+    private *move() {
+        this.p = this.path((this.frame - 120) / 900).add(this.center())
+        yield
+    }
+
+    private *fire() {
+        yield* remodel(this)
+            .format("donut")
+            .radian(40)
+            .p(this.p)
+            .color("#bbffaa")
+            .speed(4)
+            .nway(12, T / 12)
+            .appear(20, 2)
+            .g(function* (me) {
+                yield* Behavior.stop(me, 40)
+                yield* Array(70)
+                yield* Behavior.aim(me, vec(this.game.player.p.x, this.game.HEIGHT * 2), 1)
+                const startFrame = this.frame
+                const startRadian = me.radian
+
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 32) * Math.sin((T / 64) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 30, 4),
+                })
+            })
             .fire(this.game.bullets)
+    }
+
+    private *fire3() {
+        yield* remodel(this)
+            .format("donut")
+            .radian(40)
+            .p(this.p)
+            .color("#aa4444")
+            .speed(10)
+            .nway(20, T / 20)
+            .appear(20, 2)
+            .g(function* (me) {
+                yield* Behavior.stop(me, 60)
+                yield* Array(50)
+                yield* Behavior.aim(me, vec(this.game.player.p.x, this.game.HEIGHT * 2), 1)
+                const startFrame = this.frame
+                const startRadian = me.radian
+
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 32) * Math.sin((T / 64) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 30, 4),
+                })
+            })
+            .fire(this.game.bullets)
+    }
+    private *fire4() {
+        yield* remodel(this)
+            .format("donut")
+            .radian(40)
+            .p(this.p)
+            .color("#aaaa44")
+            .speed(8)
+            .nway(16, T / 16)
+            .appear(20, 2)
+            .g(function* (me) {
+                yield* Behavior.stop(me, 50)
+                yield* Array(60)
+                yield* Behavior.aim(me, vec(this.game.player.p.x, this.game.HEIGHT * 2), 1)
+                const startFrame = this.frame
+                const startRadian = me.radian
+
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 32) * Math.sin((T / 64) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 30, 4),
+                })
+            })
+            .fire(this.game.bullets)
+    }
+
+    private *fire2() {
+        yield* remodel(this)
+            .format("donut")
+            .radian(20)
+            .color("#bbffaa")
+            .speed(6)
+            .p(this.p)
+            .nway(10, T / 10)
+            .g(function* (me) {
+                yield* Behavior.stop(me, 30)
+                yield* Behavior.aim(me, vec(this.game.player.p.x, this.game.HEIGHT * 2), 1)
+                const startFrame = this.frame
+                const startRadian = me.radian
+
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 8) * Math.sin((T / 64) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 30, 3),
+                })
+            })
+            // .scatter({ radian: [T / 2, (T * 3) / 2] })
+            .fire(this.game.bullets)
+    }
+
+    private *multipleFire() {
+        yield* Array(180)
+        yield* this.fire2()
+        yield* Array(180)
+        yield* this.fire()
+        yield* this.fire3()
+        yield* this.fire4()
+    }
+
+    private *attack(): Generator<void, void, void> {
+        yield* GenUtils.all({ attack: this.multipleFire(), wait: Array(loopTime) })
     }
 }

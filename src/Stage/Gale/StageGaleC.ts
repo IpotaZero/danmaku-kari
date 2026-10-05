@@ -1,5 +1,4 @@
-import { vec } from "@ipota/vec"
-import { GenUtils } from "@ipota/functions"
+import { Vec, vec } from "@ipota/vec"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
@@ -7,95 +6,312 @@ import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
-import { Tornado } from "./Tornado"
-
-// ステージ「竜巻」(疾風道場・師範代)
-// 画面の端に、上から下まで届く竜巻が立ち、回りながら反対の端まで横切っていく。
-// 竜巻は弾を楕円に並べた輪を縦に積んだもので、輪は回っている。
-// 輪の奥側にある弾は薄く、当たり判定がない。手前に回ってきた弾だけが実体になる。
-// 輪ごとに少しずつ回り方がずれているので、手前の弾は斜めの縞になって竜巻の表面を流れていく(床屋のサインポール)。
-// 竜巻は画面の縦いっぱいなので、どこかで縞と縞の間に入って、縞と一緒に流れながら向こう側へ抜けるしかない。
-// 竜巻が抜けたあと、休憩をはさんで、今度は反対の端から竜巻が立つ。
-// 師範代の周りを回る2匹の木の葉(衛星)が、ゆっくりした矢を自機へ投げてくる。
-
-const ENTRANCE_FRAMES = 150
-// 1周期の長さ。竜巻が抜けた後、2秒半ほど休憩が入る
-const CYCLE_FRAMES = Tornado.TOTAL_FRAMES + 150
-
-const LEAF_LIFE = 700
+import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
+import { GenUtils } from "@ipota/functions"
 
 export default class extends Stage {
     *G() {
-        const master = new EnemyMaster(this.game)
-        this.game.enemies.push(master, new EnemyLeaf(this.game, master, 0), new EnemyLeaf(this.game, master, 1))
-
+        const boss = new EnemyBoss(this.game)
+        const phase1 = new EnemyPhase1(this.game, boss)
+        const phase2 = new EnemyPhase2(this.game, boss)
+        const phase3 = new EnemyPhase3(this.game, boss)
+        this.game.enemies.push(boss, phase1, phase2, phase3)
+        yield* this.waitDead([phase1])
+        this.scorenizeAllBullets()
+        phase2.start()
+        yield* this.waitDead([phase2])
+        this.scorenizeAllBullets()
+        phase3.start()
+        yield* this.waitDead([phase3])
+        this.scorenizeAllBullets()
+        boss.start()
         yield* this.waitAllEnemiesDead()
     }
 }
 
-class EnemyMaster extends Enemy {
-    private readonly path = Curves.lissajous(this.game.WIDTH * 0.2, this.game.HEIGHT * 0.04, 1, 2)
+// const loopTime = 680;
 
-    constructor(game: Game) {
-        // 主機の体力は衛星の総和くらい
-        super(game, LEAF_LIFE * 2, 48, { renderer: new EnemyRendererCore() })
-
-        this.addScript(() => this.enter())
+class EnemyPhase1 extends Enemy {
+    private parent: Enemy
+    constructor(game: Game, parent: Enemy) {
+        super(game, 1, 40, { renderer: new EnemyRendererCore() })
+        this.setParent(parent, () => vec.arg(this.frame / 60).scale(parent.r + this.r * 3))
+        this.parent = parent
+        this.addScript(() => this.attack(), { loop: Infinity, margin: 60 })
     }
 
-    private *enter() {
-        yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
+    private *fire() {
+        yield* remodel(this)
+            .format("big-ball")
+            .color("#44aa44")
+            .p(this.parent.p)
+            .speed(8)
+            // .radian(T / 4)
+            .nway(16, T / 16)
+            .g(function* (me) {
+                yield* Behavior.stop(me, 30)
+                // yield* Behavior.aim(me, this.game.player.p, 30);
+                const startFrame = this.frame
+                const startRadian = me.radian
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity })
-    }
-
-    private home() {
-        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.15)
-    }
-
-    private *move() {
-        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 1500).add(this.home())
-        yield
-    }
-
-    // 左右交互に竜巻を立てる
-    private *cycle() {
-        for (const side of [-1, 1]) {
-            yield* GenUtils.all({
-                tornado: Tornado.spin(remodel(this), this.game, side, this.random() * T)
-                    .color("#b8ffd8")
-                    .fire(this.game.bullets),
-                wait: Array(CYCLE_FRAMES),
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 16) * Math.sin((T / 64) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 30, 8),
+                })
             })
+            .fire(this.game.bullets)
+    }
+
+    private *fire2() {
+        const way = 18
+        yield* remodel(this)
+            .format("diamond")
+            .color("#ffcbaa")
+            .speed(4)
+            .colorful(Math.random() * 100)
+            .duplicate(54, (b, i) => {
+                b.p = this.parent.p.add(vec.arg((T / way) * i * 0.9).scale(i ** 1.1 * 3))
+                b.radian = (T / way) * i * 0.9 + T / 6
+                return b
+            })
+            .appear(20, 1)
+            .g(function* (me) {
+                yield* Behavior.stop(me, 60)
+                // yield* Behavior.aim(me, this.game.player.p, 30);
+                const startFrame = this.frame
+                const startRadian = me.radian
+                yield* Array(60)
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 8) * Math.sin((T / 32) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 240, 8),
+                })
+            })
+            .fire(this.game.bullets)
+    }
+
+    private *attackTurn() {
+        for (let i = 0; i < 4; i++) {
+            yield* Array(60)
+            yield* this.fire()
+            yield* Array(60)
+            yield* this.fire2()
         }
+        yield* this.fire()
+        yield* Array(60)
+        yield* this.fire()
+        yield* Array(240)
+    }
+
+    private *attack(): Generator<void, void, void> {
+        yield* GenUtils.all({ attack: this.attackTurn(), wait: Array(780) })
     }
 }
 
-class EnemyLeaf extends Enemy {
-    constructor(game: Game, parent: Enemy, index: number) {
-        super(game, LEAF_LIFE, 24)
-
-        this.setParent(parent, () => vec.arg(this.frame / 200 + (T / 2) * index).scale(110))
-
-        this.addScript(() => this.cycle(), {
-            margin: ENTRANCE_FRAMES + Tornado.FORM_FRAMES + index * 60,
-            loop: Infinity,
-        })
+class EnemyPhase2 extends Enemy {
+    private parent: Enemy
+    constructor(game: Game, parent: Enemy) {
+        super(game, 1800, 40, { renderer: new EnemyRendererCore() })
+        this.setParent(parent, () => vec.arg(T / 3 + this.frame / 60).scale(parent.r + this.r * 3))
+        this.parent = parent
+        this.isInvincible = true
     }
 
-    // 3本の矢を、最初はゆっくり、だんだん速く投げる
-    private *cycle() {
+    private *fire(num: number) {
         yield* remodel(this)
-            .format("arrow")
-            .color("#ffe9a8")
-            .p(this.p.clone())
-            .speed(0.5)
-            .aim(this.game.player.p)
-            .nway(3, T / 20)
-            .g((me) => Behavior.accel(me, 90, 3.5))
-            .fire(this.game.bullets)
+            .format("small-ball")
+            .color("#ffcbaa")
+            .p(this.parent.p)
+            .speed(4)
+            .nway(num, T / num)
+            .g(function* (me) {
+                yield* Behavior.stop(me, 40)
+                // yield* Behavior.aim(me, this.game.player.p, 30);
+                const startFrame = this.frame
+                const startRadian = me.radian
 
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 16) * Math.sin((T / 32) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 60, 2),
+                })
+            })
+            .fire(this.game.bullets)
+    }
+
+    private *fire2() {
+        yield* remodel(this)
+            .format("diamond")
+            .color("#ffcbaa")
+            .p(this.p)
+            .speed(2)
+            .nway(10, T / 10)
+            .appear(20, 2)
+            .colorful(Math.random() * 100)
+            // .radian(T / 4)
+            .g(function* (me) {
+                yield* Behavior.stop(me, 30)
+                // yield* Behavior.aim(me, this.game.player.p, 30);
+                const startFrame = this.frame
+                const startRadian = me.radian
+
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 12) * Math.sin((T / 32) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 30, 2),
+                })
+            })
+            .fire(this.game.bullets)
+    }
+
+    private *attackTurn() {
+        for (let i = 0; i < 12; i++) {
+            yield* Array(30)
+            yield* this.fire(12 + i)
+            // yield* this.fire2();
+        }
         yield* Array(120)
+    }
+
+    private *attack(): Generator<void, void, void> {
+        yield* GenUtils.all({ attack: this.attackTurn(), wait: Array(720) })
+    }
+
+    start() {
+        this.isInvincible = false
+        this.addScript(() => this.attack(), { loop: Infinity })
+    }
+}
+class EnemyPhase3 extends Enemy {
+    constructor(game: Game, parent: Enemy) {
+        super(game, 1800, 40, { renderer: new EnemyRendererCore() })
+        this.setParent(parent, () => vec.arg((T * 2) / 3 + this.frame / 60).scale(parent.r + this.r * 3))
+        this.isInvincible = true
+    }
+
+    private *fire() {
+        yield* remodel(this)
+            .format("big-ball")
+            .color("#ffcbaa")
+            .p(this.p)
+            .speed(2)
+            .radian(T / 4)
+            .g(function* (me) {
+                yield* Behavior.stop(me, 30)
+                yield* Behavior.aim(me, this.game.player.p, 30)
+                const startFrame = this.frame
+                const startRadian = me.radian
+
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 16) * Math.sin((T / 32) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 30, 8),
+                })
+            })
+            .fire(this.game.bullets)
+    }
+
+    private *fire2() {
+        yield* remodel(this)
+            .format("diamond")
+            .color("#ffcbaa")
+            .p(this.p)
+            .speed(2)
+            .nway(10, T / 10)
+            .appear(20, 2)
+            .colorful(Math.random() * 100)
+            // .radian(T / 4)
+            .g(function* (me) {
+                yield* Behavior.stop(me, 30)
+                // yield* Behavior.aim(me, this.game.player.p, 30);
+                const startFrame = this.frame
+                const startRadian = me.radian
+
+                yield* GenUtils.all({
+                    move: function* (this: Enemy) {
+                        while (true) {
+                            me.radian = startRadian + (T / 16) * Math.sin((T / 32) * (this.frame - startFrame))
+                            yield
+                        }
+                    }.bind(this)(),
+                    accel: Behavior.accel(me, 30, 4),
+                })
+            })
+            .fire(this.game.bullets)
+    }
+
+    private *attackTurn() {
+        for (let i = 0; i < 4; i++) {
+            yield* Array(120)
+            yield* this.fire()
+            yield* this.fire2()
+        }
+        yield* Array(120)
+    }
+
+    private *attack(): Generator<void, void, void> {
+        yield* GenUtils.all({ attack: this.attackTurn(), wait: Array(720) })
+    }
+
+    start() {
+        this.isInvincible = false
+        this.addScript(() => this.attack(), { loop: Infinity })
+    }
+}
+
+class EnemyBoss extends Enemy {
+    private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.2, 5, 5)
+
+    constructor(game: Game) {
+        super(game, 1800, 48, { renderer: new EnemyRendererBoss() })
+        this.isInvincible = true
+        this.addScript(() => this.enter())
+    }
+
+    private center() {
+        return vec(this.game.WIDTH / 2, this.game.HEIGHT / 4)
+    }
+
+    private *enter() {
+        yield* this.moveTo(this.center(), 120)
+
+        this.addScript(() => this.move(), { loop: Infinity })
+    }
+
+    start() {
+        this.isInvincible = false
+        this.addScript(() => this.attack(), { loop: Infinity })
+    }
+
+    private *move() {
+        this.p = this.path((this.frame - 120) / 900).add(this.center())
+        yield
+    }
+
+    private *attackTurn() {}
+
+    private *attack(): Generator<void, void, void> {
+        yield* GenUtils.all({ attack: this.attackTurn(), wait: Array(720) })
     }
 }
