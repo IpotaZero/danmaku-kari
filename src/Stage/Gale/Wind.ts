@@ -74,7 +74,7 @@ export namespace Wind {
 
             return r
                 .format("line")
-                .type("neutral")
+                .type("effect")
                 .alpha(0.25)
                 .color("#d8ffe8")
                 .speed(STREAK_SPEED)
