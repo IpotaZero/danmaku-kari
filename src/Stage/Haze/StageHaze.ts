@@ -28,10 +28,10 @@ const CYCLE0_FRAMES = 460
 const DRAW_FRAMES = 50
 const TILT_MIN = T / 60
 const TILT_MAX = T / 20
-const CYCLE1_FRAMES = 460
+const CYCLE1_FRAMES = 600
 // 二段目で、輪を放ってから鏡が回り始めるまでと、90度回るのにかかる時間
 const TURN_WAIT = 60
-const TURN_FRAMES = 180
+const TURN_FRAMES = 360
 const CYCLE2_FRAMES = Heat.PLUME_TOTAL_FRAMES + 360
 const CYCLE3_FRAMES = Heat.PLUME_TOTAL_FRAMES + 300
 
