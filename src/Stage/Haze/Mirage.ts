@@ -2,6 +2,7 @@ import { Vec, vec } from "@ipota/vec"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { T } from "../../T"
+import { Behavior, remodel } from "../../Game/Remodel"
 import { Ctx } from "../../utils/Functions/Ctx"
 import { MathEx } from "../../utils/Functions/MathEx"
 
@@ -51,29 +52,70 @@ export namespace Mirage {
         return `rgba(255, 210, 160, ${alpha})`
     }
 
-    // 鏡の線を、center から両側へ length ずつ伸ばして描く
+    // 鏡の線を、center から両側へ length ずつ伸ばして描く。外側にぼんやりした光、内側に白っぽい芯を重ねる。
+    // brightness は明るさ(0〜1)、width は芯の太さ
     function stroke(
         ctx: CanvasRenderingContext2D,
         { center, angle }: Mirror,
         length: number,
-        alpha: number,
+        brightness: number,
         width: number,
     ) {
         const d = vec.arg(angle).scale(length)
-        ctx.beginPath()
-        ctx.moveTo(center.x - d.x, center.y - d.y)
-        ctx.lineTo(center.x + d.x, center.y + d.y)
-        ctx.strokeStyle = color(alpha)
+        const line = () => {
+            ctx.beginPath()
+            ctx.moveTo(center.x - d.x, center.y - d.y)
+            ctx.lineTo(center.x + d.x, center.y + d.y)
+            ctx.stroke()
+        }
+
+        ctx.lineCap = "round"
+
+        ctx.strokeStyle = color(0.25 * brightness)
+        ctx.lineWidth = width * 4
+        line()
+
+        ctx.shadowBlur = width * 4
+        ctx.shadowColor = color(brightness)
+        ctx.strokeStyle = `rgba(255, 245, 225, ${brightness})`
         ctx.lineWidth = width
-        ctx.stroke()
+        line()
     }
 
-    // 鏡を引く。鏡の線は center から両側へ frames かけて一定の速さで画面の端まで伸び、
-    // 引き終わった瞬間にぱっと光ってから薄く残る。伸びている線の先には光の粒が走る。
+    // 光の粒を描く。中心が白く、まわりがぼんやり光る
+    function spark(ctx: CanvasRenderingContext2D, p: Vec, r: number, alpha: number) {
+        Ctx.arc(ctx, p, r * 2.5, color(0.25 * alpha))
+        Ctx.arc(ctx, p, r, `rgba(255, 250, 235, ${alpha})`)
+    }
+
+    // p から radian の向きへ、きらきらした粒(当たり判定なし)を飛ばす。粒は薄れて消える
+    function* sparkle(e: Enemy, p: Vec, radian: number, speed: number) {
+        yield* remodel(e)
+            .format("small-ball")
+            .r(3)
+            .type("effect")
+            .isScorable(false)
+            .color("#fff0d8")
+            .p(p.clone())
+            .radian(radian)
+            .speed(speed)
+            .g(function* (me) {
+                yield* Behavior.ease(me, "alpha", 0, 30 + 20 * this.random())
+                me.life = 0
+            })
+            .fire(e.game.bullets)
+    }
+
+    // 鏡を引く。
+    // 中心にまぶしい光が灯り、そこから両側へ、光の粒を散らしながら frames かけて一定の速さで画面の端まで線が伸びる。
+    // 引き終わった瞬間、線全体がまぶしく光って画面が揺れ、線に沿って光の粒が弾ける。
+    // その後も線ははっきり残り、陽炎のように明るさが揺らめき、ときどき光が線の上を走る。
     // 鏡が取り去られると、線は薄れて消える
     export function* draw(e: Enemy, mirror: Mirror, frames: number) {
         const reach = e.game.WIDTH + e.game.HEIGHT
-        const glowFrames = 24
+        const glowFrames = 40
+        const along = vec.arg(mirror.angle)
+        const across = mirror.angle + T / 4
 
         // 画面の外まで伸ばしても見えないので、伸びる演出は中心から一番遠い画面の角までにする
         const { WIDTH, HEIGHT } = e.game
@@ -88,14 +130,40 @@ export namespace Mirage {
             const t = frames > 0 ? Math.min(1, f / frames) : 1
             const length = t < 1 ? far * t : reach
             const glow = f < frames ? 0 : Math.max(0, 1 - (f - frames) / glowFrames)
-            const tips = [-1, 1].map((side) => mirror.center.add(vec.arg(mirror.angle).scale(side * length)))
+            const tips = [-1, 1].map((side) => mirror.center.add(along.scale(side * length)))
+            const shimmer = 0.85 + 0.15 * Math.sin(f / 7)
             const alpha = fade
 
+            // 線の上を走る光。引き終わった後、少し間を空けながら両端へ流れていく
+            const glint = t < 1 ? undefined : ((f - frames) % 150) / 60
+
+            if (t < 1 && f % 2 === 0) {
+                for (const [k, tip] of tips.entries()) {
+                    yield* sparkle(e, tip, across + (k * T) / 2 + (e.random() - 0.5) * 1.2, 0.5 + e.random())
+                }
+            }
+
+            // 引き終わった瞬間。最初から掛かっている鏡(frames が0)では何もしない
+            if (frames > 0 && f === frames) {
+                e.game.camera.shake(6, 16)
+
+                for (let k = 0; k < 40; k++) {
+                    const p = mirror.center.add(along.scale((e.random() * 2 - 1) * far))
+                    yield* sparkle(e, p, across + (e.random() < 0.5 ? 0 : T / 2), 1 + 2 * e.random())
+                }
+            }
+
             e.game.drawInWorld((ctx) => {
-                stroke(ctx, mirror, length, (0.12 + 0.6 * glow) * alpha, 2 + 4 * glow)
+                stroke(ctx, mirror, length, Math.min(1, (0.55 * shimmer + glow) * alpha), 2.5 + 8 * glow)
 
                 if (t < 1) {
-                    for (const tip of tips) Ctx.arc(ctx, tip, 5, `rgba(255, 240, 210, ${0.8 * alpha})`)
+                    // 中心の光と、伸びていく線の先の光
+                    spark(ctx, mirror.center, 6 + 2 * Math.sin(f / 3), alpha)
+                    for (const tip of tips) spark(ctx, tip, 6, alpha)
+                } else if (glint !== undefined && glint < 1) {
+                    for (const side of [-1, 1]) {
+                        spark(ctx, mirror.center.add(along.scale(side * far * glint)), 3, 0.8 * alpha)
+                    }
                 }
             })
 
