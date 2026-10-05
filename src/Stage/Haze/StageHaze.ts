@@ -28,10 +28,10 @@ const CYCLE0_FRAMES = 460
 const DRAW_FRAMES = 50
 const TILT_MIN = T / 60
 const TILT_MAX = T / 20
-const CYCLE1_FRAMES = 600
+const CYCLE1_FRAMES = 720
 // 二段目で、輪を放ってから鏡が回り始めるまでと、90度回るのにかかる時間
 const TURN_WAIT = 120
-const TURN_FRAMES = 360
+const TURN_FRAMES = 480
 const CYCLE2_FRAMES = Heat.PLUME_TOTAL_FRAMES + 360
 const CYCLE3_FRAMES = Heat.PLUME_TOTAL_FRAMES + 300
 
@@ -218,7 +218,7 @@ class EnemyHaze extends Enemy {
             yield* Array(12)
         }
 
-        yield* this.ring(12, 1).mirrorAll(mirrors).fire(this.game.bullets)
+        yield* this.ring(31, 1).mirrorAll(mirrors).fire(this.game.bullets)
         yield* Array(TURN_WAIT)
 
         const starts = mirrors.map((m) => m.angle)
@@ -242,9 +242,34 @@ class EnemyHaze extends Enemy {
             plumes: Heat.plumes(this, 6, []),
             ring: (function* (me: EnemyHaze) {
                 yield* Array(Heat.SEED_FRAMES + 40)
-                yield* me.ring(18, 1).fire(me.game.bullets)
+
+                yield* remodel(me)
+                    .format("diamond")
+                    .p(me.p.clone())
+                    .duplicate(63)
+                    .scatter({ p: 240, hue: [0, 360] })
+                    .delayByIndex()
+                    .appear(30)
+                    .aim(me.game.player.p)
+                    .g(function* (me) {
+                        yield* Behavior.reaccel(me, 30, 30, 30)
+                    })
+                    .fire(me.game.bullets)
+
                 yield* Array(80)
-                yield* me.ring(18, -1).fire(me.game.bullets)
+
+                yield* remodel(me)
+                    .format("diamond")
+                    .p(me.p.clone())
+                    .duplicate(63)
+                    .scatter({ p: 240, hue: [0, 360] })
+                    .delayByIndex()
+                    .appear(30)
+                    .aim(me.game.player.p)
+                    .g(function* (me) {
+                        yield* Behavior.reaccel(me, 30, 30, 30)
+                    })
+                    .fire(me.game.bullets)
             })(this),
             wait: Array(CYCLE2_FRAMES),
         })
