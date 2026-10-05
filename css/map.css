@@ -112,7 +112,7 @@
 
     .map-node-info {
         position: absolute;
-        transform: translate(-50%, calc(-100% - 0.6em));
+        transform: translate(-50%, calc(-100% - 1em));
 
         display: flex;
         flex-direction: column;
