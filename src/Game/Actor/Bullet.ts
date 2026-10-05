@@ -7,6 +7,12 @@ import { Game } from "../Game"
 
 // 鏡が取り去られた双子が薄れて消えるまで
 const TWIN_FADE_FRAMES = 24
+// 鏡に映った双子の濃さの上限。本物の弾より少し薄くして、どれが鏡に映った弾か分かるようにする
+const REFLECTION_ALPHA = 0.55
+
+// 弾を映す鏡。center を通る angle 向きの線。angle は途中で変わってもよく、双子は毎フレームいまの鏡に映る。
+// isActive() が偽になる(鏡が取り去られる)と、双子は薄れて消える
+export type Reflector = { readonly center: Vec; readonly angle: number; isActive(): boolean }
 
 export class Bullet extends Actor {
     r: number = 12
@@ -40,14 +46,14 @@ export class Bullet extends Actor {
         return b
     }
 
-    // center を通る angle 向きの線を挟んで、自分と鏡写しになる弾(双子)を作る。
-    // isActive() が偽になる(鏡が取り去られる)と、双子は薄れて消える
-    reflection(center: Vec, angle: number, isActive: () => boolean): Bullet {
+    // 鏡 mirror を挟んで、自分と鏡写しになる弾(双子)を作る。双子は本物より少し薄い
+    reflection(mirror: Reflector): Bullet {
         return this.twin(
-            center,
-            isActive,
-            (p) => MathEx.reflect(p, center, angle),
-            (radian) => 2 * angle - radian,
+            mirror.center,
+            () => mirror.isActive(),
+            (p) => MathEx.reflect(p, mirror.center, mirror.angle),
+            (radian) => 2 * mirror.angle - radian,
+            REFLECTION_ALPHA,
         )
     }
 
@@ -58,6 +64,7 @@ export class Bullet extends Actor {
             () => true,
             (p) => center.add(p.sub(center).rotate(angle)),
             (radian) => radian + angle,
+            1,
         )
     }
 
@@ -71,6 +78,7 @@ export class Bullet extends Actor {
         isActive: () => boolean,
         point: (p: Vec) => Vec,
         direction: (radian: number) => number,
+        maxAlpha: number,
     ): Bullet {
         const original = this
 
@@ -109,7 +117,7 @@ export class Bullet extends Actor {
 
             while (original.life > 0 && isActive()) {
                 follow()
-                me.alpha = original.alpha
+                me.alpha = Math.min(original.alpha, maxAlpha)
                 me.type = original.type
                 yield
             }

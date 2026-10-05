@@ -20,7 +20,8 @@ export namespace Mirage {
 
         constructor(
             readonly center: Vec,
-            readonly angle: number,
+            // 鏡を回すときに書き換える。映っている弾や幻も一緒に動く
+            public angle: number,
         ) {}
 
         isActive() {
@@ -114,8 +115,6 @@ export namespace Mirage {
     export function* draw(e: Enemy, mirror: Mirror, frames: number) {
         const reach = e.game.WIDTH + e.game.HEIGHT
         const glowFrames = 40
-        const along = vec.arg(mirror.angle)
-        const across = mirror.angle + T / 4
 
         // 画面の外まで伸ばしても見えないので、伸びる演出は中心から一番遠い画面の角までにする
         const { WIDTH, HEIGHT } = e.game
@@ -130,6 +129,9 @@ export namespace Mirage {
             const t = frames > 0 ? Math.min(1, f / frames) : 1
             const length = t < 1 ? far * t : reach
             const glow = f < frames ? 0 : Math.max(0, 1 - (f - frames) / glowFrames)
+            // 鏡は回されることがあるので、向きは毎フレーム見直す
+            const along = vec.arg(mirror.angle)
+            const across = mirror.angle + T / 4
             const tips = [-1, 1].map((side) => mirror.center.add(along.scale(side * length)))
             const shimmer = 0.85 + 0.15 * Math.sin(f / 7)
             const alpha = fade

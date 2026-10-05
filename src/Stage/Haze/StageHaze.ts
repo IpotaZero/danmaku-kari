@@ -1,5 +1,5 @@
 import { vec } from "@ipota/vec"
-import { GenUtils } from "@ipota/functions"
+import { Ease, GenUtils } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
@@ -28,7 +28,10 @@ const CYCLE0_FRAMES = 460
 const DRAW_FRAMES = 50
 const TILT_MIN = T / 60
 const TILT_MAX = T / 20
-const CYCLE1_FRAMES = 400
+const CYCLE1_FRAMES = 460
+// 二段目で、輪を放ってから鏡が回り始めるまでと、90度回るのにかかる時間
+const TURN_WAIT = 60
+const TURN_FRAMES = 180
 const CYCLE2_FRAMES = Heat.PLUME_TOTAL_FRAMES + 360
 const CYCLE3_FRAMES = Heat.PLUME_TOTAL_FRAMES + 300
 
@@ -194,8 +197,12 @@ class EnemyHaze extends Enemy {
         }
     }
 
+    // 縦横の鏡に映る矢を撃ち、輪を放つ。輪が近づいてくるころ、鏡がゆっくり90度回る。
+    // 鏡に映った弾は鏡と一緒に大きく振れて(鏡の傾きの倍だけ回って)、画面を薙いでいく。
+    // 縦横の鏡は90度回ると元と同じ形に戻るので、次の周期はそこから始まる
     private *cycle1() {
         const mirrors = this.mirrors
+        const turn = this.random() < 0.5 ? -1 : 1
 
         yield* Array(60)
 
@@ -205,7 +212,18 @@ class EnemyHaze extends Enemy {
         }
 
         yield* this.ring(12, 1).mirrorAll(mirrors).fire(this.game.bullets)
-        yield* Array(CYCLE1_FRAMES - 120)
+        yield* Array(TURN_WAIT)
+
+        const starts = mirrors.map((m) => m.angle)
+
+        for (let f = 1; f <= TURN_FRAMES; f++) {
+            mirrors.forEach((m, i) => {
+                m.angle = starts[i] + turn * (T / 4) * Ease.InOut(f / TURN_FRAMES)
+            })
+            yield
+        }
+
+        yield* Array(CYCLE1_FRAMES - 120 - TURN_WAIT - TURN_FRAMES)
     }
 
     private *cycle2() {

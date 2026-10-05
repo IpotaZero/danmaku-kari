@@ -88,7 +88,7 @@ class EnemyKaleidoscope extends Enemy {
                 .speed(2.4)
                 .g((me) => Behavior.rotating(me, bend, 90))
                 .rotational(this.center, FOLD)
-                .mirror(this.center, T / 4, () => true)
+                .mirror({ center: this.center, angle: T / 4, isActive: () => true })
                 .fire(this.game.bullets)
 
             yield* Array(6)

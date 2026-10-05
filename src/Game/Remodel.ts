@@ -1,6 +1,6 @@
 import { Ease, GenUtils } from "@ipota/functions"
 import { Vec, vec } from "@ipota/vec"
-import { Bullet } from "./Actor/Bullet"
+import { Bullet, Reflector } from "./Actor/Bullet"
 import { T } from "../T"
 import type { NumberKeys } from "@ipota/my-utils"
 import { Actor } from "./Actor/Actor"
@@ -483,15 +483,14 @@ export class Remodel<Parent extends Actor> {
             })
     }
 
-    // 弾ごとに、center を通る angle 向きの線を挟んで鏡写しになる双子の弾を加える(Bullet.reflection)。
-    // isActive() が偽になる(鏡が取り去られる)と、双子は薄れて消える。
+    // 弾ごとに、鏡 mirror を挟んで鏡写しになる双子の弾を加える(Bullet.reflection)。
     // 双子は元の弾の姿を写し取るだけなので、挙動(g など)をすべて付け終えた後、fire の直前に呼ぶ
-    mirror(center: Vec, angle: number, isActive: () => boolean) {
+    mirror(mirror: Reflector) {
         const result: Bullet[] = []
         const resultIndices: number[][] = []
 
         this.bullets.forEach((b, i) => {
-            result.push(b, b.reflection(center, angle, isActive))
+            result.push(b, b.reflection(mirror))
             resultIndices.push(this.indices[i], this.indices[i])
         })
 
@@ -524,8 +523,8 @@ export class Remodel<Parent extends Actor> {
     }
 
     // 複数の鏡に順に映す(mirror を重ねる)。弾は 2^(鏡の数) 個になる。fire の直前に呼ぶ
-    mirrorAll(mirrors: readonly { center: Vec; angle: number; isActive(): boolean }[]) {
-        mirrors.forEach((m) => this.mirror(m.center, m.angle, () => m.isActive()))
+    mirrorAll(mirrors: readonly Reflector[]) {
+        mirrors.forEach((m) => this.mirror(m))
         return this
     }
 
