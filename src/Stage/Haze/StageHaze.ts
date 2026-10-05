@@ -25,7 +25,7 @@ const ARROW_COLOR: Color = "#ffe0b0"
 const CYCLE0_FRAMES = 460
 // 一段目の鏡を引くのにかかる時間と、鏡の傾きの範囲(水平からの角度)。
 // 傾けすぎると幻が画面の外に映ってしまうので、水平に近い範囲で左右交互に傾ける
-const DRAW_FRAMES = 100
+const DRAW_FRAMES = 50
 const TILT_MIN = T / 60
 const TILT_MAX = T / 20
 const CYCLE1_FRAMES = 400
@@ -85,6 +85,8 @@ export default class extends Stage {
 
 class EnemyHaze extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.05, 1, 2)
+    // 今掛かっている鏡
+    private mirrors: readonly Mirage.Mirror[] = []
 
     constructor(game: Game) {
         super(game, 2400, 64, { renderer: new EnemyRendererBoss() })
@@ -97,23 +99,25 @@ class EnemyHaze extends Enemy {
         this.addScript(() => this.cycle0(), { id: "cycle", margin: 150 })
         yield
 
-        this.showMirrors(Mirage.cross(this.game))
+        this.reflectIn(Mirage.cross(this.game), DRAW_FRAMES)
         this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
 
-        this.showMirrors([])
+        this.reflectIn([], DRAW_FRAMES)
         this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
 
-        this.showMirrors([Mirage.horizontal(this.game)])
+        this.reflectIn([Mirage.horizontal(this.game)], DRAW_FRAMES)
         this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
     }
 
-    // 鏡の線と、鏡に映った道場主の幻を描く。段が変わるたびに差し替える
-    private showMirrors(mirrors: readonly Mirage.Mirror[]) {
-        this.addScript(() => Mirage.lines(this, mirrors), { id: "mirror-lines" })
-        this.addScript(() => Mirage.ghosts(this, mirrors), { id: "mirror-ghosts" })
+    // 鏡を掛け替える。今の鏡は取り去られ、鏡の線も幻も、映っていた弾も薄れて消える。
+    // 新しい鏡は drawFrames かけて引かれ、引き終わってから幻が映る
+    private reflectIn(mirrors: readonly Mirage.Mirror[], drawFrames: number) {
+        this.mirrors.forEach((m) => m.remove())
+        this.mirrors = mirrors
+        Mirage.show(this, mirrors, drawFrames)
     }
 
     private *enter() {
@@ -163,24 +167,18 @@ class EnemyHaze extends Enemy {
             .g((me) => Behavior.accel(me, 50, 3.6))
     }
 
-    // 周期ごとに鏡を引き直し、引き終わったら揺らめく輪と矢を鏡に映して撃つ。前の鏡の傾きを覚えておくため、自分でくり返す
+    // 周期ごとに傾きを変えて鏡を引き直し、引き終わったら揺らめく輪と矢を鏡に映して撃つ。
+    // 前の鏡に映っていた弾は、鏡を引き直すと薄れて消える。傾ける向きを左右交互にするため、自分でくり返す
     private *cycle0() {
-        let previous: Mirage.Mirror | undefined
-
         for (let side = this.random() < 0.5 ? -1 : 1; ; side *= -1) {
-            const mirror: Mirage.Mirror = {
-                center: Mirage.horizontal(this.game).center,
-                angle: side * (TILT_MIN + this.random() * (TILT_MAX - TILT_MIN)),
-            }
+            const mirrors = [
+                new Mirage.Mirror(
+                    vec(this.game.WIDTH / 2, this.game.HEIGHT / 2),
+                    side * (TILT_MIN + this.random() * (TILT_MAX - TILT_MIN)),
+                ),
+            ]
 
-            const mirrors = [mirror]
-            // スクリプトは次のフレームに始まるので、前の鏡は今のうちに取っておく
-            const last = previous
-
-            // 鏡を引く。幻は引き終わってから映る
-            this.addScript(() => Mirage.draw(this, mirror, last, DRAW_FRAMES), { id: "mirror-lines" })
-            this.addScript(() => Mirage.ghosts(this, mirrors), { id: "mirror-ghosts", margin: DRAW_FRAMES })
-            previous = mirror
+            this.reflectIn(mirrors, DRAW_FRAMES)
 
             yield* Array(DRAW_FRAMES + 20)
 
@@ -197,7 +195,7 @@ class EnemyHaze extends Enemy {
     }
 
     private *cycle1() {
-        const mirrors = Mirage.cross(this.game)
+        const mirrors = this.mirrors
 
         yield* Array(60)
 
@@ -225,7 +223,7 @@ class EnemyHaze extends Enemy {
 
     // 柱が鏡に映り、上からも降りてくる。上下の柱が真ん中でつながる間に、鏡に映る矢を撃つ
     private *cycle3() {
-        const mirrors = [Mirage.horizontal(this.game)]
+        const mirrors = this.mirrors
 
         yield* GenUtils.all({
             plumes: Heat.plumes(this, 3, mirrors),

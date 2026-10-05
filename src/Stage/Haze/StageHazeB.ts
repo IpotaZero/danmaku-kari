@@ -41,8 +41,7 @@ class EnemyMaster extends Enemy {
         super(game, FLAME_LIFE, 48, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
-        this.addScript(() => Mirage.lines(this, Mirage.cross(game)))
-        this.addScript(() => Mirage.ghosts(this, Mirage.cross(game)))
+        Mirage.show(this, Mirage.cross(game), 0)
     }
 
     private *enter() {
@@ -101,7 +100,7 @@ class EnemyFlame extends Enemy {
         super(game, FLAME_LIFE, 24)
 
         this.setParent(parent, () => vec.arg(this.frame / 90).scale(70))
-        this.addScript(() => Mirage.ghosts(this, Mirage.cross(game)))
+        this.addScript(() => Mirage.ghosts(this, Mirage.cross(game), 0))
 
         this.addScript(() => this.cycle(), { margin: ENTRANCE_FRAMES + 180, loop: Infinity })
     }

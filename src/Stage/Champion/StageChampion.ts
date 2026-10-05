@@ -139,12 +139,11 @@ class EnemyChampion extends Enemy {
         yield* this.next(() => this.mist(), 120)
         yield* this.next(() => this.sand(), 120)
 
+        // 鏡を引く。陽炎の段が終わると鏡は取り去られ、線も幻も薄れて消える
         const mirrors = [Mirage.horizontal(this.game)]
-        this.addScript(() => Mirage.lines(this, mirrors), { id: "mirror-lines" })
-        this.addScript(() => Mirage.ghosts(this, mirrors), { id: "mirror-ghosts" })
+        Mirage.show(this, mirrors, 100)
         yield* this.next(() => this.haze(), 120)
-        this.removeScript("mirror-lines")
-        this.removeScript("mirror-ghosts")
+        mirrors.forEach((m) => m.remove())
 
         // 盾の輪は段が変わるときにスコアに変わって消える
         this.addScript(() => this.ring.build().fire(this.game.bullets), { margin: 30 })

@@ -5,6 +5,9 @@ import { Polygon } from "../BulletDrawer/Polygon"
 import { uid } from "../../utils/Functions/uid"
 import { Game } from "../Game"
 
+// 鏡が取り去られた双子が薄れて消えるまで
+const TWIN_FADE_FRAMES = 24
+
 export class Bullet extends Actor {
     r: number = 12
     radian: number = 0
@@ -37,10 +40,12 @@ export class Bullet extends Actor {
         return b
     }
 
-    // center を通る angle 向きの線を挟んで、自分と鏡写しになる弾(双子)を作る
-    reflection(center: Vec, angle: number): Bullet {
+    // center を通る angle 向きの線を挟んで、自分と鏡写しになる弾(双子)を作る。
+    // isActive() が偽になる(鏡が取り去られる)と、双子は薄れて消える
+    reflection(center: Vec, angle: number, isActive: () => boolean): Bullet {
         return this.twin(
             center,
+            isActive,
             (p) => MathEx.reflect(p, center, angle),
             (radian) => 2 * angle - radian,
         )
@@ -50,6 +55,7 @@ export class Bullet extends Actor {
     rotation(center: Vec, angle: number): Bullet {
         return this.twin(
             center,
+            () => true,
             (p) => center.add(p.sub(center).rotate(angle)),
             (radian) => radian + angle,
         )
@@ -57,9 +63,15 @@ export class Bullet extends Actor {
 
     // 自分の位置を point で、向きを direction で写した弾(双子)を作る。point は center からの距離を変えない写し方に限る。
     // 双子は自分では動かず、毎フレーム自分の位置・向き・見た目・当たり判定を写し取り、自分が消えると一緒に消える。
+    // isActive() が偽になると、写し取るのをやめずに薄れて消える(薄れ始めた瞬間に当たり判定はなくなる)。
     // 自分だけ先に画面の外へ出て消えると、まだ画面の中にいる双子まで消えてしまう。
     // そこで画面の端で消すのをやめ、center から画面のどの角よりも遠く離れたとき(=双子もみな画面の外にいるとき)に消える
-    private twin(center: Vec, point: (p: Vec) => Vec, direction: (radian: number) => number): Bullet {
+    private twin(
+        center: Vec,
+        isActive: () => boolean,
+        point: (p: Vec) => Vec,
+        direction: (radian: number) => number,
+    ): Bullet {
         const original = this
 
         const twin = this.clone()
@@ -88,13 +100,26 @@ export class Bullet extends Actor {
         twin.bookScript(function* (me) {
             me.removeScript("boundary")
 
-            while (original.life > 0) {
+            const follow = () => {
                 me.p = point(original.p)
                 me.radian = direction(original.radian)
                 me.r = original.r
-                me.alpha = original.alpha
                 me.color = original.color
+            }
+
+            while (original.life > 0 && isActive()) {
+                follow()
+                me.alpha = original.alpha
                 me.type = original.type
+                yield
+            }
+
+            me.type = "neutral"
+            const alpha = me.alpha
+
+            for (let f = 1; f <= TWIN_FADE_FRAMES && original.life > 0; f++) {
+                follow()
+                me.alpha = alpha * (1 - f / TWIN_FADE_FRAMES)
                 yield
             }
 

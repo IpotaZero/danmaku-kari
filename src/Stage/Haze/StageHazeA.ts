@@ -45,8 +45,7 @@ class EnemyPupil extends Enemy {
         super(game, 3000, 48, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
-        this.addScript(() => Mirage.lines(this, [this.mirror]))
-        this.addScript(() => Mirage.ghosts(this, [this.mirror]))
+        Mirage.show(this, [this.mirror], 0)
     }
 
     private *enter() {
@@ -92,7 +91,7 @@ class EnemyPupil extends Enemy {
                         yield
                     }
                 })
-                .mirror(this.mirror.center, this.mirror.angle)
+                .mirrorAll([this.mirror])
                 .fire(this.game.bullets)
 
             yield* Array(RING_INTERVAL)
