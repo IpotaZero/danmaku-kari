@@ -25,7 +25,7 @@ const ARROW_COLOR: Color = "#ffe0b0"
 const CYCLE0_FRAMES = 460
 // 一段目の鏡を引くのにかかる時間と、鏡の傾きの範囲(水平からの角度)。
 // 傾けすぎると幻が画面の外に映ってしまうので、水平に近い範囲で左右交互に傾ける
-const DRAW_FRAMES = 50
+const DRAW_FRAMES = 100
 const TILT_MIN = T / 60
 const TILT_MAX = T / 20
 const CYCLE1_FRAMES = 400
@@ -172,6 +172,7 @@ class EnemyHaze extends Enemy {
                 center: Mirage.horizontal(this.game).center,
                 angle: side * (TILT_MIN + this.random() * (TILT_MAX - TILT_MIN)),
             }
+
             const mirrors = [mirror]
             // スクリプトは次のフレームに始まるので、前の鏡は今のうちに取っておく
             const last = previous

@@ -1,5 +1,4 @@
 import { Vec, vec } from "@ipota/vec"
-import { Ease } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { T } from "../../T"
@@ -61,16 +60,21 @@ export namespace Mirage {
         }
     }
 
-    // 鏡を引く演出。鏡の線は center から両側へ frames かけて伸び、引き終わった瞬間にぱっと光ってから薄く残る。
-    // 伸びている線の先には光の粒が走る。前の鏡 previous は、新しい鏡が伸びる間に薄れて消える。
-    // 引き終わった後は、e が生きている間ずっと鏡の線を描き続ける
+    // 鏡を引く演出。鏡の線は center から両側へ frames かけて一定の速さで画面の端まで伸び、
+    // 引き終わった瞬間にぱっと光ってから薄く残る。伸びている線の先には光の粒が走る。
+    // 前の鏡 previous は、新しい鏡が伸びる間に薄れて消える。引き終わった後は、e が生きている間ずっと鏡の線を描き続ける
     export function* draw(e: Enemy, mirror: Mirror, previous: Mirror | undefined, frames: number) {
         const reach = e.game.WIDTH + e.game.HEIGHT
         const glowFrames = 24
 
+        // 画面の外まで伸ばしても見えないので、伸びる演出は中心から一番遠い画面の角までにする
+        const { WIDTH, HEIGHT } = e.game
+        const corners = [vec(0, 0), vec(WIDTH, 0), vec(0, HEIGHT), vec(WIDTH, HEIGHT)]
+        const far = Math.max(...corners.map((c) => c.sub(mirror.center).magnitude()))
+
         for (let f = 0; e.life > 0; f++) {
             const t = Math.min(1, f / frames)
-            const length = reach * Ease.Out(t)
+            const length = t < 1 ? far * t : reach
             const glow = f < frames ? 0 : Math.max(0, 1 - (f - frames) / glowFrames)
             const tips = [-1, 1].map((side) => mirror.center.add(vec.arg(mirror.angle).scale(side * length)))
 
