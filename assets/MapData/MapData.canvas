@@ -42,7 +42,7 @@
 		{"id":"54199e7166e6f1be","type":"text","text":"砂塵道場・師範代\nStageSandC","x":4700,"y":-680,"width":160,"height":160},
 		{"id":"5675d716c5761d80","type":"text","text":"砂塵道場・道場主\nStageSand\nbadge:砂塵","x":4980,"y":-740,"width":300,"height":280},
 		{"id":"d29f8461010994af","type":"text","text":"疾風道場・師範代\nStageGaleC","x":2760,"y":-660,"width":160,"height":160},
-		{"id":"b645a540eecf50a7","type":"text","text":"疾風道場・道場主\nStageGale\nbadge:疾風","x":3020,"y":-730,"width":320,"height":300},
+		{"id":"b645a540eecf50a7","type":"text","text":"疾風道場・道場主\nStageGaleD\nbadge:疾風","x":3020,"y":-730,"width":320,"height":300},
 		{"id":"573084b0c44d937c","type":"text","text":"月影道場・門下生\nStageMoonA","x":6310,"y":1700,"width":160,"height":160},
 		{"id":"245cc775e55e2d24","type":"text","text":"月影道場・高弟\nStageMoonB","x":6570,"y":1700,"width":160,"height":160},
 		{"id":"741a530ae89e9471","type":"text","text":"月影道場・師範代\nStageMoonC","x":6830,"y":1700,"width":160,"height":160},
