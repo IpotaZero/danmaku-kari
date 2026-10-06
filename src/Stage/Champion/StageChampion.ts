@@ -7,76 +7,47 @@ import { Stage } from "../Stage"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
-import { Wind } from "../Gale/Wind"
-import { SpiderWeb } from "../Web/SpiderWeb"
-import { Mist } from "../Mist/Mist"
-import { Sand } from "../Sand/Sand"
-import { Mirage } from "../Haze/Mirage"
-import { Heat } from "../Haze/Heat"
-import { Shield } from "../Iron/Shield"
-import { Meteor } from "../Meteor/Meteor"
-import { Comet } from "../Meteor/Comet"
-import { Shadow } from "../Moon/Shadow"
-import { Phase } from "../Moon/Phase"
-import { Sting } from "./Sting"
+import { Swarm } from "./Swarm"
 
 // ステージ「チャンピオン」
-// すべての道場の頂に立つチャンピオンは、各道場の技を次々に繰り出す。体力が一定の量だけ減るごとに、次の技へ移る。
-// 疾風(突風に流される雨)→網掛(画面を覆う巣)→霧隠(飛び石)→砂塵(吸い込みながらの砂嵐)→陽炎(鏡に映る熱の柱)
-// →鉄壁(盾の輪と城壁)→流星(流星群と彗星)→月影(影に追われる満ち欠け)と進み、
-// 最後に自分の技を見せる。毒針: 予告線に沿って針の列が飛ぶ。包囲網: 自機を囲んだ輪が縮み、二つの抜け道から逃げる。
+// チャンピオンのスズメバチは、蜂の群れを放つ。蜂は群れで飛び、仲間と寄り集まり向きをそろえながら自機を追ってくる。
+// 蜂は急には曲がれないので、大きく動いて振り切れば、行き過ぎてぐるりと回ってくる。群れが赤く明滅したら、突撃の合図。
+// チャンピオンの体力が減るごとに段が進む。
+// 一段目: 斥候。一つの群れが追ってくる。
+// 二段目: 巣。画面の真ん中に蜂の巣(六角形の部屋)が並び、部屋から蜂が飛び出してくる。巣の壁も実体なので、巣を盾にしながら逃げる。
+// 三段目: 女王の針。チャンピオンが、予告の線に沿って針の列を撃ち込む。針を避けた先に群れが待っている。
+// 最終段: 総攻撃。画面の左右から二つの群れが攻め寄せ、針も飛んでくる。
 
 const ENTRANCE_FRAMES = 150
-// 段の数と、一段あたりの体力
-const PHASES = 9
-const LIFE_PER_PHASE = 1200
-const LIFE = PHASES * LIFE_PER_PHASE
+const LIFE = 7200
+// 体力がこの割合を下回るたびに、次の段へ進む
+const THRESHOLDS = [0.75, 0.5, 0.25]
+const COLOR: Color = "#ffe080"
+const NEEDLE: Color = "#ffd040"
+const HIVE: Color = "#e8b040"
 
-const RAIN: Wind.Rain = { gap: 64, frames: 260, interval: 5, speed: 4.5 }
-const WIND: Wind.Shape = { angle: T / 9, rise: 20, hold: 40, fall: 20 }
-
-const WEB: SpiderWeb.Config = {
-    spokes: 12,
-    rings: 16,
-    ringGap: 64,
-    spacing: 14,
-    flightFrames: 90,
-    landFrames: 45,
-    solidFrames: 300,
+const SCOUTS: Swarm.Config = {
+    speed: 2.6,
+    force: 0.07,
+    view: 70,
+    personal: 28,
+    cohesion: 0.5,
+    alignment: 0.7,
+    separation: 1.5,
+    chase: 0.6,
+    life: 420,
 }
+const WORKERS: Swarm.Config = { ...SCOUTS, speed: 2.4, life: 360 }
+const SOLDIERS: Swarm.Config = { ...SCOUTS, speed: 2.8, force: 0.08, life: 400 }
 
-const CLOCK = new Mist.Clock(140, 30)
-const FIELD: Mist.Field = { spacing: 46, top: 0.36, intro: 70, active: CLOCK.period * 3, fade: 30 }
-const STONE_COLORS: Color[] = ["#f0f0ff", "#8080a0"]
-
-const BAND: Sand.Band = {
-    rows: 7,
-    rowGap: 44,
-    speed: 1.4,
-    spacing: 10,
-    segment: [80, 150],
-    gap: [80, 120],
-    flow: [1, 2.4],
-}
-
-const RING: Shield.RingConfig = { radius: 100, slots: 32, windowSlots: 4, spin: T / 600 }
-const WALL: Shield.WallConfig = { spacing: 14, window: 64, build: 60, speed: 1.5 }
-
-const METEOR: Meteor.Config = { preview: 60, speed: 10, tailInterval: 2, tailLife: 50, color: "#fff4b0" }
-const COMET: Comet.Config = {
-    period: 300,
-    orbits: 1.4,
-    perihelion: 50,
-    tailInterval: 3,
-    tailLife: 40,
-    color: "#bfe8ff",
-}
-
-const SHADOW: Shadow.Config = { delay: 50, stepInterval: 6, stepLife: 120, frames: 300, color: "#b8a8ff" }
-const MOON: Phase.Ring = { count: 40, speed: 2, color: "#fff2c0" }
-
-const NEEDLE: Sting.Needle = { preview: 40, count: 6, interval: 3, speed: 11 }
-const SWARM: Sting.Swarm = { count: 44, gap: 4, from: 250, to: 50, preview: 50, shrink: 160 }
+// 突撃の身構えと、突撃している時間
+const DIVE_WARN = 45
+const DIVE_FRAMES = 50
+// 針の予告の線を引いてから撃つまで
+const NEEDLE_PREVIEW = 40
+// 巣の部屋の大きさと、壁の弾の間隔
+const CELL_RADIUS = 30
+const WALL_SPACING = 11
 
 export default class extends Stage {
     *G() {
@@ -85,21 +56,19 @@ export default class extends Stage {
         yield* this.game.textBox.say(["よく来た、小さな蜂の子。わたしがチャンピオンのスズメバチだ。"], {
             name: "スズメバチ",
         })
-        yield* this.game.textBox.say(["道場を巡ってきたのだろう? では、その全てをもう一度見せてもらおう。"], {
+        yield* this.game.textBox.say(["一匹でここまで来たのは見事。だが、群れの力を知っているか?"], {
             name: "スズメバチ",
         })
-        yield* this.game.textBox.say(["……全部!?"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["そして最後に、わたしの針を。"], { name: "スズメバチ" })
         this.hideFigure("hachinoko")
 
-        const boss = new EnemyChampion(this.game)
+        const boss = new EnemyHornet(this.game)
         this.game.enemies.push(boss)
 
         const phase = boss.start()
         phase.next()
 
-        for (let k = 1; k < PHASES; k++) {
-            while (boss.life > LIFE - k * LIFE_PER_PHASE) yield
+        for (const ratio of THRESHOLDS) {
+            while (boss.life > LIFE * ratio) yield
 
             phase.next()
             this.scorenizeAllBullets()
@@ -112,8 +81,8 @@ export default class extends Stage {
         yield* Array(300)
 
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["……見事。わたしの針も、もう届かないか。"], { name: "スズメバチ" })
-        yield* this.game.textBox.say(["どの道場の技も、ちゃんと覚えてたから。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["……見事。群れごと振り切られるとは。"], { name: "スズメバチ" })
+        yield* this.game.textBox.say(["一匹でも、ちゃんと飛べるんだよ。"], { name: "ハチノコ" })
         yield* this.game.textBox.say(["それが強さだ。今日からお前がチャンピオンだよ。"], { name: "スズメバチ" })
         this.hideFigure("hachinoko")
         this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
@@ -122,42 +91,40 @@ export default class extends Stage {
     }
 }
 
-class EnemyChampion extends Enemy {
+class EnemyHornet extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.04, 1, 2)
-    private readonly ring = new Shield.Ring(this, RING, this.random() * T)
+    // いま飛んでいる群れ。段が変わると新しい群れにする
+    private flock = new Swarm.Flock(this, SCOUTS)
 
     constructor(game: Game) {
-        super(game, LIFE, 60, { renderer: new EnemyRendererBoss() })
+        super(game, LIFE, 56, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
     }
 
     *start() {
-        yield* this.next(() => this.gale(), ENTRANCE_FRAMES)
-        yield* this.next(() => this.web(), 120)
-        yield* this.next(() => this.mist(), 120)
-        yield* this.next(() => this.sand(), 120)
+        this.lead(new Swarm.Flock(this, SCOUTS), ENTRANCE_FRAMES)
+        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle", margin: ENTRANCE_FRAMES })
+        yield
 
-        // 鏡を引く。陽炎の段が終わると鏡は取り去られ、線も幻も薄れて消える
-        const mirrors = [Mirage.horizontal(this.game)]
-        Mirage.show(this, mirrors, 100)
-        yield* this.next(() => this.haze(), 120)
-        mirrors.forEach((m) => m.remove())
+        this.lead(new Swarm.Flock(this, WORKERS), 0)
+        this.addScript(() => this.cycle1(), { id: "cycle", margin: 60 })
+        yield
 
-        // 盾の輪は段が変わるときにスコアに変わって消える
-        this.addScript(() => this.ring.build().fire(this.game.bullets), { margin: 30 })
-        yield* this.next(() => this.iron(), 120)
+        this.lead(new Swarm.Flock(this, SOLDIERS), 0)
+        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 60 })
+        yield
 
-        yield* this.next(() => this.meteor(), 120)
-        yield* this.next(() => this.moon(), 120)
-        yield* this.next(() => this.sting(), 120)
+        this.lead(new Swarm.Flock(this, SOLDIERS), 0)
+        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 60 })
+        yield
     }
 
-    // 技を cycle に差し替え、margin フレーム後からくり返させる。次の段へ進むまで待つ
-    private *next(cycle: () => Generator<void, void, void>, margin: number) {
-        this.addScript(cycle, { loop: Infinity, id: "cycle", margin })
-        yield
+    // 群れを率いる。前の群れはもう率いない
+    private lead(flock: Swarm.Flock, margin: number) {
+        this.flock = flock
+        this.addScript(() => flock.fly(), { id: "flock", margin })
     }
 
     private *enter() {
@@ -169,250 +136,178 @@ class EnemyChampion extends Enemy {
     }
 
     private home() {
-        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.16)
+        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.14)
     }
 
     private *move() {
-        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 2000).add(this.home())
+        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 1500).add(this.home())
         yield
     }
 
-    private *arrows(way: number) {
+    private *ring(count: number) {
         yield* remodel(this)
-            .format("arrow")
-            .color("#ffe8a0")
+            .format("small-ball")
+            .r(5)
+            .color(COLOR)
             .p(this.p.clone())
-            .speed(0.5)
-            .aim(this.game.player.p)
-            .nway(way, T / 24)
-            .g((me) => Behavior.accel(me, 50, 3.4))
+            .speed(1.6)
+            .radian(this.random() * T)
+            .ex(count)
             .fire(this.game.bullets)
     }
 
-    // 疾風: 三度の突風に流される雨
-    private *gale() {
-        const forecast = new Wind.Forecast(
-            [80, 200, 320].map((start) => ({ start, direction: this.random() < 0.5 ? -1 : 1 })),
-            WIND,
-        )
+    // 女王の針。自機のあたりへ予告の線を引き、少しして線に沿って針の列を撃ち込む
+    private *needle() {
+        const start = this.p.clone()
+        const target = this.game.player.p.add(vec((this.random() - 0.5) * 60, 0))
+        const radian = target.sub(start).radian()
 
-        yield* GenUtils.all({
-            rain: forecast
-                .rain(remodel(this), this.game, RAIN, this.random() * RAIN.gap)
-                .format("diamond")
-                .color("#9dffc8")
-                .fire(this.game.bullets),
-            streaks: forecast.streaks(remodel(this), this.game, this.random).fire(this.game.bullets),
-            wait: Array(700),
-        })
+        yield* remodel(this)
+            .appearance("laser")
+            .collision("rect")
+            .type("neutral")
+            .isScorable(false)
+            .color(NEEDLE)
+            .r(2)
+            .speed(0)
+            .p(start)
+            .radian(radian)
+            .length(this.game.WIDTH + this.game.HEIGHT)
+            .alpha(0)
+            .unbounded()
+            .g(function* (me) {
+                yield* Behavior.ease(me, "alpha", 0.25, 12)
+                yield* Array(NEEDLE_PREVIEW - 12)
+                yield* Behavior.fadeout(me, 10)
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(NEEDLE_PREVIEW)
+        if (this.life <= 0) return
+
+        yield* remodel(this)
+            .format("line")
+            .color(NEEDLE)
+            .p(start)
+            .radian(radian)
+            .speed(11)
+            .duplicate(6, (b, i) => {
+                b.delay = i * 3
+                return b
+            })
+            .fire(this.game.bullets)
     }
 
-    // 網掛: 画面を覆う巣を編み、網目の中へ矢を射かける
-    private *web() {
+    // 斥候。チャンピオンのまわりから群れを放ち、しばらくして突撃させる。合間に輪を混ぜる
+    private *cycle0() {
+        yield* GenUtils.all({
+            release: this.flock.release(this.p, 16).fire(this.game.bullets),
+            dive: (function* (me: EnemyHornet) {
+                yield* Array(200)
+                yield* me.flock.dive(DIVE_WARN, DIVE_FRAMES)
+            })(this),
+            rings: (function* (me: EnemyHornet) {
+                yield* Array(100)
+                yield* me.ring(20)
+                yield* Array(200)
+                yield* me.ring(20)
+            })(this),
+        })
+
+        yield* Array(SCOUTS.life + 30 - 300 + 120)
+    }
+
+    // 巣の部屋の真ん中。画面の真ん中あたりに、二段に並べる
+    private cells(): Vec[] {
         const w = this.game.WIDTH
         const h = this.game.HEIGHT
-        const center = vec(w * (0.3 + 0.4 * this.random()), h * (0.45 + 0.25 * this.random()))
-
-        yield* GenUtils.all({
-            web: SpiderWeb.weave(remodel(this), WEB, this.game, center, this.random() * T)
-                .color("#f4f0ff")
-                .fire(this.game.bullets),
-            arrows: (function* (me: EnemyChampion) {
-                yield* Array(WEB.flightFrames + WEB.landFrames + 20)
-
-                for (let k = 0; k < 4; k++) {
-                    yield* me.arrows(5)
-                    yield* Array(70)
-                }
-            })(this),
-            wait: Array(WEB.flightFrames + WEB.landFrames + WEB.solidFrames + 200),
-        })
+        return [
+            vec(0.17 * w, 0.42 * h),
+            vec(0.5 * w, 0.42 * h),
+            vec(0.83 * w, 0.42 * h),
+            vec(0.33 * w, 0.56 * h),
+            vec(0.67 * w, 0.56 * h),
+        ]
     }
 
-    // 霧隠: 交互に霧になる市松模様の石の上を飛び移る
-    private *mist() {
-        yield* GenUtils.all({
-            stones: Mist.stones(
-                remodel(this),
-                this.game,
-                CLOCK,
-                FIELD,
-                vec(this.random(), this.random()).scale(FIELD.spacing),
-                STONE_COLORS,
-            ).fire(this.game.bullets),
-            arrows: (function* (me: EnemyChampion) {
-                yield* Array(FIELD.intro)
+    // 巣を建てる。六角形の部屋の壁は実体で、段が終わるまで残る
+    private *hive(centers: readonly Vec[]) {
+        const corners = Array.from({ length: 6 }, (_, k) => vec.arg((T * k) / 6 + T / 12).scale(CELL_RADIUS))
+        const per = Math.round(CELL_RADIUS / WALL_SPACING)
+        const walls = centers.flatMap((c) =>
+            corners.flatMap((a, k) => {
+                const b = corners[(k + 1) % 6]
+                return Array.from({ length: per }, (_, i) => c.add(a.add(b.sub(a).scale(i / per))))
+            }),
+        )
 
-                for (let t = 0; t < FIELD.active - 70; t += 70) {
-                    yield* me.arrows(3)
-                    yield* Array(70)
-                }
-            })(this),
-            wait: Array(FIELD.intro + FIELD.active + FIELD.fade + 180),
-        })
+        yield* remodel(this)
+            .format("small-ball")
+            .r(5)
+            .color(HIVE)
+            .speed(0)
+            .duplicate(walls.length, (b, i) => {
+                b.p = walls[i]
+                return b
+            })
+            .appear(40)
+            .fire(this.game.bullets)
     }
 
-    // 砂塵: 吸い寄せられながら砂嵐の帯をくぐる
-    private *sand() {
-        const travel = Sand.travelFrames(this, BAND)
+    // 巣。部屋を建て、ランダムな部屋から蜂を飛び出させる
+    private *cycle1() {
+        const cells = this.cells()
+        yield* this.hive(cells)
+        yield* Array(60)
 
-        yield* GenUtils.all({
-            storm: Sand.storm(this, BAND),
-            swirl: Sand.swirl(this, travel).fire(this.game.bullets),
-            suction: Sand.suction(this, 0.6, travel),
-            wait: Array(travel + 150),
-        })
+        while (true) {
+            for (let k = 0; k < 2; k++) {
+                const cell = cells[Math.floor(this.random() * cells.length)]
+                yield* this.flock.release(cell, 8).fire(this.game.bullets)
+                yield* Array(40)
+            }
+
+            yield* Array(120)
+            yield* this.flock.dive(DIVE_WARN, DIVE_FRAMES)
+            yield* Array(WORKERS.life - 250)
+        }
     }
 
-    // 陽炎: 真ん中の鏡に映った熱の柱が、上下から伸びる
-    private *haze() {
-        const mirrors = [Mirage.horizontal(this.game)]
+    // 女王の針。群れを放ち、針を三本撃ち込み、突撃させる
+    private *cycle2() {
+        yield* this.flock.release(this.p, 12).fire(this.game.bullets)
+        yield* Array(80)
+
+        for (let k = 0; k < 3; k++) {
+            yield* this.needle()
+            yield* Array(30)
+        }
+
+        yield* this.flock.dive(DIVE_WARN, DIVE_FRAMES)
+        yield* Array(SOLDIERS.life + 30 - 80 - 3 * (NEEDLE_PREVIEW + 30) - DIVE_WARN - DIVE_FRAMES + 100)
+    }
+
+    // 総攻撃。画面の左右から群れを放ち、針を撃ち込み、突撃させる
+    private *cycle3() {
+        const w = this.game.WIDTH
+        const y = this.game.HEIGHT * 0.4
+
+        yield* this.flock.release(vec(30, y), 10).fire(this.game.bullets)
+        yield* this.flock.release(vec(w - 30, y), 10).fire(this.game.bullets)
 
         yield* GenUtils.all({
-            plumes: Heat.plumes(this, 3, mirrors),
-            arrows: (function* (me: EnemyChampion) {
-                yield* Array(Heat.SEED_FRAMES + 60)
-
+            needles: (function* (me: EnemyHornet) {
                 for (let k = 0; k < 3; k++) {
-                    yield* remodel(me)
-                        .format("arrow")
-                        .color("#ffe0b0")
-                        .p(me.p.clone())
-                        .speed(0.5)
-                        .aim(me.game.player.p)
-                        .nway(3, T / 24)
-                        .g((b) => Behavior.accel(b, 50, 3.4))
-                        .mirrorAll(mirrors)
-                        .fire(me.game.bullets)
                     yield* Array(50)
+                    yield* me.needle()
                 }
             })(this),
-            wait: Array(Heat.PLUME_TOTAL_FRAMES + 300),
+            dive: (function* (me: EnemyHornet) {
+                yield* Array(180)
+                yield* me.flock.dive(DIVE_WARN, DIVE_FRAMES)
+            })(this),
         })
-    }
 
-    // 鉄壁: 盾の輪の窓と城壁の窓がそろったときだけ撃ち込める
-    private *iron() {
-        yield* GenUtils.all({
-            walls: (function* (me: EnemyChampion) {
-                for (let k = 0; k < 2; k++) {
-                    const width = me.game.WIDTH
-                    const windows = [0, 1].map((j) => (width * (j + 0.15 + 0.7 * me.random())) / 2)
-                    yield* Shield.wall(me, me.game.HEIGHT * 0.3, windows, WALL).fire(me.game.bullets)
-                    yield* Array(230)
-                }
-            })(this),
-            stream: (function* (me: EnemyChampion) {
-                yield* Array(200)
-
-                for (let f = 0; f < 90; f += 5) {
-                    const angle = me.ring.angle()
-
-                    yield* remodel(me)
-                        .format("diamond")
-                        .color("#9ab8ff")
-                        .speed(3.5)
-                        .duplicate(2, (b, k) => {
-                            b.p = me.ring.window(k)
-                            b.radian = angle + (k * T) / 2
-                            return b
-                        })
-                        .nway(3, T / 40)
-                        .fire(me.game.bullets)
-
-                    yield* Array(5)
-                }
-            })(this),
-            wait: Array(860),
-        })
-    }
-
-    // 流星: 流星群が降る中を彗星が回る
-    private *meteor() {
-        yield* GenUtils.all({
-            comets: (function* (me: EnemyChampion) {
-                for (let k = 0; k < 2; k++) {
-                    const x = me.game.WIDTH * (0.1 + 0.8 * me.random())
-                    const y = me.game.HEIGHT * (0.7 + 0.2 * me.random())
-                    const aphelion =
-                        Math.abs(x - me.game.player.p.x) < 120
-                            ? vec((x + me.game.WIDTH / 2) % me.game.WIDTH, y)
-                            : vec(x, y)
-
-                    yield* Comet.launch(me, aphelion, k % 2 === 0 ? 1 : -1, COMET).fire(me.game.bullets)
-                    yield* Array(40)
-                }
-            })(this),
-            shower: this.shower(120),
-            wait: Array(680),
-        })
-    }
-
-    // 斜めの向きを決め、平行な線の一部に予告線を引いて流れ星を流す
-    private *shower(wait: number) {
-        yield* Array(wait)
-
-        const angle = T / 4 + (this.random() < 0.5 ? -1 : 1) * (T / 14 + (this.random() * T) / 14)
-        const center = vec(this.game.WIDTH / 2, this.game.HEIGHT / 2)
-        const normal = vec.arg(angle + T / 4)
-        const reach = (this.game.WIDTH + this.game.HEIGHT) / 2
-        const offset = this.random() * 70
-
-        const lanes: Vec[] = Array.from({ length: Math.ceil((reach * 2) / 70) }, (_, k) =>
-            center.add(normal.scale(-reach + offset + k * 70)),
-        ).filter(() => this.random() < 0.6)
-
-        yield* GenUtils.all(
-            Object.fromEntries(
-                lanes.map((through, k) => [
-                    `lane${k}`,
-                    (function* (me: EnemyChampion) {
-                        yield* Array(Math.floor(me.random() * lanes.length) * 10)
-                        yield* Meteor.fall(me, through, angle, METEOR)
-                    })(this),
-                ]),
-            ),
-        )
-    }
-
-    // 月影: 影に追われながら、満ち欠けする輪をくぐる
-    private *moon() {
-        yield* GenUtils.all({
-            shadow: Shadow.follow(this, SHADOW),
-            phases: (function* (me: EnemyChampion) {
-                yield* Array(60)
-
-                const light = me.random() * T
-                const turn = me.random() < 0.5 ? -1 : 1
-
-                for (let k = 0; k < 7; k++) {
-                    const lit = Math.sin((Math.PI * (k + 1)) / 8)
-                    yield* Phase.ring(me, MOON, light + (turn * k * T) / 12, lit).fire(me.game.bullets)
-                    yield* Array(36)
-                }
-            })(this),
-            wait: Array(SHADOW.frames + SHADOW.stepLife + 140),
-        })
-    }
-
-    // 毒針と包囲網。自機を輪で囲み、縮む輪の中へ針を撃ち込む
-    private *sting() {
-        const center = vec(
-            Math.min(Math.max(this.game.player.p.x, 80), this.game.WIDTH - 80),
-            Math.min(Math.max(this.game.player.p.y, this.game.HEIGHT * 0.45), this.game.HEIGHT - 80),
-        )
-
-        yield* GenUtils.all({
-            swarm: Sting.swarm(this, center, SWARM).fire(this.game.bullets),
-            needles: (function* (me: EnemyChampion) {
-                yield* Array(SWARM.preview)
-
-                for (let k = 0; k < 4; k++) {
-                    yield* Sting.needle(me, me.game.player.p.clone(), NEEDLE)
-                    yield* Array(10)
-                }
-            })(this),
-            wait: Array(SWARM.preview + SWARM.shrink + 200),
-        })
+        yield* Array(SOLDIERS.life + 30 - 3 * (50 + NEEDLE_PREVIEW) + 80)
     }
 }
