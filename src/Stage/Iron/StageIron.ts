@@ -1,5 +1,5 @@
 import { vec } from "@ipota/vec"
-import { GenUtils } from "@ipota/functions"
+import { Ease } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
@@ -7,52 +7,58 @@ import { Stage } from "../Stage"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
-import { Shield } from "./Shield"
+import { Armor } from "./Armor"
 
-// ステージ「鉄壁」(鉄壁道場・道場主)
-// 盾が道場主自身を守るので、ほかの道場と違って衛星はいない。道場主の体力が減るごとに段が進む。
-// 一段目: 盾。道場主を回る盾の輪の窓から、弾の筋が灯台の光のように薙ぐ。
-// 二段目: 城壁。窓の開いた城壁が次々に降りてくる。道場主は城壁越しに矢を射かける。
-// 三段目: 亀甲。砕ける甲羅に穴を開けて撃ち込む。砕け残った甲羅は弾け飛ぶ。
-// 最終段: 鉄壁。盾の輪と城壁が重なる。城壁の窓と盾の輪の窓がそろったときだけ、道場主に弾が届く。
+// ステージ「反射装甲」(鉄壁道場・道場主)
+// 道場主の装甲板は、撃ち込まれた弾を跳ね返す。板に当たった自機の弾は、敵の弾になって自分のいる方へ返ってくる。
+// むやみに撃ち続けると自分の弾に追い詰められるので、板の隙間が道場主に向いたときだけ撃ち込む。撃つ・撃たないを選ぶ戦い。
+// 敵の弾は板をすり抜ける(三段目の光弾だけは板で跳ね返る)。道場主の体力が減るごとに段が進む。
+// 一段目: 双盾。二枚の板が道場主のまわりを回る。板の隙間から撃ち込む。
+// 二段目: 鉄扉。道場主の前に左右二枚の扉が閉じる。扉が開いている間だけ撃ち込めるが、そこへは道場主の弾も飛んでくる。
+// 三段目: 乱反射。宙に浮かぶ五枚の鏡がゆっくり回る。道場主の光弾は鏡で跳ね返って思わぬ向きから来る。自機の弾も鏡で跳ね返る。
+// 最終段: 鉄壁。六枚の板が道場主を六角形に囲んで回る。ときどき六角形が広がって角に隙間が開く。
 
 const ENTRANCE_FRAMES = 150
-const LIFE = 6400
+const LIFE = 6000
 // 体力がこの割合を下回るたびに、次の段へ進む
 const THRESHOLDS = [0.75, 0.5, 0.25]
 const COLOR: Color = "#9ab8ff"
+const BOUNCE_COLOR: Color = "#e0f0ff"
 
-const RING: Shield.RingConfig = { radius: 96, slots: 32, windowSlots: 4, spin: T / 600 }
-const STREAM_FIRE = 90
-const STREAM_REST = 120
+// 一段目
+const SHIELD_RADIUS = 95
+const SHIELD_HALF = 70
+const SHIELD_PERIOD = 700
+const CYCLE0_FRAMES = 300
 
-const WALL: Shield.WallConfig = { spacing: 14, window: 64, build: 60, speed: 1.5 }
-const WALL_INTERVAL = 170
+// 二段目。扉の高さ・閉じている時間・開く(閉じる)のにかかる時間・開いている時間・開いたときの隙間
+const DOOR_Y = 0.36
+const CLOSED_FRAMES = 130
+const SLIDE_FRAMES = 20
+const OPEN_FRAMES = 80
+const DOOR_GAP = 150
 
-const SHELL: Shield.ShellConfig = {
-    spacing: 22,
-    inner: 60,
-    outer: 132,
-    durability: 10,
-    spin: T / 900,
-    form: 40,
-    hold: 440,
-    warn: 50,
-    shardSpeed: 2.6,
-}
+// 三段目
+const MIRRORS = 5
+const MIRROR_HALF = 46
+const STREAM_FRAMES = 180
+const CYCLE2_FRAMES = 320
+
+// 最終段。六角形の大きさ(閉じたとき・開いたとき)と、それぞれの時間
+const HEX_CLOSED = 112
+const HEX_OPEN = 175
+const HEX_HALF = 56
+const HEX_PERIOD = 900
 
 export default class extends Stage {
     *G() {
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["門も壁もかっちかち。どこから入るんだろう。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["正面からだ。鉄壁道場に裏口はない。"], { name: "カブト" })
-        yield* this.game.textBox.say(["わっ、おっきい角!"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["我が守りを崩せた者は数えるほどしかおらん。隙間を探せ。隙間は必ずある。"], {
-            name: "カブト",
-        })
+        yield* this.game.textBox.say(["ぴかぴかの鎧……顔が映りそう。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["映るだけではないぞ。撃ち込んだものは、そっくり返る。"], { name: "カブト" })
+        yield* this.game.textBox.say(["闇雲に撃つな。撃つべき時を見極めよ。"], { name: "カブト" })
         this.hideFigure("hachinoko")
 
-        const boss = new EnemyIron(this.game)
+        const boss = new EnemyKabuto(this.game)
         this.game.enemies.push(boss)
 
         const phase = boss.start()
@@ -71,22 +77,21 @@ export default class extends Stage {
         yield* Array(300)
 
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["むう……。見事に隙間を突かれた。"], { name: "カブト" })
-        yield* this.game.textBox.say(["小さいから、隙間を通るのは得意なんだ。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["はっはっは! それも強さだ。鉄壁道場の免状を受け取れ。"], { name: "カブト" })
+        yield* this.game.textBox.say(["見事な撃ち込みであった。"], { name: "カブト" })
+        yield* this.game.textBox.say(["自分の弾に当たりそうになったよ。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["はっはっは! 鉄壁道場の免状だ、受け取れ。"], { name: "カブト" })
         this.hideFigure("hachinoko")
         this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
         yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["月影道場へ行くといい。あそこの守りは、また別の意味で固いぞ。"], {
-            name: "カブト",
-        })
         this.hideFigure("hachinoko")
     }
 }
 
-class EnemyIron extends Enemy {
-    private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.05, 1, 2)
-    private readonly ring = new Shield.Ring(this, RING, this.random() * T)
+class EnemyKabuto extends Enemy {
+    private readonly path = Curves.lissajous(this.game.WIDTH * 0.25, this.game.HEIGHT * 0.03, 1, 2)
+    // いま構えている装甲板と、その段の番号(段が変わると前の板は消える)
+    private plates: Armor.Plate[] = []
+    private stance = 0
 
     constructor(game: Game) {
         super(game, LIFE, 56, { renderer: new EnemyRendererBoss() })
@@ -96,18 +101,21 @@ class EnemyIron extends Enemy {
     }
 
     *start() {
-        this.addScript(() => this.ring.build().fire(this.game.bullets), { id: "ring", margin: ENTRANCE_FRAMES })
-        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle", margin: ENTRANCE_FRAMES + 60 })
+        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle", margin: ENTRANCE_FRAMES })
+        this.addScript(() => this.shields(), { id: "plates", margin: ENTRANCE_FRAMES - 30 })
         yield
 
-        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 120 })
+        // 扉と撃ち方は同じ周期で動くので、同時に始める
+        this.addScript(() => this.doors(), { id: "plates", margin: 60 })
+        this.addScript(() => this.cycle1(), { id: "cycle", margin: 60 })
         yield
 
-        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 120 })
+        this.addScript(() => this.mirrors(), { id: "plates" })
+        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 90 })
         yield
 
-        this.addScript(() => this.ring.build().fire(this.game.bullets), { id: "ring", margin: 60 })
-        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 120 })
+        this.addScript(() => this.hexagon(), { id: "plates", margin: 60 })
+        this.addScript(() => this.cycle3(), { id: "cycle", margin: 60 })
         yield
     }
 
@@ -120,7 +128,7 @@ class EnemyIron extends Enemy {
     }
 
     private home() {
-        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.16)
+        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.15)
     }
 
     private *move() {
@@ -128,109 +136,211 @@ class EnemyIron extends Enemy {
         yield
     }
 
-    // 盾の輪の二つの窓から、外へ向けて弾を撃ち続ける
-    private *stream() {
-        for (let f = 0; f < STREAM_FIRE; f += 5) {
-            const angle = this.ring.angle()
+    // 装甲板を構え直す。前の段の板は消え、新しい板が自機の弾を跳ね返し始める。
+    // 返す値は、この構えが続いているかどうか
+    private equip(plates: Armor.Plate[]) {
+        const stance = ++this.stance
+        const alive = () => this.stance === stance && this.life > 0
+        this.plates = plates
 
-            yield* remodel(this)
-                .format("diamond")
-                .color(COLOR)
-                .speed(3.5)
-                .duplicate(2, (b, k) => {
-                    b.p = this.ring.window(k)
-                    b.radian = angle + (k * T) / 2
-                    return b
-                })
-                .nway(3, T / 40)
-                .fire(this.game.bullets)
+        for (const plate of plates) {
+            this.addScript(() => Armor.build(this, plate, alive).fire(this.game.bullets))
+        }
+        this.addScript(() => Armor.guard(this, () => plates, alive))
 
-            yield* Array(5)
+        return alive
+    }
+
+    // 一段目。二枚の板が道場主のまわりを回る
+    private *shields() {
+        const plates = [0, 1].map(() => new Armor.Plate(this.p.clone(), 0, SHIELD_HALF))
+        const alive = this.equip(plates)
+
+        for (let f = 0; alive(); f++) {
+            plates.forEach((plate, k) => {
+                const angle = (T * f) / SHIELD_PERIOD + (k * T) / 2
+                plate.center = this.p.add(vec.arg(angle).scale(SHIELD_RADIUS))
+                plate.angle = angle + T / 4
+            })
+            yield
         }
     }
 
-    private *arrows(way: number) {
+    // 二段目。左右の扉が閉じたり開いたりする。扉が閉じきると、画面の端から端まで板がつながる
+    private *doors() {
+        const w = this.game.WIDTH
+        const y = this.game.HEIGHT * DOOR_Y
+        const plates = [-1, 1].map((side) => new Armor.Plate(vec(w / 2 + (side * w) / 4, y), 0, w / 4))
+        const alive = this.equip(plates)
+        const cycle = CLOSED_FRAMES + SLIDE_FRAMES + OPEN_FRAMES + SLIDE_FRAMES
+
+        for (let f = 0; alive(); f++) {
+            const t = f % cycle
+            const open =
+                t < CLOSED_FRAMES
+                    ? 0
+                    : t < CLOSED_FRAMES + SLIDE_FRAMES
+                      ? Ease.InOut((t - CLOSED_FRAMES) / SLIDE_FRAMES)
+                      : t < CLOSED_FRAMES + SLIDE_FRAMES + OPEN_FRAMES
+                        ? 1
+                        : 1 - Ease.InOut((t - CLOSED_FRAMES - SLIDE_FRAMES - OPEN_FRAMES) / SLIDE_FRAMES)
+
+            plates.forEach((plate, k) => {
+                const side = k === 0 ? -1 : 1
+                plate.center = vec(w / 2 + side * (w / 4 + (open * DOOR_GAP) / 2), y)
+            })
+            yield
+        }
+    }
+
+    // 三段目。五枚の鏡が宙に浮かび、それぞれの速さでゆっくり回る
+    private *mirrors() {
+        const w = this.game.WIDTH
+        const h = this.game.HEIGHT
+        const plates = Array.from(
+            { length: MIRRORS },
+            (_, k) =>
+                new Armor.Plate(
+                    vec((w * (k + 0.5)) / MIRRORS, h * (0.36 + 0.14 * (k % 2))),
+                    this.random() * T,
+                    MIRROR_HALF,
+                ),
+        )
+        const spins = plates.map((_, k) => ((k % 2 === 0 ? 1 : -1) * T) / (500 + 150 * k))
+        const alive = this.equip(plates)
+
+        while (alive()) {
+            plates.forEach((plate, k) => {
+                plate.angle += spins[k]
+            })
+            yield
+        }
+    }
+
+    // 最終段。六枚の板が六角形に道場主を囲んで回り、ときどき広がって角に隙間が開く。
+    // 開いている間は、角の隙間から外へ向けて弾の筋を撃つ(隙間の向きを知っているのは板なので、ここで撃つ)
+    private *hexagon() {
+        const plates = Array.from({ length: 6 }, () => new Armor.Plate(this.p.clone(), 0, HEX_HALF))
+        const alive = this.equip(plates)
+
+        for (let f = 0; alive(); f++) {
+            const open = this.breath(f)
+            const radius = HEX_CLOSED + (HEX_OPEN - HEX_CLOSED) * open
+            const turn = (T * f) / HEX_PERIOD
+
+            plates.forEach((plate, k) => {
+                const angle = turn + (T * k) / 6
+                // 六角形の辺の真ん中は、中心から radius * cos(30度) の所
+                plate.center = this.p.add(vec.arg(angle).scale(radius * Math.cos(T / 12)))
+                plate.angle = angle + T / 4
+            })
+
+            if (open === 1 && f % 6 === 0) {
+                yield* remodel(this)
+                    .format("diamond")
+                    .color(COLOR)
+                    .p(this.p.clone())
+                    .speed(3.4)
+                    .radian(turn + T / 12)
+                    .ex(6)
+                    .fire(this.game.bullets)
+            }
+
+            yield
+        }
+    }
+
+    // 最終段で、六角形がどれだけ広がっているか(0で閉じている、1で開ききっている)。
+    // 閉じている150フレーム→広がる30→開いている90→閉じる30 をくり返す
+    private breath(f: number) {
+        const t = f % 300
+        if (t < 150) return 0
+        if (t < 180) return Ease.InOut((t - 150) / 30)
+        if (t < 270) return 1
+        return 1 - Ease.InOut((t - 270) / 30)
+    }
+
+    private *ring(count: number, speed: number) {
+        yield* remodel(this)
+            .format("donut")
+            .color(COLOR)
+            .p(this.p.clone())
+            .speed(speed)
+            .radian(this.random() * T)
+            .ex(count)
+            .fire(this.game.bullets)
+    }
+
+    private *arrows(way: number, spread: number) {
         yield* remodel(this)
             .format("arrow")
             .color("#ffe0a0")
             .p(this.p.clone())
             .speed(0.5)
             .aim(this.game.player.p)
-            .nway(way, T / 24)
+            .nway(way, spread)
             .g((me) => Behavior.accel(me, 50, 3.4))
             .fire(this.game.bullets)
     }
 
-    // 窓を二つ開けた城壁を築いて降ろす。窓は画面の左右の半分に一つずつ開ける
-    private *wall() {
-        const width = this.game.WIDTH
-        const windows = [0, 1].map((k) => (width * (k + 0.15 + 0.7 * this.random())) / 2)
-
-        yield* Shield.wall(this, this.game.HEIGHT * 0.3, windows, WALL).fire(this.game.bullets)
-    }
-
     private *cycle0() {
-        yield* this.stream()
-
-        yield* Array(30)
-        yield* remodel(this)
-            .format("small-ball")
-            .color("#e0e8ff")
-            .p(this.p.clone())
-            .speed(1.6)
-            .radian(this.random() * T)
-            .ex(36)
-            .g((me) => Behavior.appear(me, 20))
-            .fire(this.game.bullets)
-
-        yield* Array(STREAM_REST - 30)
+        yield* Array(40)
+        yield* this.ring(28, 1.6)
+        yield* Array(120)
+        yield* this.arrows(5, T / 24)
+        yield* Array(CYCLE0_FRAMES - 160)
     }
 
+    // 扉の動きに合わせて撃つ。閉じている間は輪(扉をすり抜ける)、開いている間は隙間へ矢を通す。
+    // 扉の動きと同じ周期で、自分でくり返す
     private *cycle1() {
-        yield* GenUtils.all({
-            walls: (function* (me: EnemyIron) {
-                for (let k = 0; k < 3; k++) {
-                    yield* me.wall()
-                    yield* Array(WALL_INTERVAL)
-                }
-            })(this),
-            arrows: (function* (me: EnemyIron) {
-                for (let k = 0; k < 4; k++) {
-                    yield* Array(120)
-                    yield* me.arrows(5)
-                }
-            })(this),
-            wait: Array(900),
-        })
+        while (true) {
+            yield* Array(30)
+            yield* this.ring(24, 1.8)
+            yield* Array(60)
+            yield* this.ring(24, 1.8)
+            yield* Array(CLOSED_FRAMES + SLIDE_FRAMES - 90)
+
+            for (let k = 0; k < 3; k++) {
+                yield* this.arrows(3, T / 30)
+                yield* Array(Math.floor(OPEN_FRAMES / 3))
+            }
+
+            yield* Array(SLIDE_FRAMES)
+        }
     }
 
+    // 六方向へ回る光弾の筋。光弾は鏡で二回まで跳ね返る
     private *cycle2() {
-        yield* GenUtils.all({
-            shell: Shield.shell(this, SHELL, this.random() * T).fire(this.game.bullets),
-            arrows: (function* (me: EnemyIron) {
-                for (let k = 0; k < 4; k++) {
-                    yield* Array(110)
-                    yield* me.arrows(3)
-                }
-            })(this),
-            wait: Array(SHELL.form + SHELL.hold + SHELL.warn + 180),
-        })
+        const base = this.random() * T
+        const turn = (this.random() < 0.5 ? -1 : 1) * (T / 600)
+        const plates = this.plates
+
+        for (let f = 0; f < STREAM_FRAMES; f += 8) {
+            yield* remodel(this)
+                .format("small-ball")
+                .r(6)
+                .color(BOUNCE_COLOR)
+                .p(this.p.clone())
+                .speed(3)
+                .radian(base + turn * f)
+                .ex(6)
+                .g((me) => Armor.bounce(me, () => plates, 2))
+                .fire(this.game.bullets)
+            yield* Array(8)
+        }
+
+        yield* Array(CYCLE2_FRAMES - STREAM_FRAMES)
     }
 
-    // 盾の輪が回り続ける中へ、城壁を降ろす
+    // 六角形が閉じている間に、輪と矢を撃つ(開いている間の筋は hexagon が撃つ)。六角形の呼吸と同じ周期で、自分でくり返す
     private *cycle3() {
-        yield* GenUtils.all({
-            walls: (function* (me: EnemyIron) {
-                for (let k = 0; k < 2; k++) {
-                    yield* me.wall()
-                    yield* Array(WALL_INTERVAL + 60)
-                }
-            })(this),
-            stream: (function* (me: EnemyIron) {
-                yield* Array(200)
-                yield* me.stream()
-            })(this),
-            wait: Array(860),
-        })
+        while (true) {
+            yield* Array(30)
+            yield* this.ring(30, 1.7)
+            yield* Array(60)
+            yield* this.arrows(3, T / 30)
+            yield* Array(300 - 90)
+        }
     }
 }
