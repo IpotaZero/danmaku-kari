@@ -27,11 +27,10 @@ const CYCLE0_FRAMES = 460
 // 傾けすぎると幻が画面の外に映ってしまうので、水平に近い範囲で左右交互に傾ける
 const DRAW_FRAMES = 50
 const TILT_MIN = T / 60
-const TILT_MAX = T / 20
-const CYCLE1_FRAMES = 720
+const TILT_MAX = T / 15
 // 二段目で、輪を放ってから鏡が回り始めるまでと、90度回るのにかかる時間
-const TURN_WAIT = 120
-const TURN_FRAMES = 480
+const TURN_WAIT = 60
+const TURN_FRAMES = 640
 const CYCLE2_FRAMES = Heat.PLUME_TOTAL_FRAMES + 360
 const CYCLE3_FRAMES = Heat.PLUME_TOTAL_FRAMES + 300
 
@@ -87,12 +86,12 @@ export default class extends Stage {
 }
 
 class EnemyHaze extends Enemy {
-    private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.05, 1, 2)
+    private readonly path = Curves.lissajous(this.game.WIDTH * 0.8, this.game.HEIGHT * 0.05, 1, 2)
     // 今掛かっている鏡
     private mirrors: readonly Mirage.Mirror[] = []
 
     constructor(game: Game) {
-        super(game, 2400, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 3600, 64, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -102,10 +101,11 @@ class EnemyHaze extends Enemy {
         this.addScript(() => this.cycle0(), { id: "cycle", margin: 150 })
         yield
 
-        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 300 })
+        this.reflectIn([], DRAW_FRAMES)
+        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 300 })
         this.addScript(function* (me) {
             yield* Array(240)
-            me.reflectIn(Mirage.cross(me.game), DRAW_FRAMES)
+            me.reflectIn([Mirage.horizontal(me.game)], DRAW_FRAMES)
         })
         yield
 
@@ -114,11 +114,12 @@ class EnemyHaze extends Enemy {
         yield
 
         this.reflectIn([], DRAW_FRAMES)
-        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 300 })
+        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 300 })
         this.addScript(function* (me) {
             yield* Array(240)
-            me.reflectIn([Mirage.horizontal(me.game)], DRAW_FRAMES)
+            me.reflectIn(Mirage.cross(me.game), DRAW_FRAMES)
         })
+
         yield
     }
 
@@ -142,7 +143,7 @@ class EnemyHaze extends Enemy {
     }
 
     private *move() {
-        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 1500).add(this.home())
+        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 300).add(this.home())
         yield
     }
 
@@ -199,7 +200,6 @@ class EnemyHaze extends Enemy {
                 yield* Array(40)
             }
 
-            yield* this.arrows(5).mirrorAll(mirrors).fire(this.game.bullets)
             yield* Array(CYCLE0_FRAMES - DRAW_FRAMES - 20 - 60)
         }
     }
@@ -213,12 +213,23 @@ class EnemyHaze extends Enemy {
 
         yield* Array(60)
 
-        for (let k = 0; k < 5; k++) {
-            yield* this.arrows(3).mirrorAll(mirrors).fire(this.game.bullets)
-            yield* Array(12)
-        }
+        yield* remodel(this)
+            .format("diamond")
+            .color(COLOR)
+            .p(this.p.clone())
+            .radian(this.random() * T)
+            .ex(19)
+            .g(function* (me) {
+                const base = me.radian
 
-        yield* this.ring(31, 1).mirrorAll(mirrors).fire(this.game.bullets)
+                for (let f = 0; ; f++) {
+                    me.radian = base + turn * 0.2 * Math.sin(f / 30)
+                    yield
+                }
+            })
+            .sim(2, 0.5, 1)
+            .mirrorAll(mirrors)
+            .fire(this.game.bullets)
         yield* Array(TURN_WAIT)
 
         const starts = mirrors.map((m) => m.angle)
@@ -234,45 +245,23 @@ class EnemyHaze extends Enemy {
             yield
         }
 
-        yield* Array(CYCLE1_FRAMES - 120 - TURN_WAIT - TURN_FRAMES)
+        yield* Array(120)
     }
 
     private *cycle2() {
-        yield* GenUtils.all({
-            plumes: Heat.plumes(this, 6, []),
-            ring: (function* (me: EnemyHaze) {
-                yield* Array(Heat.SEED_FRAMES + 40)
-
-                yield* remodel(me)
-                    .format("diamond")
-                    .p(me.p.clone())
-                    .duplicate(63)
-                    .scatter({ p: 240, hue: [0, 360] })
-                    .delayByIndex()
-                    .appear(30)
-                    .aim(me.game.player.p)
-                    .g(function* (me) {
-                        yield* Behavior.reaccel(me, 30, 30, 30)
-                    })
-                    .fire(me.game.bullets)
-
-                yield* Array(80)
-
-                yield* remodel(me)
-                    .format("diamond")
-                    .p(me.p.clone())
-                    .duplicate(63)
-                    .scatter({ p: 240, hue: [0, 360] })
-                    .delayByIndex()
-                    .appear(30)
-                    .aim(me.game.player.p)
-                    .g(function* (me) {
-                        yield* Behavior.reaccel(me, 30, 30, 30)
-                    })
-                    .fire(me.game.bullets)
-            })(this),
-            wait: Array(CYCLE2_FRAMES),
-        })
+        yield* remodel(this)
+            .format("diamond")
+            .p(this.p.clone())
+            .sim(31, 3, 6)
+            .colorful(this.frame)
+            .delayByIndex(10)
+            .ex(23)
+            .bounce(1)
+            .g(function* (me, i) {
+                yield* Behavior.rotating(me, (T / 3600) * ((i % 2) * 2 - 1), 120)
+            })
+            .fire(this.game.bullets)
+        yield* Array(360)
     }
 
     // 柱が鏡に映り、上からも降りてくる。上下の柱が真ん中でつながる間に、鏡に映る矢を撃つ
@@ -280,7 +269,7 @@ class EnemyHaze extends Enemy {
         const mirrors = this.mirrors
 
         yield* GenUtils.all({
-            plumes: Heat.plumes(this, 6, mirrors),
+            plumes: Heat.plumes(this, 4, mirrors),
             arrows: (function* (me: EnemyHaze) {
                 yield* Array(Heat.SEED_FRAMES + 60)
 

@@ -255,7 +255,9 @@ export class Remodel<Parent extends Actor> {
 
     // 色を変える
     colorful(seed: number) {
-        return this.set("color", `hsl(${seed % 360},100%,50%)`)
+        return this.forEach((me, i) => {
+            me.color = `hsl(${(seed + i * 10) % 360},100%,50%)`
+        })
     }
 
     // 弾の向きを指定した座標に向ける
