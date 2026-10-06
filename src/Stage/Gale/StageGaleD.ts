@@ -34,8 +34,8 @@ export default class extends Stage {
 class EnemyPhase1 extends Enemy {
     private parent: Enemy
     constructor(game: Game, parent: Enemy) {
-        super(game, 1, 40, { renderer: new EnemyRendererCore() })
-        this.setParent(parent, () => vec.arg(this.frame / 60).scale(parent.r + this.r * 3))
+        super(game, 1900, 40, { renderer: new EnemyRendererCore() })
+        this.setParent(parent, () => vec.arg(this.frame / 360).scale(parent.r + this.r * 3))
         this.parent = parent
         this.addScript(() => this.attack(), { loop: Infinity, margin: 60 })
     }
@@ -121,14 +121,14 @@ class EnemyPhase2 extends Enemy {
     private parent: Enemy
     constructor(game: Game, parent: Enemy) {
         super(game, 1800, 40, { renderer: new EnemyRendererCore() })
-        this.setParent(parent, () => vec.arg(T / 3 + this.frame / 60).scale(parent.r + this.r * 3))
+        this.setParent(parent, () => vec.arg(T / 3 + this.frame / 360).scale(parent.r + this.r * 3))
         this.parent = parent
         this.isInvincible = true
     }
 
     private *fire(num: number) {
         yield* remodel(this)
-            .format("small-ball")
+            .format("diamond")
             .color("#ffcbaa")
             .p(this.parent.p)
             .speed(4)
@@ -142,7 +142,7 @@ class EnemyPhase2 extends Enemy {
                 yield* GenUtils.all({
                     move: function* (this: Enemy) {
                         while (true) {
-                            me.radian = startRadian + (T / 16) * Math.sin((T / 32) * (this.frame - startFrame))
+                            me.radian = startRadian + (T / 16) * Math.sin((T / 256) * (this.frame - startFrame))
                             yield
                         }
                     }.bind(this)(),
@@ -202,13 +202,13 @@ class EnemyPhase2 extends Enemy {
 class EnemyPhase3 extends Enemy {
     constructor(game: Game, parent: Enemy) {
         super(game, 1800, 40, { renderer: new EnemyRendererCore() })
-        this.setParent(parent, () => vec.arg((T * 2) / 3 + this.frame / 60).scale(parent.r + this.r * 3))
+        this.setParent(parent, () => vec.arg((T * 2) / 3 + this.frame / 360).scale(parent.r + this.r * 3))
         this.isInvincible = true
     }
 
     private *fire() {
         yield* remodel(this)
-            .format("big-ball")
+            .format("arrow")
             .color("#ffcbaa")
             .p(this.p)
             .speed(2)

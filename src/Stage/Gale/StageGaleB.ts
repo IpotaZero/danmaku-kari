@@ -94,7 +94,10 @@ class EnemyCore extends Enemy {
             })
             .scatter({ p: 15 })
             .g(function* (me) {
-                yield* Behavior.stop(me, 1)
+                yield* GenUtils.all({
+                    appear: Behavior.appear(me, 30),
+                    stop: Behavior.stop(me, 1),
+                })
                 yield* Behavior.aim(me, vec(this.game.player.p.x, this.game.HEIGHT * 2), 1)
                 const startFrame = this.frame
                 const startRadian = me.radian

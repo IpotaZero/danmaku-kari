@@ -33,7 +33,7 @@ class EnemyAim extends Enemy {
 
     private *fire() {
         yield* remodel(this)
-            .format("big-ball")
+            .format("arrow")
             .color("#ffcbaa")
             .p(this.p)
             .speed(2)
@@ -127,7 +127,7 @@ class EnemyCore extends Enemy {
 
     private *fire() {
         yield* remodel(this)
-            .format("donut")
+            .format("diamond")
             .radian(40)
             .p(this.p)
             .color("#bbffaa")
@@ -156,7 +156,7 @@ class EnemyCore extends Enemy {
 
     private *fire3() {
         yield* remodel(this)
-            .format("donut")
+            .format("diamond")
             .radian(40)
             .p(this.p)
             .color("#aa4444")
@@ -184,7 +184,7 @@ class EnemyCore extends Enemy {
     }
     private *fire4() {
         yield* remodel(this)
-            .format("donut")
+            .format("diamond")
             .radian(40)
             .p(this.p)
             .color("#aaaa44")
@@ -213,7 +213,7 @@ class EnemyCore extends Enemy {
 
     private *fire2() {
         yield* remodel(this)
-            .format("donut")
+            .format("diamond")
             .radian(20)
             .color("#bbffaa")
             .speed(6)

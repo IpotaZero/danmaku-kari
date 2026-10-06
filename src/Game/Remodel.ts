@@ -85,10 +85,10 @@ export namespace Behavior {
     }
 
     // 数フレームかけて現れる
-    export function* appear(me: Bullet, frame: number = 30) {
-        const r = me.r
-        me.r = 0
-        yield* ease(me, "r", r, frame, Ease.Out)
+    export function* appear(me: Bullet, frame: number) {
+        const alpha = me.alpha
+        me.alpha = 0
+        yield* ease(me, "alpha", alpha, frame, Ease.Linear)
     }
 
     // 数フレームかけて停止し、数フレーム何もせず、数フレームかけて加速する
