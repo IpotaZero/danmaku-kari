@@ -1,60 +1,55 @@
 import { vec } from "@ipota/vec"
-import { GenUtils } from "@ipota/functions"
+import { Ease, GenUtils } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { Behavior, remodel } from "../../Game/Remodel"
+import { remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
-import { Shadow } from "./Shadow"
-import { Phase } from "./Phase"
-import { Mochi } from "./Mochi"
+import { Puppet } from "./Puppet"
 
-// ステージ「月影」(月影道場・道場主)
-// 一段目: 影踏み。自機の影が足跡を残してついてくる中へ、道場主がゆっくりした輪を放つ。
-// 二段目: 満ち欠け。照らされた弧だけが実体の輪が、新月から満月へ満ちてまた欠ける。
-// 三段目: 月の兎。道場主が餅を放り、餅は底で弾んで衝撃波を広げる。
-// 最終段: 月影。影に追われながら、満ち欠けする輪をくぐる。立ち止まって輪の影の側を待つことはできない。
+// ステージ「影絵」(月影道場・道場主)
+// 道場主(月)のすぐそばで、小さな影絵の人形が形を作る。その影が画面の下の方へ何倍にも大きく映る。
+// 影の輪郭は実体の弾で、内側は空っぽ。人形の小さな動きが、影では大きく素早い動きになるので、人形を見て影の動きを先読みする。
+// 一段目: 狐。狐の口がゆっくり開き、震えたかと思うと、ぱくりと閉じる。口の中にいたら、閉じる前に外へ出る。
+// 二段目: 鳥。大きな翼が上下に羽ばたいて、画面を薙ぐ。翼の付け根の近くほど、翼はゆっくり動く。
+// 三段目: 兎。兎が跳ねるたびに月へ近づくので、影はふくらみながら下へ迫ってくる。体の輪郭の内側に入ってしまえば安全。
+// 最終段: 影絵芝居。狐と鳥が同時に映る。
+// どの段でも、道場主はときどき鈴の音(ゆっくりした輪)を鳴らす。
 
 const ENTRANCE_FRAMES = 150
-const COLOR: Color = "#e0d8ff"
+const BELL: Color = "#fff0b0"
 
-const SHADOW0: Shadow.Config = { delay: 45, stepInterval: 5, stepLife: 150, frames: 330, color: "#b8a8ff" }
-const CYCLE0_FRAMES = SHADOW0.frames + SHADOW0.stepLife + 140
-
-const RING: Phase.Ring = { count: 40, speed: 2, color: "#fff2c0" }
-const RINGS = 9
-const RING_INTERVAL = 28
-const CYCLE1_FRAMES = RINGS * RING_INTERVAL + 200
-
-const MOCHI: Mochi.Config = {
-    gravity: 0.16,
-    restitution: 0.82,
-    bounces: 3,
-    waveCount: 13,
-    waveSpeed: 2.2,
-    color: "#fff6e8",
-}
-const CYCLE2_FRAMES = 560
-
-const SHADOW3: Shadow.Config = { delay: 50, stepInterval: 6, stepLife: 120, frames: 300, color: "#b8a8ff" }
-const CYCLE3_FRAMES = SHADOW3.frames + SHADOW3.stepLife + 140
+// 狐の口の一回の動き。開く・震える・閉じる・閉じたまま
+const OPEN_FRAMES = 90
+const TREMBLE_FRAMES = 30
+const SNAP_FRAMES = 10
+const SHUT_FRAMES = 50
+const BITE_FRAMES = OPEN_FRAMES + TREMBLE_FRAMES + SNAP_FRAMES + SHUT_FRAMES
+const WIDE = 0.55
+// 影が浮かび上がるまで(Puppet と同じ)
+const INTRO_FRAMES = 50
+// 鳥の羽ばたきの周期と角度
+const FLAP_PERIOD = 110
+const FLAP_ANGLE = 0.65
+// 兎が跳ねる間隔と、跳んでいる時間・ふくらむ割合
+const HOP_INTERVAL = 160
+const HOP_FRAMES = 70
+const HOP_GROW = 0.5
+// 影を映し終えてからの休憩
+const REST_FRAMES = 150
 
 export default class extends Stage {
     *G() {
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["しんとしてる……。虫の声しか聞こえない。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["リーン……リーン……。今宵は良い月ですね。"], { name: "スズムシ" })
-        yield* this.game.textBox.say(["あなたが月影道場の長?"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(
-            ["ええ。月の光は影を生みます。影から逃れようとするほど、影はついてくるものですよ。"],
-            { name: "スズムシ" },
-        )
+        yield* this.game.textBox.say(["月が明るい……地面に、大きな影が。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["リーン……。今宵は影絵芝居をお目にかけましょう。"], { name: "スズムシ" })
+        yield* this.game.textBox.say(["影はね、小さな手の動きも大きく映すのですよ。"], { name: "スズムシ" })
         this.hideFigure("hachinoko")
 
-        const boss = new EnemyMoon(this.game)
+        const boss = new EnemySuzumushi(this.game)
         const cores = [0, 1, 2].map((i) => new EnemyCore(this.game, boss, i))
 
         this.game.enemies.push(boss, ...cores)
@@ -82,19 +77,18 @@ export default class extends Stage {
         yield* Array(300)
 
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["見事です。影を連れたまま、月まで届きましたね。"], { name: "スズムシ" })
-        yield* this.game.textBox.say(["もう足がくたくただよ。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["月影道場の免状を。よく休んでくださいね。"], { name: "スズムシ" })
+        yield* this.game.textBox.say(["お粗末さまでした。"], { name: "スズムシ" })
+        yield* this.game.textBox.say(["影なのに、本物よりこわかったよ。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["ふふ。月影道場の免状を、どうぞ。"], { name: "スズムシ" })
         this.hideFigure("hachinoko")
         this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
         yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["すべての免状が揃ったなら、四天王があなたを待っています。"], { name: "スズムシ" })
         this.hideFigure("hachinoko")
     }
 }
 
-class EnemyMoon extends Enemy {
-    private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.05, 1, 2)
+class EnemySuzumushi extends Enemy {
+    private readonly path = Curves.lissajous(this.game.WIDTH * 0.12, this.game.HEIGHT * 0.02, 1, 2)
 
     constructor(game: Game) {
         super(game, 2400, 64, { renderer: new EnemyRendererBoss() })
@@ -104,16 +98,16 @@ class EnemyMoon extends Enemy {
     }
 
     *start() {
-        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle" })
+        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle", margin: ENTRANCE_FRAMES })
         yield
 
-        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 90 })
         yield
 
-        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 90 })
         yield
 
-        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 90 })
         yield
     }
 
@@ -125,7 +119,7 @@ class EnemyMoon extends Enemy {
     }
 
     private home() {
-        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.18)
+        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.13)
     }
 
     private *move() {
@@ -133,82 +127,141 @@ class EnemyMoon extends Enemy {
         yield
     }
 
-    private *rings(count: number, interval: number) {
+    // 影の光源(月=道場主)
+    private light() {
+        return () => this.p
+    }
+
+    // 鈴の音。ゆっくりした輪を interval ごとに count 回鳴らす
+    private *bells(interval: number, count: number) {
         for (let k = 0; k < count; k++) {
+            yield* Array(interval)
             yield* remodel(this)
-                .format("donut")
-                .color(COLOR)
+                .format("small-ball")
+                .r(5)
+                .color(BELL)
                 .p(this.p.clone())
-                .speed(1.4)
+                .speed(1.5)
                 .radian(this.random() * T)
                 .ex(18)
-                .g((me) => Behavior.appear(me, 20))
                 .fire(this.game.bullets)
-
-            yield* Array(interval)
         }
     }
 
-    // 新月から満月へ満ちてまた欠ける輪を、照らされる向きを回しながら広げる
-    private *phases(count: number, interval: number) {
-        const light = this.random() * T
-        const turn = this.random() < 0.5 ? -1 : 1
+    // 狐の口の開き。影が浮かび上がってから、開く→震える→ぱくり→閉じたまま をくり返す
+    private bite(t: number) {
+        const u = t - INTRO_FRAMES
+        if (u < 0) return 0.05
 
-        for (let k = 0; k < count; k++) {
-            const lit = Math.sin((Math.PI * (k + 1)) / (count + 1))
-
-            yield* Phase.ring(this, RING, light + (turn * k * T) / 12, lit).fire(this.game.bullets)
-            yield* Array(interval)
-        }
+        const v = u % BITE_FRAMES
+        if (v < OPEN_FRAMES) return 0.05 + (WIDE - 0.05) * Ease.InOut(v / OPEN_FRAMES)
+        if (v < OPEN_FRAMES + TREMBLE_FRAMES) return WIDE + 0.03 * Math.sin(v * 1.7)
+        if (v < OPEN_FRAMES + TREMBLE_FRAMES + SNAP_FRAMES)
+            return WIDE * (1 - (v - OPEN_FRAMES - TREMBLE_FRAMES) / SNAP_FRAMES) + 0.02
+        return 0.02
     }
 
+    private flap(t: number) {
+        return FLAP_ANGLE * Math.sin((T * t) / FLAP_PERIOD)
+    }
+
+    // 狐。向きは周期ごとに左右を入れ替える
     private *cycle0() {
-        yield* GenUtils.all({
-            shadow: Shadow.follow(this, SHADOW0),
-            rings: (function* (me: EnemyMoon) {
-                yield* Array(80)
-                yield* me.rings(3, 90)
-            })(this),
-            wait: Array(CYCLE0_FRAMES),
-        })
-    }
+        for (const facing of [1, -1]) {
+            const frames = INTRO_FRAMES + BITE_FRAMES * 3
+            const shape = Puppet.fox(
+                vec(-facing * 40, 470),
+                0.85,
+                facing,
+                (t) => this.bite(t),
+                (t) => vec(110 * Math.sin(t / 160), 30 * Math.sin(t / 110)),
+            )
 
-    private *cycle1() {
-        yield* this.phases(RINGS, RING_INTERVAL)
-        yield* Array(CYCLE1_FRAMES - RINGS * RING_INTERVAL)
-    }
-
-    // 画面の左右へ交互に餅を放る
-    private *cycle2() {
-        for (let k = 0; k < 3; k++) {
-            const side = k % 2 === 0 ? -1 : 1
-            const x = this.game.WIDTH * (0.5 + side * (0.1 + 0.3 * this.random()))
-            const landing = vec(x, this.game.HEIGHT - 22)
-            const peak = this.game.HEIGHT * (0.05 + 0.08 * this.random())
-
-            yield* Mochi.toss(this, landing, peak, MOCHI).fire(this.game.bullets)
-            yield* Array(100)
+            yield* GenUtils.all({
+                fox: Puppet.cast(this, this.light(), shape, frames),
+                bells: this.bells(150, 3),
+            })
+            yield* Array(REST_FRAMES)
         }
-
-        yield* Array(CYCLE2_FRAMES - 300)
     }
 
-    private *cycle3() {
+    // 鳥。左右にゆったり滑空しながら羽ばたく
+    private *cycle1() {
+        const frames = INTRO_FRAMES + FLAP_PERIOD * 5
+        const shape = Puppet.bird(
+            vec(0, 430),
+            0.9,
+            (t) => this.flap(t),
+            (t) => vec(70 * Math.sin(t / 200), 40 * Math.sin(t / 130)),
+        )
+
         yield* GenUtils.all({
-            shadow: Shadow.follow(this, SHADOW3),
-            phases: (function* (me: EnemyMoon) {
-                yield* Array(60)
-                yield* me.phases(7, 36)
-            })(this),
-            wait: Array(CYCLE3_FRAMES),
+            bird: Puppet.cast(this, this.light(), shape, frames),
+            bells: this.bells(160, 3),
         })
+        yield* Array(REST_FRAMES)
+    }
+
+    // 兎。跳ぶたびに左右へ移り、月へ近づいて影がふくらむ
+    private *cycle2() {
+        const hops = 4
+        const frames = INTRO_FRAMES + HOP_INTERVAL * hops
+        // n 回目の跳躍の左右の位置
+        const sideOf = (n: number) => (n % 2 === 0 ? -1 : 1) * 100
+
+        const shape = Puppet.rabbit(
+            (t) => {
+                const u = Math.max(0, t - INTRO_FRAMES)
+                const n = Math.floor(u / HOP_INTERVAL)
+                const v = Math.min(1, (u % HOP_INTERVAL) / HOP_FRAMES)
+                return vec(sideOf(n) + (sideOf(n + 1) - sideOf(n)) * Ease.InOut(v), 440)
+            },
+            (t) => {
+                const v = Math.max(0, t - INTRO_FRAMES) % HOP_INTERVAL
+                return v < HOP_FRAMES ? 1 + HOP_GROW * Math.sin((Math.PI * v) / HOP_FRAMES) : 1
+            },
+            (t) => 0.25 * Math.sin(t / 12),
+        )
+
+        yield* GenUtils.all({
+            rabbit: Puppet.cast(this, this.light(), shape, frames),
+            bells: this.bells(180, 3),
+        })
+        yield* Array(REST_FRAMES)
+    }
+
+    // 狐と鳥を同時に。狐は左、鳥は右(周期ごとに入れ替える)
+    private *cycle3() {
+        for (const side of [-1, 1]) {
+            const frames = INTRO_FRAMES + BITE_FRAMES * 3
+            const fox = Puppet.fox(
+                vec(side * 120, 520),
+                0.6,
+                -side,
+                (t) => this.bite(t),
+                (t) => vec(40 * Math.sin(t / 140), 20 * Math.sin(t / 90)),
+            )
+            const bird = Puppet.bird(
+                vec(-side * 110, 330),
+                0.6,
+                (t) => this.flap(t + FLAP_PERIOD / 2),
+                (t) => vec(50 * Math.sin(t / 170), 20 * Math.sin(t / 120)),
+            )
+
+            yield* GenUtils.all({
+                fox: Puppet.cast(this, this.light(), fox, frames),
+                bird: Puppet.cast(this, this.light(), bird, frames),
+                bells: this.bells(140, 4),
+            })
+            yield* Array(REST_FRAMES)
+        }
     }
 }
 
 class EnemyCore extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
-        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
-        this.setParent(parent, () => vec.arg(this.frame / 300 + (T / 3) * index).scale(150))
+        super(game, 1500, 48, { renderer: new EnemyRendererCore() })
+        this.setParent(parent, () => vec.arg(this.frame / 300 + (T / 3) * index).scale(110))
         this.isInvincible = true
     }
 }
