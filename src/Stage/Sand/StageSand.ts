@@ -2,65 +2,56 @@ import { vec } from "@ipota/vec"
 import { GenUtils } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
-import { remodel } from "../../Game/Remodel"
+import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
-import { Sand } from "./Sand"
+import { Dune } from "./Dune"
 
-// ステージ「砂塵」(砂塵道場・道場主)
-// 一段目: 砂嵐。段の多い砂の帯が降りてくる間に、道場主が二度砂をかける。
-// 二段目: 蟻地獄。道場主が自機を吸い寄せながら砂をかける。道場主を囲む砂の輪が、だんだん速く底へ滑り落ちてくる。
-// 三段目: 砂時計。道場主が画面の真ん中に降りて、砂時計をひっくり返す。
-// 最終段: 砂塵。砂の帯が降りてくる間ずっと、自機は上へ吸い寄せられる。筋の切れ目へ走りながら、吸い込みにも逆らう。
+// ステージ「砂丘」(砂塵道場・道場主)
+// 空から注ぐ砂は画面の底に積もり、山になっていく。積もった砂は実体なので、砂山が育つほど動ける場所は下から狭まる。
+// 砂の筋は抜けられないので、筋と筋の間、砂山と砂山の谷間に居場所を探す。
+// 一段目: 砂山。三本の砂の筋が注ぎ、その下に砂山が育つ。注ぎ終わると砂山は沈んで消える。
+// 二段目: 風紋。風が吹き、砂の筋は斜めに注ぐ。積もった砂山は風下へじわじわ流されていき、谷間も一緒に動く。
+// 三段目: 逆さ砂。砂山が育ちきると震え出し、上へ向かって落ちていく。砂山は縦の柱になって昇るので、砂のなかった列に立つ。
+// 最終段: 砂漠。道場主が左右に飛び回りながら砂を撒き、風が砂丘を流し、育った砂丘はやがて空へ落ちていく。
+// どの段でも、道場主はときどき砂つぶて(ゆっくりした扇形の砂)を投げる。
 
 const ENTRANCE_FRAMES = 150
+const SAND_ALT: Color = "#ffe8b8"
 
-const BAND0: Sand.Band = {
-    rows: 9,
-    rowGap: 40,
-    speed: 1.7,
-    spacing: 10,
-    segment: [90, 170],
-    gap: [70, 110],
-    flow: [1.2, 3],
-}
-const BAND3: Sand.Band = {
-    rows: 7,
-    rowGap: 44,
-    speed: 1.4,
-    spacing: 10,
-    segment: [80, 150],
-    gap: [80, 120],
-    flow: [1, 2.4],
-}
+// 砂の筋。砂粒を出す間隔と速さ。筋の中の砂粒の間隔(15px)は砂粒の大きさとほぼ同じなので、筋は抜けられない
+const POUR_INTERVAL = 3
+const POUR_SPEED = 5
+// 砂山ができあがってから、沈む・昇るまで眺める時間
+const HOLD_FRAMES = 60
+// 休憩
+const REST_FRAMES = 150
 
-// 二段目。吸い込みの提示と、吸い込みの長さ
-const SWIRL_FRAMES = 70
-const SUCTION_FRAMES = 320
-const CYCLE1_FRAMES = 620
-// 道場主を囲む砂の輪の半径と弾の数
-const PIT_RADIUS = 300
-const PIT_GRAINS = 40
-
-// 最終段の吸い込みは弱い
-const SUCTION3 = 0.6
+// 一段目
+const POUR0_FRAMES = 300
+// 二段目。風で筋が傾く角度と、砂丘が一列流れる間隔
+const WIND_ANGLE = 0.12
+const SHIFT_INTERVAL = 24
+const POUR1_FRAMES = 340
+// 三段目。砂山が震えている時間と、昇っていく速さ
+const POUR2_FRAMES = 280
+const TREMBLE_FRAMES = 50
+const RISE_SPEED = 5
+// 最終段
+const POUR3_FRAMES = 360
 
 export default class extends Stage {
     *G() {
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["のどがからから……。砂ばっかりだ。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["ようこそ、砂塵道場へ。私はウスバ。"], { name: "ウスバ" })
-        yield* this.game.textBox.say(["あれ? さっきの高弟さんに似てる。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["あの子はまだ幼虫なの。私も昔は、巣の底でじっと待っていたものよ。"], {
-            name: "ウスバ",
-        })
-        yield* this.game.textBox.say(["でも今は飛べる。さあ、砂に足を取られないでね。"], { name: "ウスバ" })
+        yield* this.game.textBox.say(["足もとが、さらさら鳴ってる。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["砂はね、積もるのよ。どこまでも。"], { name: "ウスバ" })
+        yield* this.game.textBox.say(["埋もれてしまう前に、私を落としてごらんなさい。"], { name: "ウスバ" })
         this.hideFigure("hachinoko")
 
-        const boss = new EnemySand(this.game)
+        const boss = new EnemyUsuba(this.game)
         const cores = [0, 1, 2].map((i) => new EnemyCore(this.game, boss, i))
 
         this.game.enemies.push(boss, ...cores)
@@ -88,21 +79,22 @@ export default class extends Stage {
         yield* Array(300)
 
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["ふふ、砂を払うのが上手ね。"], { name: "ウスバ" })
-        yield* this.game.textBox.say(["もう口の中までじゃりじゃりだよ。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["砂塵道場の免状よ。持っていって。"], { name: "ウスバ" })
+        yield* this.game.textBox.say(["ふふ、埋もれなかったわね。"], { name: "ウスバ" })
+        yield* this.game.textBox.say(["靴の中まで砂だらけだよ……。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["砂塵道場の免状よ。払ってからお行きなさい。"], { name: "ウスバ" })
         this.hideFigure("hachinoko")
         this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
         yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["流星道場は夜にならないと始まらないわ。月影道場なら、昼でも薄暗いけれど。"], {
-            name: "ウスバ",
-        })
         this.hideFigure("hachinoko")
     }
 }
 
-class EnemySand extends Enemy {
-    private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.05, 1, 2)
+class EnemyUsuba extends Enemy {
+    private readonly path = Curves.lissajous(this.game.WIDTH * 0.2, this.game.HEIGHT * 0.04, 1, 2)
+    // 最終段で飛び回る道筋
+    private readonly sweep = Curves.lissajous(this.game.WIDTH * 0.75, this.game.HEIGHT * 0.06, 1, 2)
+    // いま積もっている砂丘。段が変わると作り直す
+    private dune = new Dune.Field(this.game)
 
     constructor(game: Game) {
         super(game, 2400, 64, { renderer: new EnemyRendererBoss() })
@@ -112,20 +104,20 @@ class EnemySand extends Enemy {
     }
 
     *start() {
-        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle" })
+        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle", margin: ENTRANCE_FRAMES })
         yield
 
-        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.dune = new Dune.Field(this.game)
+        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 120 })
         yield
 
-        // 砂時計の間は、くびれ(画面の真ん中)に留まる
-        this.removeScript("move")
-        this.addScript(() => this.moveTo(this.center(), 120), { id: "move" })
-        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.dune = new Dune.Field(this.game)
+        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 120 })
         yield
 
-        this.addScript(() => this.returnHome(), { id: "move" })
-        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.dune = new Dune.Field(this.game)
+        this.addScript(() => this.sweeping(), { loop: Infinity, id: "move" })
+        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 120 })
         yield
     }
 
@@ -137,11 +129,7 @@ class EnemySand extends Enemy {
     }
 
     private home() {
-        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.2)
-    }
-
-    private center() {
-        return vec(this.game.WIDTH / 2, this.game.HEIGHT / 2)
+        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.15)
     }
 
     private *move() {
@@ -149,101 +137,144 @@ class EnemySand extends Enemy {
         yield
     }
 
-    private *returnHome() {
-        yield* this.moveTo(this.home(), 120)
-        this.addScript(() => this.move(), { loop: Infinity, id: "move" })
+    // 最終段。画面の端から端へ、ゆっくり大きく飛び回る
+    private *sweeping() {
+        const start = this.frame
+        const from = this.p.clone()
+
+        for (let f = 1; f <= 90; f++) {
+            this.p = from.add(
+                this.sweep(0)
+                    .add(this.home())
+                    .sub(from)
+                    .scale(f / 90),
+            )
+            yield
+        }
+
+        while (true) {
+            this.p = this.sweep((this.frame - start - 90) / 700).add(this.home())
+            yield
+        }
     }
 
-    // 砂嵐の帯が降りてくる間に、二度砂をかける
-    private *cycle0() {
-        const travel = Sand.travelFrames(this, BAND0)
-
-        yield* GenUtils.all({
-            storm: Sand.storm(this, BAND0),
-            sand: (function* (me: EnemySand) {
-                for (let k = 0; k < 2; k++) {
-                    yield* Array(Math.floor(travel * 0.2))
-                    yield* Sand.throwSand(me, 14).fire(me.game.bullets)
-                }
-            })(this),
-            wait: Array(travel + 150),
-        })
+    // 注ぎ終えた砂が、すべて底に着くまでのフレーム数
+    private fallFrames() {
+        return Math.ceil(this.game.HEIGHT / POUR_SPEED) + 20
     }
 
-    private *cycle1() {
-        yield* GenUtils.all({
-            swirl: Sand.swirl(this, SWIRL_FRAMES + SUCTION_FRAMES).fire(this.game.bullets),
-            suction: (function* (me: EnemySand) {
-                yield* Array(SWIRL_FRAMES)
-                yield* Sand.suction(me, 1.1, SUCTION_FRAMES)
-            })(this),
-            sand: (function* (me: EnemySand) {
-                yield* Array(SWIRL_FRAMES + 30)
+    // 空の xs の位置から、frames の間砂を注ぐ。radian は砂の落ちる向き
+    private *pour(xs: readonly number[], frames: number, radian: number) {
+        for (let f = 0; f < frames; f += POUR_INTERVAL) {
+            for (const x of xs) {
+                yield* this.dune.grain(this, x + (this.random() - 0.5) * 4, radian, POUR_SPEED).fire(this.game.bullets)
+            }
 
-                for (let k = 0; k < 5; k++) {
-                    yield* Sand.throwSand(me, 16).fire(me.game.bullets)
-                    yield* Array(60)
-                }
-            })(this),
-            pit: this.pit(),
-            wait: Array(CYCLE1_FRAMES),
-        })
+            yield* Array(POUR_INTERVAL)
+        }
     }
 
-    // 道場主を囲む砂の輪。少し留まってから、だんだん速く道場主へ向かって滑り落ちる。
-    // 自機は吸い込みで内側へ寄せられているので、輪を外へくぐり抜けるか、内側で輪が縮むのをかわす
-    private *pit() {
-        const center = this
+    // 砂つぶて。ゆっくりした扇形の砂を自機の方へ投げる
+    private *pebbles() {
+        const aim = this.game.player.p.sub(this.p).radian()
 
         yield* remodel(this)
-            .format("small-ball")
-            .color(Sand.COLOR)
-            .speed(0)
-            .duplicate(PIT_GRAINS, (b, i) => {
-                b.p = this.p.add(vec.arg((T * i) / PIT_GRAINS).scale(PIT_RADIUS))
-                return b
-            })
-            .appear(SWIRL_FRAMES)
-            .g(function* (me) {
-                yield* Array(SWIRL_FRAMES + 60)
-
-                for (let diff = center.p.sub(me.p); diff.magnitude() > 24; diff = center.p.sub(me.p)) {
-                    me.radian = diff.radian()
-                    me.speed = Math.min(me.speed + 0.03, 2.5)
-                    yield
-                }
-
-                me.life = 0
-            })
+            .format("diamond")
+            .color(SAND_ALT)
+            .p(this.p.clone())
+            .speed(0.5)
+            .radian(aim)
+            .nway(7, T / 28)
+            .g((me) => Behavior.accel(me, 60, 2.6))
             .fire(this.game.bullets)
     }
 
-    private *cycle2() {
-        const hourglass = new Sand.Hourglass([0, 1].map(() => (this.random() < 0.5 ? -1 : 1)))
-
-        yield* GenUtils.all({
-            hourglass: hourglass.draw(this, this.center()).fire(this.game.bullets),
-            pour: hourglass.pour(this),
-            wait: Array(Sand.Hourglass.TOTAL_FRAMES + Sand.Hourglass.FADE_FRAMES + 180),
-        })
+    private *pebblesEvery(interval: number, count: number) {
+        for (let k = 0; k < count; k++) {
+            yield* Array(interval)
+            yield* this.pebbles()
+        }
     }
 
-    // 砂の帯が降りてくる間、ずっと自機を吸い寄せる
-    private *cycle3() {
-        const travel = Sand.travelFrames(this, BAND3)
+    // 三本の筋の位置。周期ごとに少しずらす
+    private streams(count: number) {
+        const w = this.game.WIDTH
+        return Array.from({ length: count }, (_, k) => (w * (k + 0.5)) / count + (this.random() - 0.5) * 50)
+    }
+
+    private *cycle0() {
+        yield* GenUtils.all({
+            pour: this.pour(this.streams(3), POUR0_FRAMES, T / 4),
+            pebbles: this.pebblesEvery(90, 4),
+            wait: Array(POUR0_FRAMES + this.fallFrames() + HOLD_FRAMES),
+        })
+
+        this.dune.clear()
+        yield* Array(REST_FRAMES)
+    }
+
+    // 風の吹く向きを決め、斜めに砂を注ぎながら、砂丘を風下へ流していく
+    private *cycle1() {
+        const wind = this.random() < 0.5 ? -1 : 1
+        const dune = this.dune
 
         yield* GenUtils.all({
-            storm: Sand.storm(this, BAND3),
-            swirl: Sand.swirl(this, travel).fire(this.game.bullets),
-            suction: Sand.suction(this, SUCTION3, travel),
-            wait: Array(travel + 150),
+            pour: this.pour(this.streams(4), POUR1_FRAMES, T / 4 - wind * WIND_ANGLE),
+            drift: (function* (frames: number) {
+                for (let f = 0; f < frames; f += SHIFT_INTERVAL) {
+                    yield* Array(SHIFT_INTERVAL)
+                    dune.shift(wind)
+                }
+            })(POUR1_FRAMES + this.fallFrames() + HOLD_FRAMES),
+            pebbles: this.pebblesEvery(110, 4),
         })
+
+        this.dune.clear()
+        yield* Array(REST_FRAMES)
+    }
+
+    // 砂山を育て、震わせてから空へ落とす
+    private *cycle2() {
+        yield* GenUtils.all({
+            pour: this.pour(this.streams(3), POUR2_FRAMES, T / 4),
+            pebbles: this.pebblesEvery(90, 3),
+            wait: Array(POUR2_FRAMES + this.fallFrames() + HOLD_FRAMES),
+        })
+
+        this.dune.rise(TREMBLE_FRAMES, RISE_SPEED)
+        yield* Array(TREMBLE_FRAMES + this.fallFrames() + REST_FRAMES)
+    }
+
+    // 飛び回る道場主の真下へ砂を撒く。風が砂丘を流し、撒き終わると砂丘は空へ落ちていく
+    private *cycle3() {
+        const wind = this.random() < 0.5 ? -1 : 1
+        const dune = this.dune
+
+        yield* GenUtils.all({
+            pour: (function* (me: EnemyUsuba) {
+                for (let f = 0; f < POUR3_FRAMES; f += 3) {
+                    yield* dune.grain(me, me.p.x, T / 4, POUR_SPEED).fire(me.game.bullets)
+                    yield* Array(3)
+                }
+            })(this),
+            drift: (function* (frames: number) {
+                for (let f = 0; f < frames; f += SHIFT_INTERVAL * 2) {
+                    yield* Array(SHIFT_INTERVAL * 2)
+                    dune.shift(wind)
+                }
+            })(POUR3_FRAMES + this.fallFrames()),
+            pebbles: this.pebblesEvery(120, 4),
+        })
+
+        yield* Array(HOLD_FRAMES)
+        this.dune.rise(TREMBLE_FRAMES, RISE_SPEED)
+        yield* Array(TREMBLE_FRAMES + this.fallFrames() + REST_FRAMES)
     }
 }
 
 class EnemyCore extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
-        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
+        super(game, 1500, 48, { renderer: new EnemyRendererCore() })
         this.setParent(parent, () => vec.arg(this.frame / 300 + (T / 3) * index).scale(150))
         this.isInvincible = true
     }
