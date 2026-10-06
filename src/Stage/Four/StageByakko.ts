@@ -1,4 +1,4 @@
-import { vec } from "@ipota/vec"
+import { Vec, vec } from "@ipota/vec"
 import { GenUtils } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
@@ -7,53 +7,51 @@ import { Stage } from "../Stage"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
-import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
-import { Tiger } from "./Tiger"
+import { Magnet } from "./Magnet"
 
 // ステージ「白虎」(四天王)
-// 一段目: 爪。自機のそばを、平行な3本の爪痕が薄く横切り、実体になる。爪痕の間に収まってやり過ごすと、爪痕は砕けて散る。
-//   向きを変えて続けざまに引っかかれるので、前の爪痕と次の爪痕が重なってできる菱形の中へ移る。
-// 二段目: 牙。自機を上下から挟むように牙が現れ、噛み合わさる。真ん中ほど早く閉じるので、横へ逃げる。
-// 三段目: 咆哮。隙間が一つだけ開いた輪が次々に広がる。隙間は輪ごとに少しずつ回るので、隙間を追って回り込む。
-// 最終段: 猛虎。咆哮の輪をくぐる間に、爪痕が走る。
+// 白虎の弾は N(赤)か S(青)の磁気を帯びている。自機も磁気を帯びていて、自機のまわりの輪の色で分かる。
+// 自機と同じ色の弾は自機のそばでそれていき、違う色の弾は自機の方へ曲がって寄ってくる。輪と同じ色は味方、違う色は敵。
+// 自機の磁気はときどき入れ替わる(入れ替わる前に輪が明滅する)。入れ替わった瞬間、味方と敵が逆になる。
+// 白虎の体力が減るごとに段が進む。
+// 一段目: 双極。赤い輪と青い輪が交互に広がる。磁気の入れ替わりはゆっくり。
+// 二段目: 反転。赤と青の渦が回る。磁気がひんぱんに入れ替わる。
+// 三段目: 磁力線。白虎の下の両脇に N極と S極が現れ、N極から湧いた弾が磁力線に沿って弧を描き、S極へ吸い込まれる。極を結ぶ線はゆっくり傾く。
+// 最終段: 白虎。磁力線と、赤と青の輪が重なる。
 
 const ENTRANCE_FRAMES = 150
+const LIFE = 5600
+// 体力がこの割合を下回るたびに、次の段へ進む
+const THRESHOLDS = [0.75, 0.5, 0.25]
+const LINE_COLOR: Color = "#ffe6a0"
 
-const CLAW: Tiger.Claw = { gap: 52, spacing: 16, preview: 50, hold: 40 }
-const FANG: Tiger.Fang = { width: 300, spacing: 20, open: 200, preview: 45, close: 50, hold: 30 }
-const ROAR: Tiger.Roar = { count: 64, gap: 7, speed: 3, rings: 12, interval: 22, turn: T / 40 }
-const FINAL_ROAR: Tiger.Roar = { ...ROAR, rings: 10, interval: 30 }
-
-const CYCLE0_FRAMES = 520
-const CYCLE1_FRAMES = 480
-const CYCLE2_FRAMES = ROAR.rings * ROAR.interval + 300
-const CYCLE3_FRAMES = FINAL_ROAR.rings * FINAL_ROAR.interval + 320
+// 三段目・最終段の極。二つの極の真ん中の、白虎から見た位置と、真ん中から極までの距離。
+// 極を結ぶ線は、POLE_PERIOD フレームの周期で ±POLE_SWAY だけ傾く
+const POLE_CENTER = vec(0, 230)
+const POLE_DISTANCE = 150
+const POLE_PERIOD = 900
+const POLE_SWAY = 0.5
+// 磁力線の弾を出す間隔と、一度に出す本数・速さ
+const LINE_INTERVAL = 12
+const LINE_WAYS = 9
+const LINE_SPEED = 2.6
 
 export default class extends Stage {
     *G() {
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["……なにか、見られてる気がする。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["グルル……。四天王が三、西の白虎。"], { name: "白虎" })
-        yield* this.game.textBox.say(["爪も牙も、狙うのは貴様の居場所そのもの。動かねば喰われるぞ。"], { name: "白虎" })
+        yield* this.game.textBox.say(["……なんだか体がぴりぴりする。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["四天王が三、西の白虎。我が毛並みは磁気を帯びる。"], { name: "白虎" })
+        yield* this.game.textBox.say(["引かれるか、退けるか。己の色を見失うな。"], { name: "白虎" })
         this.hideFigure("hachinoko")
 
         const boss = new EnemyByakko(this.game)
-        const cores = [0, 1, 2].map((i) => new EnemyCore(this.game, boss, i))
-
-        this.game.enemies.push(boss, ...cores)
-        cores[0].isInvincible = false
+        this.game.enemies.push(boss)
 
         const phase = boss.start()
         phase.next()
 
-        for (let i = 0; i < cores.length; i++) {
-            yield* this.waitDead([cores[i]])
-
-            if (i + 1 < cores.length) {
-                cores[i + 1].isInvincible = false
-            } else {
-                boss.isInvincible = false
-            }
+        for (const ratio of THRESHOLDS) {
+            while (boss.life > LIFE * ratio) yield
 
             phase.next()
             this.scorenizeAllBullets()
@@ -65,40 +63,47 @@ export default class extends Stage {
         yield* Array(300)
 
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["……我が爪をここまで躱すか。"], { name: "白虎" })
-        yield* this.game.textBox.say(["食べられるのはいやだからね。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["……己の色を最後まで見失わなかったか。"], { name: "白虎" })
+        yield* this.game.textBox.say(["赤と青で、目がちかちかするよ。"], { name: "ハチノコ" })
         yield* this.game.textBox.say(["ふん。北の玄武は我らの中で最も堅い。覚悟して行け。"], { name: "白虎" })
         this.hideFigure("hachinoko")
     }
 }
 
 class EnemyByakko extends Enemy {
-    private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.04, 1, 2)
+    private readonly path = Curves.lissajous(this.game.WIDTH * 0.25, this.game.HEIGHT * 0.04, 1, 2)
+    private readonly magnet = new Magnet.Field()
 
     constructor(game: Game) {
-        super(game, 2400, 64, { renderer: new EnemyRendererBoss() })
+        super(game, LIFE, 60, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
+        this.addScript(() => this.magnet.show(this))
     }
 
     *start() {
-        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle" })
+        this.addScript(() => this.flipping(360, 90), { id: "flip", margin: ENTRANCE_FRAMES })
+        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle", margin: ENTRANCE_FRAMES })
         yield
 
-        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.addScript(() => this.flipping(220, 60), { id: "flip" })
+        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 90 })
         yield
 
-        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.addScript(() => this.flipping(300, 70), { id: "flip" })
+        this.addScript(() => this.cycle2(), { id: "cycle", margin: 90 })
         yield
 
-        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.addScript(() => this.flipping(200, 60), { id: "flip" })
+        this.addScript(() => this.cycle3(), { id: "cycle", margin: 90 })
         yield
     }
 
     private *enter() {
         this.p = vec(-200, -200)
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
+        this.isInvincible = false
 
         this.addScript(() => this.move(), { loop: Infinity })
     }
@@ -112,81 +117,150 @@ class EnemyByakko extends Enemy {
         yield
     }
 
-    // 自機のそばを通る爪痕を引く。自機の真上を通るとは限らない
-    private *claw(angle: number) {
-        const near = this.game.player.p.add(vec.arg(this.random() * T).scale(this.random() * CLAW.gap))
-        yield* Tiger.claw(this, near, angle, CLAW).fire(this.game.bullets)
+    // interval ごとに、warn フレーム予告してから自機の磁気を入れ替える
+    private *flipping(interval: number, warn: number) {
+        while (true) {
+            yield* Array(interval - warn)
+            yield* this.magnet.flip(warn)
+        }
     }
 
-    // 向きを変えながら、3回続けて引っかく
-    private *cycle0() {
-        const base = this.random() * T
+    // 磁気 polarity の輪
+    private *ring(polarity: number, count: number, speed: number) {
+        const magnet = this.magnet
 
-        for (let k = 0; k < 3; k++) {
-            yield* this.claw(base + (k * T) / 3 + (this.random() - 0.5) * 0.3)
-            yield* Array(70)
+        yield* remodel(this)
+            .format("small-ball")
+            .r(6)
+            .p(this.p.clone())
+            .speed(speed)
+            .radian(this.random() * T)
+            .ex(count)
+            .g((me) => magnet.drift(me, polarity))
+            .fire(this.game.bullets)
+    }
+
+    // 赤と青の輪を交互に
+    private *cycle0() {
+        const first = this.random() < 0.5 ? 1 : -1
+
+        for (let k = 0; k < 4; k++) {
+            yield* this.ring(k % 2 === 0 ? first : -first, 24, 2.2)
+            yield* Array(50)
         }
 
-        yield* Array(CYCLE0_FRAMES - 210)
+        yield* Array(140)
     }
 
-    // 自機を上下から挟んで噛む。噛むたびに、ゆっくりした矢を添える
+    // 赤と青の腕が交互に並んだ渦
     private *cycle1() {
-        for (let k = 0; k < 2; k++) {
-            const target = vec(
-                Math.min(Math.max(this.game.player.p.x, 60), this.game.WIDTH - 60),
-                Math.min(Math.max(this.game.player.p.y, this.game.HEIGHT * 0.4), this.game.HEIGHT - 40),
-            )
+        const base = this.random() * T
+        const turn = (this.random() < 0.5 ? -1 : 1) * (T / 300)
+        const magnet = this.magnet
 
-            yield* Tiger.bite(this, target, FANG).fire(this.game.bullets)
-            yield* Array(FANG.preview)
+        for (let f = 0; f < 180; f += 5) {
+            yield* remodel(this)
+                .format("small-ball")
+                .r(6)
+                .p(this.p.clone())
+                .speed(2.4)
+                .radian(base + turn * f)
+                .ex(6)
+                .g((me, i) => magnet.drift(me, i % 2 === 0 ? 1 : -1))
+                .fire(this.game.bullets)
+            yield* Array(5)
+        }
+
+        yield* Array(120)
+    }
+
+    // 白虎の下の両脇の極。極を結ぶ線は、シーソーのようにゆっくり傾く
+    private pole(sign: number, start: number) {
+        return () => {
+            const angle = POLE_SWAY * Math.sin((T * (this.frame - start)) / POLE_PERIOD)
+            return this.p.add(POLE_CENTER).add(vec.arg(angle).scale(sign * POLE_DISTANCE))
+        }
+    }
+
+    // N極から、磁力線に沿って進む弾を扇形に湧かせる。扇は S極と反対側(極を結ぶ線の下側)へ開く
+    private *fieldLines(north: () => Vec, south: () => Vec, frames: number) {
+        for (let f = 0; f < frames; f += LINE_INTERVAL) {
+            const n = north()
+            const axis = south().sub(n).radian()
 
             yield* remodel(this)
-                .format("arrow")
-                .color(Tiger.COLOR)
-                .p(this.p.clone())
-                .speed(0.5)
-                .aim(this.game.player.p)
-                .nway(5, T / 24)
-                .g((me) => Behavior.accel(me, 50, 3.2))
+                .format("diamond")
+                .r(10)
+                .color(LINE_COLOR)
+                .duplicate(LINE_WAYS, (b, i) => {
+                    const angle = axis + T / 4 + (i - (LINE_WAYS - 1) / 2) * ((T / 2 - 0.6) / (LINE_WAYS - 1))
+                    b.p = n.add(vec.arg(angle).scale(16))
+                    return b
+                })
+                .g((me) => Magnet.line(me, north, south, LINE_SPEED, 900))
                 .fire(this.game.bullets)
 
-            yield* Array(FANG.close + FANG.hold + 70)
+            yield* Array(LINE_INTERVAL)
         }
-
-        yield* Array(CYCLE1_FRAMES - 2 * (FANG.preview + FANG.close + FANG.hold + 70))
     }
 
+    // 磁力線を湧かせては休む。合間に、赤と青の矢を自機へ
     private *cycle2() {
-        const direction = this.random() < 0.5 ? -1 : 1
+        const start = this.frame
+        const north = this.pole(-1, start)
+        const south = this.pole(1, start)
+        const magnet = this.magnet
 
-        yield* Tiger.roar(this, this.game.player.p.sub(this.p).radian(), { ...ROAR, turn: ROAR.turn * direction })
-        yield* Array(CYCLE2_FRAMES - ROAR.rings * ROAR.interval)
+        this.addScript(() => Magnet.poles(this, north, south, () => true), { id: "poles" })
+
+        while (true) {
+            yield* GenUtils.all({
+                lines: this.fieldLines(north, south, 200),
+                arrows: (function* (me: EnemyByakko) {
+                    for (let k = 0; k < 3; k++) {
+                        yield* Array(70)
+                        yield* remodel(me)
+                            .format("arrow")
+                            .r(18)
+                            .p(me.p.clone())
+                            .speed(0.5)
+                            .aim(me.game.player.p)
+                            .nway(3, T / 18)
+                            .g((b, i) =>
+                                GenUtils.all({
+                                    accel: Behavior.accel(b, 50, 2.8),
+                                    drift: magnet.drift(b, (k + i) % 2 === 0 ? 1 : -1),
+                                }),
+                            )
+                            .fire(me.game.bullets)
+                    }
+                })(this),
+            })
+
+            yield* Array(140)
+        }
     }
 
+    // 磁力線と、赤と青の輪を重ねる
     private *cycle3() {
-        const direction = this.random() < 0.5 ? -1 : 1
+        const start = this.frame
+        const north = this.pole(-1, start)
+        const south = this.pole(1, start)
 
-        yield* GenUtils.all({
-            roar: Tiger.roar(this, this.game.player.p.sub(this.p).radian(), {
-                ...FINAL_ROAR,
-                turn: FINAL_ROAR.turn * direction,
-            }),
-            claws: (function* (me: EnemyByakko) {
-                yield* Array(60)
-                yield* me.claw(me.random() * T)
-                yield* Array(130)
-                yield* me.claw(me.random() * T)
-            })(this),
-            wait: Array(CYCLE3_FRAMES),
-        })
-    }
-}
+        this.addScript(() => Magnet.poles(this, north, south, () => true), { id: "poles" })
 
-class EnemyCore extends Enemy {
-    constructor(game: Game, parent: Enemy, index: number) {
-        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
-        this.setParent(parent, () => vec.arg(this.frame / 300 + (T / 3) * index).scale(150))
-        this.isInvincible = true
+        while (true) {
+            yield* GenUtils.all({
+                lines: this.fieldLines(north, south, 180),
+                rings: (function* (me: EnemyByakko) {
+                    for (let k = 0; k < 3; k++) {
+                        yield* Array(55)
+                        yield* me.ring(k % 2 === 0 ? 1 : -1, 20, 2)
+                    }
+                })(this),
+            })
+
+            yield* Array(150)
+        }
     }
 }
