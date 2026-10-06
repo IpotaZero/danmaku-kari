@@ -195,6 +195,29 @@
         }
     }
 
+    .map-minimap-back {
+        position: absolute;
+        bottom: 1.2em;
+        left: 50%;
+        transform: translateX(-50%);
+
+        padding: 0.5em 1.5em;
+
+        font-size: 0.8em;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+
+        background: #000000a8;
+        border: 0.05em solid #ffffff60;
+        border-radius: 0.1em;
+
+        cursor: pointer;
+
+        &:hover {
+            box-shadow: 0px 0px 8px 2px rgb(183 171 255 / 82%);
+        }
+    }
+
     .map-lives {
         position: absolute;
         display: flex;
@@ -230,8 +253,6 @@
         left: 1em;
         right: 1em;
         max-width: 20em;
-        /* 全体図(.map-minimap)を開いている間も押せるようにその上に出す */
-        z-index: 300;
 
         display: flex;
         flex-direction: column;

@@ -192,6 +192,8 @@ export class SceneMap extends Scene {
         } else if (App.input.isPushed("ok")) {
             this.select()
         } else if (App.input.isPushed("action")) {
+            // 装備画面からミニマップへ行けないのに合わせ、ミニマップからも装備画面へは行けないようにする
+            if (this.minimap) return
             this.openEquipMenu()
         } else if (App.input.isPushed("cancel")) {
             // ミニマップが開いていればまずそれを閉じる
@@ -236,10 +238,14 @@ export class SceneMap extends Scene {
             return
         }
 
-        this.minimap = new MapMinimap(this.graph, (id) => this.handleNodeTap(id))
+        this.minimap = new MapMinimap(
+            this.graph,
+            (id) => this.handleNodeTap(id),
+            () => this.toggleMinimap(),
+        )
         this.minimap.select(this.selectedId)
-        // 操作説明のボタンより下に置き、全体図を開いたままでも閉じるボタンを押せるようにする
-        this.root.querySelector(".map-controls")!.before(this.minimap.el)
+        // 左下の操作ボタンの上に被せ、全体図を開いている間は触れられないようにする
+        this.root.appendChild(this.minimap.el)
     }
 
     // カメラをワールド座標posに向ける(=posが画面中央に来るようにする)。animateがtrueならアニメーションさせる
@@ -318,8 +324,6 @@ export class SceneMap extends Scene {
 
     // 所持している主装備・副装備の中から選び直せる、右側に開くモーダル
     private openEquipMenu() {
-        if (this.minimap) this.toggleMinimap()
-
         this.equipMenu = new Menu(
             `<div id="equip-root"></div>
              <div id="equip-main-options" class="fadeout"></div>

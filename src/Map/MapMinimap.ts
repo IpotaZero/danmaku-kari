@@ -12,7 +12,7 @@ export class MapMinimap {
     private readonly nodeElements = new Map<MapNodeId, SVGRectElement>()
     private readonly nodes: readonly MapNode[]
 
-    constructor(graph: MapGraph, onNodeTap: (id: MapNodeId) => void) {
+    constructor(graph: MapGraph, onNodeTap: (id: MapNodeId) => void, onBack: () => void) {
         this.nodes = graph.nodes.filter((node) => graph.isUnlocked(node, playerData))
         const edges = graph.edges.filter((edge) => this.nodes.includes(edge.from) && this.nodes.includes(edge.to))
 
@@ -23,7 +23,9 @@ export class MapMinimap {
                 <g class="map-minimap-edges">${edges.map((edge) => this.renderEdge(edge.from, edge.to)).join("")}</g>
                 <g class="map-minimap-nodes"></g>
             </svg>
+            <span class="map-minimap-back">戻る: cancel(X)</span>
         `
+        this.el.querySelector<HTMLElement>(".map-minimap-back")!.addEventListener("click", onBack)
 
         const nodesEl = this.el.querySelector<SVGGElement>(".map-minimap-nodes")!
         for (const node of this.nodes) {
