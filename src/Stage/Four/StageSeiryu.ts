@@ -5,63 +5,58 @@ import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
 import { T } from "../../T"
-import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
-import { Serpent } from "./Serpent"
+import { Lightning } from "./Lightning"
 
 // ステージ「青龍」(四天王)
-// 大きな弾を数珠つなぎにした龍が、四天王のもとから泳ぎ出す。龍の胴は抜けられない。
-// 龍が泳ぎ出す前には通り道に薄い点線が引かれるので、龍の胴に囲まれない場所を先に選ぶ。
-// 一段目: 昇龍。一匹の龍が画面をうねりながら下へ抜けていく。
-// 二段目: 双龍。左右対称にうねる二匹の龍が、画面の真ん中で何度も交差する。
-// 三段目: 龍の巻。龍が自機のまわりにとぐろを巻く。とぐろの中で、四天王の矢をかわす。
-// 最終段: 天翔ける龍。長い龍が画面じゅうを何度も行き来する間、四天王が輪を放つ。
+// 青龍の頭のうしろに、十二節の胴が連なって空をうねる。胴は頭の通った道筋をそのままたどる。
+// 胴は、しっぽの一節にしか攻撃が効かない(ほかの節の体力の帯は赤い)。しっぽの節を落とすと、その一つ前が新しいしっぽになる。
+// 胴をすべて落とすと、ようやく頭に攻撃が効くようになる。動き回るしっぽを追いかけて撃つ。
+// 胴の節はときどき鱗を落とし、頭は稲妻を落とす。稲妻の通り道は、落ちる前にぎざぎざの薄い線で見える。
+// 胴が短くなるほど、空は荒れていく。
+//   胴が九節以上: ときどき稲妻が一本落ちる。
+//   五〜八節: 稲妻が二本ずつ落ちる。
+//   一〜四節: 雷雨。稲妻が三本ずつ、休みなく落ちる。
+//   頭だけ: 昇龍。頭から四方へ稲妻がほとばしる。
 
+const SEGMENTS = 12
+const SEGMENT_LIFE = 170
+const HEAD_LIFE = 2200
+// 胴の節と節の間隔(頭が何フレーム前にいた所をたどるか)
+const LAG = 20
+// 頭がうねる道筋の一周にかかるフレーム数
+const PERIOD = 1000
 const ENTRANCE_FRAMES = 150
-const COLOR: Color = "#7ac8ff"
 
-const DRAGON: Serpent.Config = {
-    segments: 26,
-    lag: 6,
-    speed: 3,
-    preview: 70,
-    headR: 24,
-    bodyR: 16,
-    color: COLOR,
-}
-const TWIN: Serpent.Config = { ...DRAGON, segments: 22 }
-const COIL: Serpent.Config = { ...DRAGON, segments: 30, speed: 3.4 }
-const LONG: Serpent.Config = { ...DRAGON, segments: 38, speed: 3.4 }
+const BOLT: Lightning.Config = { preview: 50, strike: 26 }
+const SCALE: Color = "#7ad0ff"
 
 export default class extends Stage {
     *G() {
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["ここが四天王の間……。空気がぴりぴりする。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["空が……ごろごろ鳴ってる。"], { name: "ハチノコ" })
         yield* this.game.textBox.say(["よくぞ全ての道場を巡った。我は四天王が一、東の青龍。"], { name: "青龍" })
-        yield* this.game.textBox.say(["龍の通り道は空に描かれる。読めぬ者は呑まれるのみ。"], { name: "青龍" })
+        yield* this.game.textBox.say(["我が尾を捕らえてみよ。捕らえられればの話だがな。"], { name: "青龍" })
         this.hideFigure("hachinoko")
 
-        const boss = new EnemySeiryu(this.game)
-        const cores = [0, 1, 2].map((i) => new EnemyCore(this.game, boss, i))
+        const head = new EnemyDragonHead(this.game)
+        const body = Array.from({ length: SEGMENTS }, (_, i) => new EnemySegment(this.game, head, i))
+        head.body = body
 
-        this.game.enemies.push(boss, ...cores)
-        cores[0].isInvincible = false
+        this.game.enemies.push(...body.toReversed(), head)
 
-        const phase = boss.start()
-        phase.next()
+        // しっぽの節にだけ攻撃が効くようにする。胴がなくなったら頭に効くようにする
+        while (head.life > 0) {
+            const alive = body.filter((s) => s.life > 0)
+            const tail = alive[alive.length - 1]
 
-        for (let i = 0; i < cores.length; i++) {
-            yield* this.waitDead([cores[i]])
+            alive.forEach((s) => {
+                s.isInvincible = s !== tail
+            })
+            head.isInvincible = tail !== undefined || head.frame < ENTRANCE_FRAMES
 
-            if (i + 1 < cores.length) {
-                cores[i + 1].isInvincible = false
-            } else {
-                boss.isInvincible = false
-            }
-
-            phase.next()
-            this.scorenizeAllBullets()
+            yield
         }
 
         yield* this.waitAllEnemiesDead()
@@ -70,177 +65,164 @@ export default class extends Stage {
         yield* Array(300)
 
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["見事。龍の道を読み切ったか。"], { name: "青龍" })
-        yield* this.game.textBox.say(["点線のおかげだよ。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["ふ、それを読むのが難しいのだ。南へ進め。朱雀が待っている。"], { name: "青龍" })
+        yield* this.game.textBox.say(["……見事。我が尾も頭も、捕らえられたか。"], { name: "青龍" })
+        yield* this.game.textBox.say(["しっぽを追いかけるの、大変だったよ。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["南へ進め。朱雀が待っている。"], { name: "青龍" })
         this.hideFigure("hachinoko")
     }
 }
 
-class EnemySeiryu extends Enemy {
-    private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.04, 1, 2)
+class EnemyDragonHead extends Enemy {
+    // 頭が通った道筋。胴の節はこれをたどる
+    readonly trail: Vec[] = []
+    body: readonly EnemySegment[] = []
 
     constructor(game: Game) {
-        super(game, 2400, 64, { renderer: new EnemyRendererBoss() })
+        super(game, HEAD_LIFE, 46, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
+        this.p = this.course(0).add(vec(0, -300))
 
         this.addScript(() => this.enter())
     }
 
-    *start() {
-        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle" })
-        yield
+    // 頭がうねる道筋。画面の上半分に、横長の八の字を描く
+    private course(t: number) {
+        const w = this.game.WIDTH
+        const h = this.game.HEIGHT
+        const a = (T * t) / PERIOD
+        return vec(w / 2 + w * 0.36 * Math.sin(a), h * 0.3 + h * 0.15 * Math.sin(2 * a))
+    }
 
-        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 150 })
-        yield
-
-        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 150 })
-        yield
-
-        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 150 })
-        yield
+    // 頭が f フレーム前にいた所。それより前は、登場のときの位置
+    at(f: number) {
+        return this.trail[Math.max(0, this.trail.length - 1 - f)] ?? this.p
     }
 
     private *enter() {
-        this.p = vec(-200, -200)
-        yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
+        const from = this.p.clone()
+
+        for (let f = 1; f <= ENTRANCE_FRAMES; f++) {
+            this.p = from.add(
+                this.course(0)
+                    .sub(from)
+                    .scale(f / ENTRANCE_FRAMES),
+            )
+            this.trail.push(this.p.clone())
+            yield
+        }
 
         this.addScript(() => this.move(), { loop: Infinity })
-    }
-
-    private home() {
-        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.15)
+        this.addScript(() => this.storm(), { loop: Infinity })
     }
 
     private *move() {
-        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 1500).add(this.home())
+        this.p = this.course(this.frame - ENTRANCE_FRAMES)
+        this.trail.push(this.p.clone())
+        // 一番うしろの節がたどる所より前は要らない
+        if (this.trail.length > (SEGMENTS + 2) * LAG) this.trail.shift()
         yield
     }
 
-    // 画面の中の、左右に振れながら下っていく点を count 個選ぶ。start は最初に振れる向き
-    private zigzag(count: number, start: number): Vec[] {
-        const width = this.game.WIDTH
-        const height = this.game.HEIGHT
-
-        return Array.from({ length: count }, (_, k) => {
-            const side = (k % 2 === 0 ? 1 : -1) * start
-            return vec(
-                width * (0.5 + side * (0.2 + 0.2 * this.random())),
-                height * (0.3 + (0.6 * (k + 0.5 + (this.random() - 0.5) * 0.4)) / count),
-            )
-        })
+    private remaining() {
+        return this.body.filter((s) => s.life > 0).length
     }
 
-    private *ring(count: number) {
+    // 頭から、自機のあたりへ向かって稲妻を count 本、少しずつずらして落とす
+    private *bolts(count: number) {
+        for (let k = 0; k < count; k++) {
+            const target = this.game.player.p.add(vec((this.random() - 0.5) * 220, 0))
+            const direction = Lightning.toward(this.p, target, 0.25, () => this.random())
+
+            yield* Lightning.bolt(this, this.p.clone(), direction, 34, BOLT).fire(this.game.bullets)
+            yield* Array(14)
+        }
+    }
+
+    // 胴の長さに合わせて、空の荒れ方を変える
+    private *storm() {
+        const left = this.remaining()
+
+        if (left >= 9) {
+            yield* Array(200)
+            yield* this.bolts(1)
+        } else if (left >= 5) {
+            yield* Array(150)
+            yield* this.bolts(2)
+        } else if (left >= 1) {
+            yield* Array(110)
+            yield* this.bolts(3)
+        } else {
+            yield* this.rising()
+        }
+    }
+
+    // 昇龍。頭から四方八方へ稲妻をほとばしらせ、その合間に輪を放つ
+    private *rising() {
+        yield* Array(90)
+
+        const base = this.random() * T
+        for (let k = 0; k < 6; k++) {
+            yield* Lightning.bolt(this, this.p.clone(), base + (T * k) / 6, 30, BOLT).fire(this.game.bullets)
+        }
+
+        yield* Array(BOLT.preview + 20)
+
         yield* remodel(this)
             .format("donut")
-            .color("#c8ecff")
+            .color(SCALE)
             .p(this.p.clone())
-            .speed(1.5)
-            .radian(this.random() * T)
-            .ex(count)
-            .g((me) => Behavior.appear(me, 20))
+            .speed(1.6)
+            .radian(base + T / 12)
+            .ex(24)
             .fire(this.game.bullets)
-    }
 
-    private *arrows() {
-        yield* remodel(this)
-            .format("arrow")
-            .color("#e8f6ff")
-            .p(this.p.clone())
-            .speed(0.5)
-            .aim(this.game.player.p)
-            .nway(3, T / 30)
-            .g((me) => Behavior.accel(me, 50, 3.2))
-            .fire(this.game.bullets)
-    }
-
-    // 一匹の龍が画面をうねりながら下へ抜けていく
-    private *cycle0() {
-        const start = this.random() < 0.5 ? -1 : 1
-        const points = this.zigzag(3, start)
-        const exit = vec(points[2].x, this.game.HEIGHT + 120)
-        const course = Serpent.through(this.p.clone(), points, exit)
-
-        yield* GenUtils.all({
-            dragon: Serpent.swim(this, course, DRAGON),
-            rings: (function* (me: EnemySeiryu) {
-                yield* Array(DRAGON.preview + 120)
-                yield* me.ring(20)
-                yield* Array(100)
-                yield* me.ring(20)
-            })(this),
-            wait: Array(DRAGON.preview + Serpent.swimFrames(course, DRAGON) + 120),
-        })
-    }
-
-    // 左右対称にうねる二匹の龍
-    private *cycle1() {
-        const width = this.game.WIDTH
-        const points = this.zigzag(4, 1)
-        const mirrored = points.map((p) => vec(width - p.x, p.y))
-        const exit = vec(width / 2, this.game.HEIGHT + 120)
-        const left = Serpent.through(this.p.clone(), points, exit)
-        const right = Serpent.through(this.p.clone(), mirrored, exit)
-
-        yield* GenUtils.all({
-            left: Serpent.swim(this, left, TWIN),
-            right: Serpent.swim(this, right, { ...TWIN, color: "#7affd8" }),
-            wait: Array(TWIN.preview + Serpent.swimFrames(left, TWIN) + 120),
-        })
-    }
-
-    // 自機のまわりにとぐろを巻き、画面の外へ抜けていく。とぐろの中へ矢を射かける
-    private *cycle2() {
-        const width = this.game.WIDTH
-        const height = this.game.HEIGHT
-        const target = this.game.player.p
-        const center = vec(
-            Math.min(Math.max(target.x, 170), width - 170),
-            Math.min(Math.max(target.y, height * 0.5), height - 170),
-        )
-        const coil = Serpent.coil(this.p.clone(), center, 230, 120, 1.6, this.p.sub(center).radian())
-
-        yield* GenUtils.all({
-            dragon: Serpent.swim(this, coil, COIL),
-            arrows: (function* (me: EnemySeiryu) {
-                yield* Array(COIL.preview + 150)
-
-                for (let k = 0; k < 5; k++) {
-                    yield* me.arrows()
-                    yield* Array(45)
-                }
-            })(this),
-            wait: Array(COIL.preview + Serpent.swimFrames(coil, COIL) + 120),
-        })
-    }
-
-    // 長い龍が画面じゅうを何度も行き来し、画面の外へ抜ける。その間に輪を放つ
-    private *cycle3() {
-        const start = this.random() < 0.5 ? -1 : 1
-        const points = this.zigzag(6, start)
-        const exit = vec(this.game.WIDTH * (0.5 - start * 0.8), this.game.HEIGHT * 0.9)
-        const course = Serpent.through(this.p.clone(), points, exit)
-
-        yield* GenUtils.all({
-            dragon: Serpent.swim(this, course, LONG),
-            rings: (function* (me: EnemySeiryu) {
-                yield* Array(LONG.preview + 100)
-
-                for (let k = 0; k < 4; k++) {
-                    yield* me.ring(24)
-                    yield* Array(110)
-                }
-            })(this),
-            wait: Array(LONG.preview + Serpent.swimFrames(course, LONG) + 120),
-        })
+        yield* Array(80)
     }
 }
 
-class EnemyCore extends Enemy {
-    constructor(game: Game, parent: Enemy, index: number) {
-        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
-        this.setParent(parent, () => vec.arg(this.frame / 300 + (T / 3) * index).scale(150))
+class EnemySegment extends Enemy {
+    constructor(game: Game, head: EnemyDragonHead, index: number) {
+        super(game, SEGMENT_LIFE, 22, { renderer: new EnemyRendererCore() })
         this.isInvincible = true
+        this.p = head.p.clone()
+
+        this.addScript(
+            function* (me) {
+                if (head.life <= 0) me.life = 0
+                me.p = head.at((index + 1) * LAG)
+                yield
+            },
+            { loop: Infinity },
+        )
+
+        // 節ごとに少しずつずらして、鱗を落とす
+        this.addScript(() => this.scales(), { loop: Infinity, margin: ENTRANCE_FRAMES + 40 + index * 23 })
+    }
+
+    // 鱗。二枚ずつ、はらはらと落ちていく
+    private *scales() {
+        yield* remodel(this)
+            .format("diamond")
+            .r(12)
+            .color(SCALE)
+            .p(this.p.clone())
+            .speed(0.6)
+            .radian(T / 4)
+            .nway(2, T / 8)
+            .g(function* (me) {
+                const base = me.radian
+                yield* GenUtils.all({
+                    fall: Behavior.accel(me, 90, 2.4),
+                    sway: (function* () {
+                        for (let f = 0; ; f++) {
+                            me.radian = base + 0.4 * Math.sin(f / 20)
+                            yield
+                        }
+                    })(),
+                })
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(SEGMENTS * 23)
     }
 }
