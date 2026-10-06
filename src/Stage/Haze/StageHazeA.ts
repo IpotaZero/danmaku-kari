@@ -16,6 +16,8 @@ import { Mirage } from "./Mirage"
 // 幻は撃っても当たらない。本物の門下生を狙う。
 
 const ENTRANCE_FRAMES = 150
+// 登場してから鏡を引くのにかかる時間。引き終わってから撃ち始める
+const DRAW_FRAMES = 60
 // 1周期の長さ。輪が広がりきった後、2秒半ほど休憩が入る
 const CYCLE_FRAMES = 480
 // 1周期に広げる輪の数と間隔
@@ -50,10 +52,10 @@ class EnemyPupil extends Enemy {
     private *enter() {
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
-        Mirage.show(this, [this.mirror], 0)
+        Mirage.show(this, [this.mirror], DRAW_FRAMES)
 
         this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity })
+        this.addScript(() => this.cycle(), { loop: Infinity, margin: DRAW_FRAMES + 30 })
     }
 
     private home() {

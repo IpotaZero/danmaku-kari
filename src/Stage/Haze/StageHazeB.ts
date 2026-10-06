@@ -17,6 +17,8 @@ import { Mirage } from "./Mirage"
 // 高弟自身は、揺らめきながら広がるゆっくりした輪を放つ。
 
 const ENTRANCE_FRAMES = 150
+// 登場してから鏡を引くのにかかる時間。引き終わってから撃ち始める
+const DRAW_FRAMES = 60
 // 1周期の長さ。2秒ほど休憩が入る
 const CYCLE_FRAMES = 420
 const COLOR: Color = "#ffb070"
@@ -35,6 +37,8 @@ export default class extends Stage {
 
 class EnemyMaster extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.18, this.game.HEIGHT * 0.1, 2, 3)
+    // 画面を縦と横に仕切る二枚の鏡。火の粉も同じ鏡に映る
+    readonly mirrors = Mirage.cross(this.game)
 
     constructor(game: Game) {
         // 主機の体力は衛星の総和くらい
@@ -46,10 +50,10 @@ class EnemyMaster extends Enemy {
     private *enter() {
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
-        Mirage.show(this, Mirage.cross(this.game), 0)
+        Mirage.show(this, this.mirrors, DRAW_FRAMES)
 
         this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity })
+        this.addScript(() => this.cycle(), { loop: Infinity, margin: DRAW_FRAMES + 30 })
     }
 
     // 左上の部屋の真ん中
@@ -88,7 +92,7 @@ class EnemyMaster extends Enemy {
                         yield
                     }
                 })
-                .mirrorAll(Mirage.cross(this.game))
+                .mirrorAll(this.mirrors)
                 .fire(this.game.bullets)
 
             yield* Array(70)
@@ -97,11 +101,15 @@ class EnemyMaster extends Enemy {
 }
 
 class EnemyFlame extends Enemy {
-    constructor(game: Game, parent: Enemy) {
+    constructor(
+        game: Game,
+        private readonly parent: EnemyMaster,
+    ) {
         super(game, FLAME_LIFE, 24)
 
         this.setParent(parent, () => vec.arg(this.frame / 90).scale(70))
-        this.addScript(() => Mirage.ghosts(this, Mirage.cross(game), 0))
+        // 幻は、高弟が登場して鏡を引き終わってから映る
+        this.addScript(() => Mirage.ghosts(this, parent.mirrors, ENTRANCE_FRAMES + DRAW_FRAMES))
 
         this.addScript(() => this.cycle(), { margin: ENTRANCE_FRAMES + 180, loop: Infinity })
     }
@@ -125,7 +133,7 @@ class EnemyFlame extends Enemy {
             .delayByIndex()
             .speed(4)
             .g((me, i) => Behavior.reaccel(me, 40, 40 - i, 40, 2))
-            .mirrorAll(Mirage.cross(this.game))
+            .mirrorAll(this.parent.mirrors)
             .fire(this.game.bullets)
     }
 }
