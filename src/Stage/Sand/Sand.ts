@@ -61,10 +61,8 @@ export namespace Sand {
                     b.p = vec(grains[i] - (loop - width) / 2, y)
                     return b
                 })
+                .unbounded()
                 .g(function* (me, i) {
-                    // 帯は画面の外から入ってきて外へ抜けていくので、端で消さない
-                    me.removeScript("boundary")
-
                     for (let t = 0; t < travel; t++) {
                         const along = (((grains[i] + flow * t) % loop) + loop) % loop
                         me.p = vec(along - (loop - width) / 2, y + band.speed * t)
@@ -110,11 +108,10 @@ export namespace Sand {
                 b.delay = Math.floor((Math.max(0, frames - flight) * i) / count)
                 return b
             })
+            .unbounded()
             .g(function* (me) {
                 const angle = this.random() * T
                 const radius = 260 + this.random() * 200
-
-                me.removeScript("boundary")
 
                 for (let f = 0; f < flight; f++) {
                     const t = f / flight
@@ -217,10 +214,8 @@ export namespace Sand {
                     b.p = center.add(offsets[i])
                     return b
                 })
+                .unbounded()
                 .g(function* (me, i) {
-                    // 回ると端が画面の外へはみ出すので、端で消さない
-                    me.removeScript("boundary")
-
                     // 大きさ0から現れる(見た目と判定は常に一致)。薄い間は当たり判定がない
                     yield* Behavior.appear(me, Hourglass.DRAW_FRAMES / 2)
                     yield* Array(Hourglass.DRAW_FRAMES / 2)

@@ -33,6 +33,7 @@ export namespace Comet {
             .color(config.color)
             .p(aphelion.clone())
             .speed(0)
+            .unbounded()
             .g(function* (me) {
                 // 太陽の引力の強さは、一周の長さが config.period になるよう、楕円の大きさから決める
                 const far = aphelion.sub(sun.p).magnitude()
@@ -44,8 +45,6 @@ export namespace Comet {
                 // 一番遠い点では、太陽へ向かう向きに垂直な速さだけを持つ
                 const toSun = sun.p.sub(me.p)
                 let v = vec.arg(toSun.radian() + (turn * T) / 4).scale(Math.sqrt(gm * (2 / far - 1 / a)))
-
-                me.removeScript("boundary")
 
                 for (let f = 0; f < config.period * config.orbits; f++) {
                     for (let s = 0; s < SUBSTEPS; s++) {

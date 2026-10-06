@@ -89,8 +89,8 @@ export namespace Armor {
             .speed(0)
             .duplicate(count)
             .appear(20)
+            .unbounded()
             .g(function* (me, i) {
-                me.removeScript("boundary")
                 const along = -plate.half + (plate.half * 2 * i) / (count - 1)
 
                 while (alive() && me.life > 0) {

@@ -114,9 +114,9 @@ class EnemyMaster extends Enemy {
                 b.p = pivot.clone()
                 return b
             })
+            .unbounded()
             .g(function* (me, i) {
                 const d = i < distances.length ? distances[i] : length + 16
-                me.removeScript("boundary")
 
                 // 鎖を真っすぐ下ろしてから、揺らし始める位置まで振り上げる。この間は薄く、当たり判定がない
                 me.type = "neutral"

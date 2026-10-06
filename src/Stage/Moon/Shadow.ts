@@ -38,9 +38,8 @@ export namespace Shadow {
             .speed(0)
             .isScorable(false)
             .p(past())
+            .unbounded()
             .g(function* (me) {
-                me.removeScript("boundary")
-
                 for (let f = 0; f < config.frames + 20; f++) {
                     me.p = past()
                     me.alpha = 0.35 * Math.min(1, f / 20, (config.frames + 20 - f) / 20)

@@ -50,10 +50,8 @@ export namespace Tornado {
                 b.p.y = (Math.floor(i / SLOTS) + 0.5) * RING_GAP
                 return b
             })
+            .unbounded()
             .g(function* (me, i) {
-                // 竜巻ははみ出して画面の外へ抜けていくので、端で消さない
-                me.removeScript("boundary")
-
                 const y = me.p.y
                 const w = BOTTOM_WIDTH + (TOP_WIDTH - BOTTOM_WIDTH) * (1 - y / height)
                 const slot = phase + (T * (i % SLOTS)) / SLOTS + TWIST * y

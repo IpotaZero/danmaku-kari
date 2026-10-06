@@ -530,6 +530,14 @@ export class Remodel<Parent extends Actor> {
         return this
     }
 
+    // 画面の端に出ても消えないようにする。画面の外から入ってくる弾や、はみ出してから戻ってくる弾に使う。
+    // 弾を消すのは挙動(g)の側で行う。
+    // 画面の端で消す見張り(id "boundary")を、何もしない処理で発射前に置き換える
+    // (発射した瞬間にも一度動くので、挙動の中で見張りを外すのでは、画面の外で生まれた弾は間に合わずに消えてしまう)
+    unbounded() {
+        return this.g(function* () {}, { id: "boundary" })
+    }
+
     // 指定したフレーム後に消える
     delete(frame: number = 0) {
         return this.g(function* (b) {

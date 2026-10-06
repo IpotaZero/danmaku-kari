@@ -59,9 +59,8 @@ export namespace Sickle {
                 b.radian = offsets[i].radian() + angle + T / 4
                 return b
             })
+            .unbounded()
             .g(function* (me, i) {
-                // 刃が画面の外へはみ出しても、戻ってくるまで消さない
-                me.removeScript("boundary")
                 yield* Behavior.appear(me, SHARPEN_FRAMES)
 
                 for (let f = 1; f <= FLIGHT_FRAMES; f++) {

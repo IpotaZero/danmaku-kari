@@ -32,9 +32,8 @@ export namespace Mochi {
             .color(config.color)
             .p(e.p.clone())
             .speed(0)
+            .unbounded()
             .g(function* (me) {
-                me.removeScript("boundary")
-
                 // 最初の放物線は、いまの位置から peak まで上がって landing へ落ちる
                 const up = Math.max(0, me.p.y - peak)
                 const down = landing.y - peak
