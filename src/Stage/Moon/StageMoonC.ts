@@ -75,7 +75,7 @@ class EnemyMortar extends Enemy {
                 .p(this.p.clone())
                 .speed(1.5)
                 .radian(this.random() * T + (k * T) / 40)
-                .ex(20)
+                .ex(31)
                 .g((me) => Behavior.appear(me, 20))
                 .fire(this.game.bullets)
 

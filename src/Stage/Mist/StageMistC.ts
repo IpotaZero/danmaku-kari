@@ -96,9 +96,11 @@ class EnemyMaster extends Enemy {
             .format("donut")
             .color("#e0e0ff")
             .p(this.p.clone())
-            .speed(1.5)
+            .speed(2)
             .radian(this.random() * T)
-            .ex(24)
+            .ex(23)
+            .delayByIndex(10)
+            .ex(13)
             .fire(this.game.bullets)
     }
 }
