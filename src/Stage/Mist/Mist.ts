@@ -1,5 +1,5 @@
-import { Vec, vec } from "@ipota/vec"
-import { Ease, GenUtils } from "@ipota/functions"
+import { Vec } from "@ipota/vec"
+import { Ease } from "@ipota/functions"
 import { Actor } from "../../Game/Actor/Actor"
 import { Bullet } from "../../Game/Actor/Bullet"
 import { Game } from "../../Game/Game"
@@ -59,56 +59,6 @@ export namespace Mist {
                 yield
             }
         }
-    }
-
-    export type Field = {
-        // 石の間隔と、石を敷く範囲の上端(画面の高さに対する割合)
-        spacing: number
-        top: number
-        // 石が霧の姿で現れてから入れ替わりが始まるまで・入れ替わりを続ける時間・消えるまで
-        intro: number
-        active: number
-        fade: number
-    }
-
-    // 画面の下の方に、大きな石を市松模様に敷く。(列+行)の偶奇で組を分け、時計に合わせて交互に霧にする。
-    // 時計は入れ替わりが始まる時点を0として数える。offset は並びのずれ(0以上spacing未満)
-    export function stones<Parent extends Actor>(
-        r: Remodel<Parent>,
-        game: Game,
-        clock: Clock,
-        field: Field,
-        offset: Vec,
-        colors: readonly Color[],
-    ) {
-        const origin = vec(offset.x, game.HEIGHT * field.top + offset.y)
-        const columns = Math.ceil((game.WIDTH - origin.x) / field.spacing)
-        const rows = Math.ceil((game.HEIGHT - origin.y) / field.spacing)
-        const phaseOf = (i: number) => ((i % columns) + Math.floor(i / columns)) % 2
-
-        return r
-            .format("big-ball")
-            .speed(0)
-            .type("neutral")
-            .alpha(MIST_ALPHA)
-            .duplicate(columns * rows, (b, i) => {
-                b.p = origin.add(vec(i % columns, Math.floor(i / columns)).scale(field.spacing))
-                b.color = colors[phaseOf(i)]
-                return b
-            })
-            .g(function* (me, i) {
-                yield* GenUtils.all({
-                    appear: Behavior.appear(me, field.intro),
-                    clock: (function* () {
-                        for (let t = -field.intro; t < field.active; t++) {
-                            clock.apply(me, phaseOf(i), t)
-                            yield
-                        }
-                    })(),
-                })
-
-                yield* Behavior.fadeout(me, field.fade)
-            })
     }
 
     export type Shuriken = {
