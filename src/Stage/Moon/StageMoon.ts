@@ -12,9 +12,14 @@ import { Part } from "../Part"
 // 道場主は大きなスズムシ。鳴らす二枚の翅・二本の長い触角・胴の下に吊るした六つの鈴を持ち、それぞれが別々の攻撃をする。
 // 翅: 擦り合わせて音を鳴らす。左右の翅から同時に半円の波が広がり、二つの波が重なって格子のような隙間ができる。
 // 触角: 探るように弾を撒き、少しして自機の方へ向きを変えて飛ばす。
-// 鈴: 振り子のように揺れながら、順に鈴玉を落とす。鈴玉は少し落ちてから、輪になって鳴り響く。
-// 胴: 翅を両方落とすまで攻撃が効かない。翅を落とすと、月の輪(一度広がって止まり、くるりと回ってから散る輪)を放ちはじめる。
+// 鈴: そろって振り子のように揺れながら、順に鈴玉を落とす。鈴玉は少し落ちてから、輪になって鳴り響く。
 // 鈴は胴の下にぶら下がっているので、胴を撃とうとすると鈴に当たる。鈴を落とすと胴の下が開ける。
+// 一段目: 翅を両方落とすまで、胴に攻撃が効かない。胴はときどき輪を放つ。
+// 二段目: 月の輪。一度広がって止まり、くるりと回ってから散る輪を放つ。
+// 三段目: 合奏。胴は大きく息を吸う(充電)。吸っている間は攻撃が効かず、撃つほど早く吸い終わる。
+//         吸い終わると三匹の子スズムシが現れ、それぞれ小鈴(孫機)を二つ吊るしている。
+//         子スズムシも半円の波を鳴らすので、三つの波が重なって、隙間がもっと細かくなる。
+// 四段目: 満月。胴は自分でも半円の波を鳴らしながら、月の輪を放つ。
 
 export default class extends Stage {
     *G() {
@@ -26,12 +31,6 @@ export default class extends Stage {
 
         const boss = new EnemySuzumushi(this.game)
         this.game.enemies.push(boss, ...boss.parts)
-
-        // 翅が残っている間は、胴に攻撃が効かない
-        while (boss.life > 0) {
-            boss.isInvincible = boss.frame < 120 || boss.wings.some((p) => p.life > 0)
-            yield
-        }
 
         yield* this.waitAllEnemiesDead()
         this.scorenizeAllBullets()
@@ -52,21 +51,21 @@ export default class extends Stage {
 class EnemySuzumushi extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.35, this.game.HEIGHT * 0.07, 2, 3)
 
-    // 翅(左右)。細かく震えて音を鳴らす
-    readonly wings = [-1, 1].map(
+    // 翅(左右)。ゆっくり開いたり閉じたりして、音を鳴らす
+    private readonly wings = [-1, 1].map(
         (side) =>
             new Part(
                 this.game,
                 this,
                 700,
                 34,
-                (me) => vec(side * (50 + 3 * Math.sin(me.frame * 1.3)), -14),
-                (me) => this.chirp(me, side),
+                (me) => vec(side * (52 + 6 * Math.sin(me.frame / 20)), -14),
+                (me) => this.chirp(me, side, 17),
                 150,
             ),
     )
 
-    // 触角(左右)。胴の上へ長く伸びて、ゆらゆら揺れる
+    // 触角(左右)。胴の斜め上へ長く伸びて、ゆっくり左右に揺れる
     private readonly antennae = [-1, 1].map(
         (side) =>
             new Part(
@@ -74,13 +73,13 @@ class EnemySuzumushi extends Enemy {
                 this,
                 300,
                 14,
-                (me) => vec(side * (95 + 12 * Math.sin(me.frame / 16)), -95 + 10 * Math.cos(me.frame / 16)),
+                (me) => vec(side * 95 + 10 * Math.sin(me.frame / 40), -90),
                 (me) => this.probe(me, side),
                 130 + (side > 0 ? 35 : 0),
             ),
     )
 
-    // 鈴(六つ)。胴の下に、長さの違う糸で吊るされて振り子のように揺れる
+    // 鈴(六つ)。胴の下に吊るされて、六つそろって振り子のように揺れる。外側の鈴ほど糸が長い
     private readonly bells = [0, 1, 2, 3, 4, 5].map(
         (k) =>
             new Part(
@@ -88,10 +87,10 @@ class EnemySuzumushi extends Enemy {
                 this,
                 180,
                 14,
-                (me) => {
-                    const swing = 0.4 * Math.sin(me.frame / 22 + k)
-                    return vec((k - 2.5) * 40, 30).add(vec(Math.sin(swing), Math.cos(swing)).scale(55 + 22 * (k % 3)))
-                },
+                (me) =>
+                    vec((k - 2.5) * 40, 30).add(
+                        vec.arg(T / 4 + 0.25 * Math.sin(me.frame / 35)).scale(60 + 12 * Math.abs(k - 2.5)),
+                    ),
                 (me) => this.bell(me, k),
                 170,
             ),
@@ -100,10 +99,11 @@ class EnemySuzumushi extends Enemy {
     readonly parts = [...this.wings, ...this.antennae, ...this.bells]
 
     constructor(game: Game) {
-        super(game, 2800, 46, { renderer: new EnemyRendererBoss() })
+        super(game, 3000, 46, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
+        this.addScript(() => this.phases())
     }
 
     private *enter() {
@@ -111,7 +111,6 @@ class EnemySuzumushi extends Enemy {
         yield* this.moveTo(this.home(), 120)
 
         this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.moonRing(), { loop: Infinity, margin: 60 })
     }
 
     private home() {
@@ -123,8 +122,59 @@ class EnemySuzumushi extends Enemy {
         yield
     }
 
-    // 翅の音。下向きの半円の波を三つ続けて広げる。右の翅は少し遅れるので、左右の波がずれて重なる
-    private *chirp(me: Part, side: number) {
+    private *phases() {
+        // 一段目: 翅が残っている間は、胴に攻撃が効かない
+        this.addScript(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
+        while (this.wings.some((p) => p.life > 0)) yield
+
+        // 二段目: 月の輪
+        this.isInvincible = false
+        this.game.camera.shake(6, 20)
+        this.addScript(() => this.moonRing(), { loop: Infinity, id: "body" })
+
+        while (this.life > this.maxLife * 0.6) yield
+
+        // 三段目: 合奏。息を吸ってから、小鈴(孫機)を吊るした子スズムシを呼ぶ
+        this.removeScript("body")
+        yield* this.battery.charge(180)
+        this.game.camera.shake(8, 30)
+
+        for (const k of [-1, 0, 1]) {
+            const cricket = new Part(
+                this.game,
+                this,
+                320,
+                20,
+                (me) => vec(k * 115 + 12 * Math.sin(me.frame / 30), 210 - Math.abs(k) * 30),
+                (me) => this.chirp(me, k, 13),
+                60 + (k + 1) * 8,
+            )
+            const smallBells = [-1, 1].map(
+                (side) =>
+                    new Part(
+                        this.game,
+                        cricket,
+                        90,
+                        10,
+                        (me) => vec(side * 18, 0).add(vec.arg(T / 4 + 0.25 * Math.sin(me.frame / 35)).scale(34)),
+                        (me) => this.smallBell(me),
+                        100 + (side > 0 ? 60 : 0),
+                    ),
+            )
+            this.game.enemies.push(cricket, ...smallBells)
+        }
+
+        this.addScript(() => this.moonRing(), { loop: Infinity, margin: 90, id: "body" })
+
+        while (this.life > this.maxLife * 0.25) yield
+
+        // 四段目: 満月。胴も半円の波を鳴らす
+        this.game.camera.shake(6, 20)
+        this.addScript(() => this.chirp(this, 0, 21), { loop: Infinity, margin: 30, id: "song" })
+    }
+
+    // 半円の音の波。下向きの半円の波を三つ続けて広げる。右寄りのものほど少し遅れるので、波がずれて重なる
+    private *chirp(me: Enemy, side: number, count: number) {
         yield* Array(side > 0 ? 6 : 0)
 
         for (let k = 0; k < 3; k++) {
@@ -135,7 +185,7 @@ class EnemySuzumushi extends Enemy {
                 .p(me.p.clone())
                 .speed(4)
                 .radian(T / 4)
-                .nway(17, T / 2 / 16)
+                .nway(count, T / 2 / (count - 1))
                 .fire(this.game.bullets)
             yield* Array(12)
         }
@@ -192,24 +242,52 @@ class EnemySuzumushi extends Enemy {
         yield* Array(230 - k * 12)
     }
 
-    // 胴の月の輪。翅があるうちは、ときどき輪を放つだけ。
-    // 翅を落とすと、一度広がって止まり、その場でくるりと回ってから外へ散る輪になる
+    // 小鈴の音。小さな鈴玉が少し落ちてから、小さな輪になる
+    private *smallBell(me: Part) {
+        yield* remodel(me)
+            .format("small-ball")
+            .r(8)
+            .color("#fff0b0")
+            .p(me.p.clone())
+            .speed(2.5)
+            .radian(T / 4)
+            .g(function* (b) {
+                yield* Behavior.stop(b, 30)
+
+                yield* remodel(this)
+                    .format("small-ball")
+                    .r(4)
+                    .color("#fff8d8")
+                    .p(b.p.clone())
+                    .speed(4)
+                    .radian(this.random() * T)
+                    .ex(6)
+                    .fire(this.game.bullets)
+
+                b.life = 0
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(200)
+    }
+
+    // 一段目の胴。ときどき輪を放つ
+    private *ring() {
+        yield* remodel(this)
+            .format("small-ball")
+            .r(5)
+            .color("#e0d8ff")
+            .p(this.p.clone())
+            .speed(3.5)
+            .radian(this.random() * T)
+            .ex(18)
+            .fire(this.game.bullets)
+
+        yield* Array(170)
+    }
+
+    // 月の輪。一度広がって止まり、その場でくるりと回ってから外へ散る
     private *moonRing() {
-        if (this.wings.some((p) => p.life > 0)) {
-            yield* remodel(this)
-                .format("small-ball")
-                .r(5)
-                .color("#e0d8ff")
-                .p(this.p.clone())
-                .speed(3.5)
-                .radian(this.random() * T)
-                .ex(18)
-                .fire(this.game.bullets)
-
-            yield* Array(170)
-            return
-        }
-
         const turn = this.random() < 0.5 ? -0.03 : 0.03
 
         yield* remodel(this)
