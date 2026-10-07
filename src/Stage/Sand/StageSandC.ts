@@ -10,7 +10,8 @@ import { T } from "../../T"
 import { Part } from "../Part"
 
 // ステージ「蟻の行進」(砂塵道場・師範代)
-// 画面の中ほどの高さを、六匹の蟻(子機)が左右に行き交う。蟻はすれ違いながら、自機へ扇形に砂を投げてくる。
+// 画面の中ほどの高さに横長の楕円の道があり、六匹の蟻(子機)が等間隔の一列になって、その道をぐるぐる行進する。
+// 蟻は行進しながら、自機へ扇形に砂を投げてくる。
 // 蟻は砂袋を背負っていて、倒すとその場で砂が輪になって飛び散る。倒す場所とタイミングも考える。
 // 師範代は上から、止まってから散る砂の扇を浴びせてくる。
 
@@ -26,7 +27,7 @@ export default class extends Stage {
 class EnemyMaster extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.05, 2, 3)
 
-    // 蟻。それぞれ違う所から歩き出し、画面の端から端まで行き来する
+    // 蟻。横長の楕円の道を、等間隔の一列になって同じ速さで行進する
     readonly ants = [0, 1, 2, 3, 4, 5].map(
         (i) =>
             new Part(
@@ -36,9 +37,8 @@ class EnemyMaster extends Enemy {
                 18,
                 (me) =>
                     vec(
-                        this.game.WIDTH / 2 +
-                            this.game.WIDTH * 0.42 * Math.sin((me.frame + i * 95) / (90 + (i % 3) * 25)),
-                        this.game.HEIGHT * (0.42 + 0.06 * (i % 3)) + 8 * Math.sin(me.frame / 9 + i),
+                        this.game.WIDTH / 2 + this.game.WIDTH * 0.4 * Math.cos(me.frame / 110 + (T * i) / 6),
+                        this.game.HEIGHT * 0.45 + this.game.HEIGHT * 0.07 * Math.sin(me.frame / 110 + (T * i) / 6),
                     ).sub(this.p),
                 (me) => this.throwSand(me),
                 140 + i * 13,
@@ -65,7 +65,7 @@ class EnemyMaster extends Enemy {
     }
 
     private *move() {
-        this.p = this.path((this.frame - 120) / 400).add(this.home())
+        this.p = this.path((this.frame - 120) / 250).add(this.home())
         yield
     }
 
