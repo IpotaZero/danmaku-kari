@@ -579,6 +579,16 @@ export class Remodel<Parent extends Actor> {
         return this
     }
 
+    // 条件に合う弾だけを残す
+    filter(predicate: (me: Bullet, index: number) => boolean) {
+        const kept = this.bullets.map((b, i) => i).filter((i) => predicate(this.bullets[i], i))
+
+        this.bullets = kept.map((i) => this.bullets[i])
+        this.indices.splice(0, this.indices.length, ...kept.map((i) => this.indices[i]))
+
+        return this
+    }
+
     // 弾のプロパティを一括で変更する
     set<K extends BulletProps>(key: K, value: Bullet[K]) {
         this.bullets.forEach((b) => {
