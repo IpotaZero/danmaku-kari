@@ -41,8 +41,8 @@ export abstract class Stage extends IteratorQueue {
         this.game.bullets.filter((b) => b.type === "enemy" || b.type === "neutral").forEach((b) => b.scorenize())
     }
 
-    // 画面全体を指定色でフラッシュさせる(frameフレームかけて薄れて消える)
-    protected flash(color: string = "#ffffff", frame: number = 12) {
+    // 画面全体を指定色でフラッシュさせる(frameフレームかけて薄れて消える)。敵の演出からも game.stage.flash で呼べる
+    flash(color: string = "#ffffff", frame: number = 12) {
         this.flashColor = color
         this.addScript(() => this.flashG(frame), { id: "flash" })
     }
