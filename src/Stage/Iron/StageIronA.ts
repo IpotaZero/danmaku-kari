@@ -17,7 +17,7 @@ import { Shield } from "./Shield"
 
 const ENTRANCE_FRAMES = 150
 // 盾の輪。窓一つは弾4個ぶん(70px)ほど開く
-const RING: Shield.RingConfig = { radius: 84, slots: 28, windowSlots: 4, spin: T / 720 }
+const RING: Shield.RingConfig = { radius: 84, slots: 21, windowSlots: 4, spin: T / 720 }
 // 窓から弾を撃ち続ける時間と、休む時間
 const FIRE_FRAMES = 90
 const REST_FRAMES = 110
@@ -38,7 +38,7 @@ class EnemyPupil extends Enemy {
     private readonly ring = new Shield.Ring(this, RING, this.random() * T)
 
     constructor(game: Game) {
-        super(game, 2400, 40, { renderer: new EnemyRendererCore() })
+        super(game, 1200, 40, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -82,6 +82,7 @@ class EnemyPupil extends Enemy {
                     b.radian = angle + (k * T) / 2
                     return b
                 })
+                .nway(2, T / 4)
                 .nway(3, T / 40)
                 .fire(this.game.bullets)
 
@@ -99,7 +100,7 @@ class EnemyPupil extends Enemy {
             .p(this.p.clone())
             .speed(1.6)
             .radian(this.random() * T)
-            .ex(32)
+            .ex(63)
             .g((me) => Behavior.appear(me, 20))
             .fire(this.game.bullets)
     }

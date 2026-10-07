@@ -102,6 +102,7 @@ export namespace Shield {
                 .format("donut")
                 .color(COLOR)
                 .speed(0)
+                .isScorable(false)
                 .duplicate(slots.length)
                 .g(function* (me, i) {
                     const angle = (T * (slots[i] + 0.5)) / config.slots - T / 4

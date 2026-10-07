@@ -133,7 +133,7 @@ export namespace Sand {
             .color(COLOR)
             .p(e.p.clone())
             .duplicate(count)
-            .scatter({ radian: [aim - T / 10, aim + T / 10], speed: [2, 4.5] })
+            .scatter({ radian: [aim - T / 5, aim + T / 5], speed: [2, 4.5] })
     }
 
     // ── 砂時計 ────────────────────────────────────────────────────────────

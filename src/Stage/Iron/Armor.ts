@@ -90,6 +90,7 @@ export namespace Armor {
             .duplicate(count)
             .appear(20)
             .unbounded()
+            .isScorable(false)
             .g(function* (me, i) {
                 const along = -plate.half + (plate.half * 2 * i) / (count - 1)
 
@@ -150,7 +151,7 @@ export namespace Armor {
 
     // 敵の弾 me を、板 plates で最大 times 回跳ね返らせる
     export function* bounce(me: Bullet, plates: () => readonly Plate[], times: number) {
-        for (let left = times; left > 0 && me.life > 0;) {
+        for (let left = times; left > 0 && me.life > 0; ) {
             for (const plate of plates()) {
                 if (!touches(me, plate)) continue
 

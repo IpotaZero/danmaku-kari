@@ -88,15 +88,15 @@ class EnemyStar extends Enemy {
     // 3本の矢を、最初はゆっくり、だんだん速く投げる
     private *cycle() {
         yield* remodel(this)
-            .format("arrow")
+            .format("big-ball")
             .color("#e0d8ff")
             .p(this.p.clone())
             .speed(0.5)
             .aim(this.game.player)
-            .nway(3, T / 20)
+            .nway(13, T / 20)
             .g((me) => Behavior.accel(me, 60, 3))
             .fire(this.game.bullets)
 
-        yield* Array(110)
+        yield* Array(60)
     }
 }

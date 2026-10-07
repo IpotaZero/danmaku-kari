@@ -92,7 +92,7 @@ class EnemyAntlion extends Enemy {
         yield* Array(SWIRL_FRAMES + 30)
 
         for (let k = 0; k < 5; k++) {
-            yield* Sand.throwSand(this, 18).fire(this.game.bullets)
+            yield* Sand.throwSand(this, 54).fire(this.game.bullets)
             yield* Array(55)
         }
     }

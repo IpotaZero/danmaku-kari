@@ -6,7 +6,7 @@ import type { SubEquipment } from "./types"
 // 弾は一つも消さないので、抜けた先に居場所がなければ意味がない。
 const 持続フレーム = 18
 const クールダウンフレーム = 960
-const 速度倍率 = 5
+const 速度倍率 = 7
 
 export const dash: SubEquipment = {
     label: "高速移動",

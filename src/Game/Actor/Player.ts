@@ -138,6 +138,11 @@ export class Player extends Actor {
         return this.scripts.has("invincible") || this.isActionInvincible
     }
 
+    // ダッシュ等でspeedMultiplierが1を超えている状態
+    private isBoosted() {
+        return this.speedMultiplier > 1
+    }
+
     // 被弾処理: ライフを減らし、しばらく無敵にする
     hit(damage: number) {
         if (this.isInvincible()) return
@@ -240,7 +245,11 @@ export class Player extends Actor {
                     ? vec(0, 0)
                     : dir
                           .normalize()
-                          .scale((input.isPressed("slow") ? this.slowSpeed : this.speed) * this.speedMultiplier)
+                          .scale(
+                              // ブースト中は低速入力を無視し、通常速度を基準に加速する
+                              (input.isPressed("slow") && !this.isBoosted() ? this.slowSpeed : this.speed) *
+                                  this.speedMultiplier,
+                          )
         }
 
         if (this.v.magnitude() === 0) return
@@ -259,7 +268,7 @@ export class Player extends Actor {
 
     // 移動中に周りへ撒き散らす、縮小しながら消えていく三角形の粒子。ブースト中はより多く・長く残す
     private emitMoveParticles() {
-        const isBoosted = this.speedMultiplier > 1
+        const isBoosted = this.isBoosted()
         const count = isBoosted ? 2 : 1
 
         for (let i = 0; i < count; i++) {
@@ -322,7 +331,7 @@ export class Player extends Actor {
 
     // ブースト中は現在地を残像として積み、経時で薄くしながら古いものから消す
     private updateDashEffect() {
-        const isBoosted = this.speedMultiplier > 1
+        const isBoosted = this.isBoosted()
 
         const target = isBoosted ? 1 : 0
         this.dashProgress += (target - this.dashProgress) * 0.35

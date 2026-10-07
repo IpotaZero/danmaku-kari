@@ -52,12 +52,6 @@ const HEX_PERIOD = 900
 
 export default class extends Stage {
     *G() {
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["ぴかぴかの鎧……顔が映りそう。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["映るだけではないぞ。撃ち込んだものは、そっくり返る。"], { name: "カブト" })
-        yield* this.game.textBox.say(["闇雲に撃つな。撃つべき時を見極めよ。"], { name: "カブト" })
-        this.hideFigure("hachinoko")
-
         const boss = new EnemyKabuto(this.game)
         this.game.enemies.push(boss)
 
@@ -75,15 +69,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["見事な撃ち込みであった。"], { name: "カブト" })
-        yield* this.game.textBox.say(["自分の弾に当たりそうになったよ。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["はっはっは! 鉄壁道場の免状だ、受け取れ。"], { name: "カブト" })
-        this.hideFigure("hachinoko")
-        this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
-        this.hideFigure("hachinoko")
     }
 }
 

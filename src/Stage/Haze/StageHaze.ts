@@ -253,8 +253,8 @@ class EnemyHaze extends Enemy {
             .format("diamond")
             .p(this.p.clone())
             .sim(31, 3, 6)
-            .colorful(this.frame)
             .delayByIndex(10)
+            .color(COLOR)
             .ex(23)
             .bounce(1)
             .g(function* (me, i) {
