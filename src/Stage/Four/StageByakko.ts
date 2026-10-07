@@ -7,6 +7,7 @@ import { Stage } from "../Stage"
 import { T } from "../../T"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
+import { Charge } from "../Charge"
 
 // ステージ「白虎」(四天王)
 // 白虎は、少し構えては素早く跳んで、画面の上の方を跳びまわる。三匹の子虎が、少し遅れて親のあとを追いかけてくる。
@@ -14,12 +15,13 @@ import { Part } from "../Part"
 // 後脚: 横へ風を蹴り出す。風は大きく弧を描いて、画面の両脇から下へ回り込む。
 // 尾: 縞模様の帯を、何本も続けて振り下ろす。帯の弾の間は狭く、帯の端を回り込んでかわす。
 // 子虎: 親の下にじゃれついて、小さな輪を放つ。親の下にいるので、親を狙った弾をさえぎる。
-// 一段目: 前脚と尾を落とすまで、胴に攻撃が効かない(尾は胴のうしろにあるが、胴に攻撃が効かない間は弾が胴を素通りする)。
-// 二段目: 咆哮。吠えるたびに、速さの違う三重の輪を放つ。
-// 三段目: 若虎。白虎は遠吠えをする(充電)。吠えている間は攻撃が効かず、撃つほど早く吠え終わる。
-//         吠え終わると、二匹の若虎が駆けつけて、親の両脇を少し遅れて追いかける。若虎は前脚に爪(孫機)を一本ずつ持つ。
-//         若虎は止まってから散る輪を放ち、爪は真下へ三本の爪痕を落とす。
-// 四段目: 疾風。白虎は構える時間が短くなり、跳んで着地するたびに衝撃の輪を放つ。
+// 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ(胴に攻撃が効かない間は、弾が胴を素通りしてうしろの尾にも届く)。
+// 一段目: 前脚と尾を落とすと次の段へ。胴はときどき輪を放つ。
+// 遠吠え: 白虎は立ち止まって遠吠えし、二匹の若虎を呼ぶ。若虎は親の両脇を少し遅れて追いかける。
+//         若虎は前脚に爪(孫機)を一本ずつ持ち、爪を落とすまで若虎に攻撃が効かない。
+// 二段目: 若虎をすべて落とすと次の段へ。若虎は止まってから散る輪を放ち、爪は真下へ三本の爪痕を落とす。
+//         胴は吠えるたびに、速さの違う三重の輪を放つ。
+// 三段目: 疾風。胴に攻撃が効くようになる。白虎は構える時間が短くなり、跳んで着地するたびに衝撃の輪を放つ。
 
 export default class extends Stage {
     *G() {
@@ -107,7 +109,7 @@ class EnemyByakko extends Enemy {
     readonly parts = [...this.paws, ...this.hindLegs, this.tail, ...this.cubs]
 
     constructor(game: Game) {
-        super(game, 3000, 46, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, 46, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -130,23 +132,18 @@ class EnemyByakko extends Enemy {
     }
 
     private *phases() {
-        // 一段目: 前脚と尾が残っている間は、胴に攻撃が効かない
+        // 一段目: 前脚と尾を落とすと次の段へ
         this.addScript(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
         while (this.guards.some((p) => p.life > 0)) yield
 
-        // 二段目: 咆哮
-        this.isInvincible = false
-        this.game.camera.shake(6, 20)
-        this.addScript(() => this.roar(), { loop: Infinity, id: "body" })
-
-        while (this.life > this.maxLife * 0.6) yield
-
-        // 三段目: 遠吠えをしてから、爪(孫機)を持った若虎を呼ぶ
+        // 遠吠え。立ち止まって吠えてから、爪(孫機)に守られた若虎を呼ぶ
         this.removeScript("body")
-        yield* this.battery.charge(150)
+        this.removeScript("move")
+        yield* Charge.gather(this, 150, "#f0f0ff")
         this.game.camera.shake(10, 40)
+        this.addScript(() => this.pounce(), { loop: Infinity, id: "move" })
 
-        for (const side of [-1, 1]) {
+        const youngs = [-1, 1].map((side) => {
             const young = new Part(
                 this.game,
                 this,
@@ -171,15 +168,18 @@ class EnemyByakko extends Enemy {
                 (me) => this.scratch(me),
                 80,
             )
+            young.guardedBy([claw])
             this.game.enemies.push(young, claw)
-        }
+            return young
+        })
 
+        // 二段目: 若虎をすべて落とすと次の段へ。胴は咆哮する
         this.addScript(() => this.roar(), { loop: Infinity, margin: 90, id: "body" })
+        while (youngs.some((p) => p.life > 0)) yield
 
-        while (this.life > this.maxLife * 0.25) yield
-
-        // 四段目: 疾風。構える時間が短くなり、着地するたびに衝撃の輪を放つ
+        // 三段目: 疾風。胴に攻撃が効くようになり、着地するたびに衝撃の輪を放つ
         this.removeScript("body")
+        this.isInvincible = false
         this.game.camera.shake(8, 30)
         this.addScript(() => this.gale(), { loop: Infinity, id: "move" })
     }
