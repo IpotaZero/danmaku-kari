@@ -8,6 +8,7 @@ import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
+import { Charge } from "../Charge"
 
 // ステージ「ウスバ」(砂塵道場・道場主)
 // 道場主は、蟻地獄が羽化しかけたウスバ。二本の大顎・四本の脚・砂の詰まった腹を持ち、腹には三つの砂袋(孫機)がぶら下がっている。
@@ -16,11 +17,12 @@ import { Part } from "../Part"
 // 脚: 砂をかき出す。速さのばらばらな砂粒が、散弾のように飛ぶ。
 // 腹: 砂を高く噴き上げる。噴き上げられた砂は放物線を描いて、画面のあちこちに降ってくる。砂袋が残っている間は、腹に攻撃が効かない。
 // 砂袋: 砂をこぼす。こぼれた砂は、だんだん速く真下へ落ちる。
-// 一段目: 大顎と腹を落とすまで、胴に攻撃が効かない。胴はときどき輪を放つ。
-// 二段目: すり鉢。自機のいる所とその近くに、砂の輪(すり鉢)が浮かび上がる。輪は真ん中へ縮んで、そのまま反対側へ抜けていく。輪の外へ逃げる。
-// 三段目: 羽化。胴は羽化を始める(充電)。羽化している間は胴に攻撃が効かず、撃つほど早く羽化する。
-//         羽化すると四枚の翅が生える。翅は砂の塊を落とし、塊は少し落ちてから扇に割れる。胴は六本腕の渦を撒く。
-// 四段目: 砂嵐。すり鉢と渦を同時に使う。
+// 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ。
+// 一段目: 大顎と腹を落とすと次の段へ。胴はときどき輪を放つ。
+// 羽化: 胴はまわりの砂を吸い込んで力を溜め、四枚の翅を生やす。
+// 二段目: 翅を落とすと次の段へ。翅は砂の塊を落とし、塊は少し落ちてから扇に割れる。
+//         胴は砂の帳を下ろす。左右に大きく広がった砂が止まり、そろって真下へ落ちる。二度目の砂は一度目の筋の間に落ちる。
+// 三段目: 砂嵐。胴に攻撃が効くようになり、六本腕の渦と砂の帳を同時に使う。
 
 export default class extends Stage {
     *G() {
@@ -115,7 +117,7 @@ class EnemyUsuba extends Enemy {
     readonly parts = [...this.jaws, this.abdomen, ...this.sandbags, ...this.legs]
 
     constructor(game: Game) {
-        super(game, 2600, 48, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, 48, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
         this.abdomen.guardedBy(this.sandbags)
 
@@ -145,55 +147,44 @@ class EnemyUsuba extends Enemy {
     }
 
     private *phases() {
-        // 一段目: 大顎と腹が残っている間は、胴に攻撃が効かない
+        // 一段目: 大顎と腹を落とすと次の段へ
         this.addScript(() => this.ring(), { loop: Infinity, margin: 150, id: "body" })
-
         while (this.guards.some((p) => p.life > 0)) yield
 
-        this.isInvincible = false
-        this.game.camera.shake(6, 20)
-
-        // 二段目: すり鉢
+        // 羽化。砂を吸い込んで力を溜めてから、四枚の翅を生やす
         this.removeScript("body")
-        yield* this.sync()
-        this.addScript(() => this.pits(3), { loop: Infinity, id: "body" })
-
-        while (this.life > this.maxLife * 0.6) yield
-
-        // 三段目: 羽化。充電している間は攻撃が効かず、撃つほど早く羽化する
-        this.removeScript("body")
-        yield* this.battery.charge(240)
+        yield* Charge.gather(this, 150, "#ffd890")
         this.game.camera.shake(10, 40)
 
-        this.game.enemies.push(
-            ...[
-                [-1, 0],
-                [1, 0],
-                [-1, 1],
-                [1, 1],
-            ].map(
-                ([side, row]) =>
-                    new Part(
-                        this.game,
-                        this,
-                        250,
-                        24,
-                        (me) => vec(side * (80 + 50 * row), -10 - 4 * row + 10 * Math.sin(me.frame / 7 + row)),
-                        (me) => this.clods(me, side, row),
-                        (330 - ((this.frame - 150) % 330)) % 330,
-                    ),
-            ),
+        const wings = [
+            [-1, 0],
+            [1, 0],
+            [-1, 1],
+            [1, 1],
+        ].map(
+            ([side, row]) =>
+                new Part(
+                    this.game,
+                    this,
+                    250,
+                    24,
+                    (me) => vec(side * (80 + 50 * row), -10 - 4 * row + 10 * Math.sin(me.frame / 7 + row)),
+                    (me) => this.clods(me, side, row),
+                    (330 - ((this.frame - 150) % 330)) % 330,
+                ),
         )
+        this.game.enemies.push(...wings)
 
+        // 二段目: 翅を落とすと次の段へ。胴は砂の帳を下ろす
         yield* this.sync()
-        this.addScript(() => this.whirl(), { loop: Infinity, id: "body" })
+        this.addScript(() => this.curtain(), { loop: Infinity, id: "body" })
+        while (wings.some((p) => p.life > 0)) yield
 
-        while (this.life > this.maxLife * 0.25) yield
-
-        // 四段目: 砂嵐。すり鉢と渦を同時に使う
-        this.game.camera.shake(6, 20)
+        // 三段目: 砂嵐。胴に攻撃が効くようになり、渦と砂の帳を同時に使う
+        this.isInvincible = false
+        this.game.camera.shake(8, 30)
         yield* this.sync()
-        this.addScript(() => this.pits(2), { loop: Infinity, id: "pits" })
+        this.addScript(() => this.whirl(), { loop: Infinity, id: "whirl" })
     }
 
     // 大顎の砂の流れ。外の斜め下へ吐き、内側へ巻き込むように曲がっていく
@@ -298,39 +289,31 @@ class EnemyUsuba extends Enemy {
         yield* Array(230)
     }
 
-    // すり鉢。自機のいる所と、画面の下の方のあちこちに、砂の輪が浮かび上がる。
-    // 輪は浮かび上がってから真ん中へ縮み、そのまま反対側へ抜けて広がっていく
-    private *pits(count: number) {
-        for (let k = 0; k < count; k++) {
-            const center =
-                k === 0
-                    ? this.game.player.p.clone()
-                    : vec(
-                          this.game.WIDTH * (0.15 + 0.7 * this.random()),
-                          this.game.HEIGHT * (0.45 + 0.4 * this.random()),
-                      )
+    // 砂の帳。左右に大きく広がった砂が止まり、そろって真下へ落ちる。
+    // 二度目の砂は、一度目の筋と筋の間に落ちるようにずらして撒く。筋の間を抜けたら、半歩ずれてもう一度抜ける
+    private *curtain() {
+        const base = (this.random() - 0.5) * 0.3
 
+        for (let k = 0; k < 2; k++) {
             yield* remodel(this)
                 .format("small-ball")
                 .r(6)
                 .color("#ffc870")
-                .speed(0)
-                .duplicate(20, (b, i) => {
-                    b.p = center.add(vec.arg((T * i) / 20).scale(110))
-                    b.radian = (T * i) / 20 + Math.PI
-                    return b
-                })
-                .appear(30)
+                .p(this.p.clone())
+                .speed(6)
+                .radian(T / 4 + base + k * 0.125)
+                .nway(11, 0.25)
                 .g(function* (b) {
-                    yield* Array(30)
-                    yield* Behavior.accel(b, 30, 3)
+                    yield* Behavior.stop(b, 45)
+                    yield* Array(15)
+                    b.radian = T / 4
+                    yield* Behavior.accel(b, 40, 5)
                 })
                 .fire(this.game.bullets)
-
-            yield* Array(25)
+            yield* Array(30)
         }
 
-        yield* Array(330 - count * 25)
+        yield* Array(270)
     }
 
     // 羽化した胴の渦。六本の腕が、少しずつ向きを変えながら回る
