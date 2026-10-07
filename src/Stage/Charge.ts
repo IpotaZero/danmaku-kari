@@ -10,31 +10,40 @@ export namespace Charge {
     export function* gather(e: Enemy, frames: number, color: Color) {
         // 粒は30フレームかけて吸い込まれるので、最後の粒が吸い込まれ終わる所で弾けるよう、少し早めに出し終える
         for (let f = 0; f < frames - 30; f += 2) {
-            yield* remodel(e)
-                .format("small-ball")
-                .type("effect")
-                .isScorable(false)
-                .color(color)
-                .alpha(0.7)
-                .speed(0)
-                .unbounded()
-                .g(function* (b) {
-                    const angle = this.random() * T
-                    const radius = 110 + this.random() * 90
-
-                    for (let k = 0; k < 30; k++) {
-                        b.p = e.p.add(vec.arg(angle + k * 0.04).scale(radius * (1 - k / 30)))
-                        yield
-                    }
-
-                    b.life = 0
-                })
-                .fire(e.game.bullets)
+            yield* particle(e, color)
             yield* Array(2)
         }
 
         yield* Array(30)
+        yield* burst(e, color)
+    }
 
+    // 光の粒を一つ、まわりから渦を巻いて e へ吸い込ませる(30フレームかかる)
+    export function* particle(e: Enemy, color: Color) {
+        yield* remodel(e)
+            .format("small-ball")
+            .type("effect")
+            .isScorable(false)
+            .color(color)
+            .alpha(0.7)
+            .speed(0)
+            .unbounded()
+            .g(function* (b) {
+                const angle = this.random() * T
+                const radius = 110 + this.random() * 90
+
+                for (let k = 0; k < 30; k++) {
+                    b.p = e.p.add(vec.arg(angle + k * 0.04).scale(radius * (1 - k / 30)))
+                    yield
+                }
+
+                b.life = 0
+            })
+            .fire(e.game.bullets)
+    }
+
+    // e から光の輪が弾ける
+    export function* burst(e: Enemy, color: Color) {
         yield* remodel(e)
             .format("big-ball")
             .type("effect")
