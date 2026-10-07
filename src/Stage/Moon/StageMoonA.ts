@@ -45,7 +45,7 @@ class EnemyPupil extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は子機の総和くらい
-        super(game, 1600, 44, { renderer: new EnemyRendererCore() })
+        super(game, 1400, 44, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -76,9 +76,10 @@ class EnemyPupil extends Enemy {
             .speed(1.5)
             .radian(aim)
             .duplicate(9, (b, k) => {
-                b.p = me.p.add(vec.arg(aim + (k - 4) * 0.22).scale(32))
+                b.p = me.p.add(vec.arg(aim + (k - 4) * 0.28).scale(32))
                 return b
             })
+            .appear(60)
             .g((b) => Behavior.ease(b, "speed", 6.5, 50, Ease.In))
             .fire(this.game.bullets)
 
@@ -94,7 +95,7 @@ class EnemyPupil extends Enemy {
             .p(this.p.clone())
             .speed(4.5)
             .radian(this.random() * T)
-            .ex(28)
+            .ex(37)
             .g((me) => Behavior.reaccel(me, 20, 25, 30, 5))
             .fire(this.game.bullets)
 

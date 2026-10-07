@@ -20,7 +20,7 @@ const RINGS = 9
 const RING_INTERVAL = 30
 // 1周期の長さ。最後の輪が広がった後、3秒ほど休憩が入る
 const CYCLE_FRAMES = RINGS * RING_INTERVAL + 200
-const RING: Phase.Ring = { count: 36, speed: 1.9, color: "#fff2c0" }
+const RING: Phase.Ring = { count: 36, speed: 3, color: "#fff2c0" }
 
 const STAR_LIFE = 700
 
@@ -85,7 +85,6 @@ class EnemyStar extends Enemy {
         this.addScript(() => this.cycle(), { margin: ENTRANCE_FRAMES + 90 + (side > 0 ? 55 : 0), loop: Infinity })
     }
 
-    // 3本の矢を、最初はゆっくり、だんだん速く投げる
     private *cycle() {
         yield* remodel(this)
             .format("big-ball")

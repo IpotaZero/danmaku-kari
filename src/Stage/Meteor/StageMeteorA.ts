@@ -81,7 +81,7 @@ class EnemyPupil extends Enemy {
                         yield* Array(Math.floor(me.random() * lanes.length) * 6)
                         yield* Meteor.fall(me, through, angle, {
                             preview: 50,
-                            speed: 14,
+                            speed: 8,
                             tailInterval: 2,
                             tailLife: 40,
                             color: "#fff4b0",
@@ -116,7 +116,7 @@ class EnemyStardust extends Enemy {
             .speed(1.5)
             .aim(this.game.player)
             .nway(5, T / 24)
-            .g((me) => Behavior.ease(me, "speed", 7, 40, Ease.In))
+            .g((me) => Behavior.ease(me, "speed", 4, 40, Ease.In))
             .fire(this.game.bullets)
 
         yield* Array(55)
@@ -132,7 +132,7 @@ class EnemyStardust extends Enemy {
             .speed(4)
             .radian(this.random() * T)
             .ex(18)
-            .g((me) => Behavior.reaccel(me, 20, 20, 30, 5))
+            .g((me) => Behavior.reaccel(me, 20, 20, 30, 3))
             .fire(this.game.bullets)
 
         yield* Array(80)

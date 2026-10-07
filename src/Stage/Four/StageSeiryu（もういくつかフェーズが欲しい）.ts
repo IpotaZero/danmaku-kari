@@ -53,7 +53,7 @@ class EnemySeiryu extends Enemy {
     readonly pearl = new Part(
         this.game,
         this,
-        900,
+        1500,
         24,
         (me) => vec.arg(me.frame / 25).scale(60),
         (me) => this.thunder(me),

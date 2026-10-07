@@ -41,7 +41,8 @@ class EnemyMaster extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は子機の総和くらい
-        super(game, 2500, 40, { renderer: new EnemyRendererCore() })
+        // ↑この場合は子機が先にすべての攻撃を受けるから相応しくない。もともとの理由を思い出せ。
+        super(game, 1200, 40, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
