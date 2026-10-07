@@ -74,7 +74,8 @@ class EnemyKabuto extends Enemy {
             ),
     )
 
-    // 脚(六本)。前脚・中脚・後脚が左右に一本ずつ。歩くように動く
+    // 脚(六本)。前脚・中脚・後脚が左右に一本ずつ、胴の横から前へ斜めに並ぶ。歩くように上下する。
+    // 胴より後ろ(上)に置くと、胴や前の脚にさえぎられて撃てなくなるので、どの脚も別々の列に置く
     private readonly legs = [0, 1, 2].flatMap((row) =>
         [-1, 1].map(
             (side) =>
@@ -82,8 +83,8 @@ class EnemyKabuto extends Enemy {
                     this.game,
                     this,
                     220,
-                    16,
-                    (me) => vec(side * (95 + 10 * (row % 2)) + side * 8 * Math.sin(me.frame / 9 + row), 45 - row * 35),
+                    13,
+                    (me) => vec(side * (80 + 28 * row), 52 - 22 * row + 6 * Math.sin(me.frame / 9 + row)),
                     (me) => this.step(me, side, row),
                     150,
                 ),
@@ -142,14 +143,15 @@ class EnemyKabuto extends Enemy {
         yield* this.moveTo(this.home().add(vec(0, this.game.HEIGHT * 0.06)), 40)
         this.addScript(() => this.fly(), { id: "move" })
 
+        // 後翅は胴の前へ大きく広げる(胴の後ろだと、胴にさえぎられて撃てない)
         const wings = [-1, 1].map(
             (side) =>
                 new Part(
                     this.game,
                     this,
                     450,
-                    30,
-                    (me) => vec(side * (120 + 10 * Math.sin(me.frame / 6)), -15 - 25 * Math.sin(me.frame / 6)),
+                    28,
+                    (me) => vec(side * (52 + 8 * Math.sin(me.frame / 6)), 96 + 12 * Math.sin(me.frame / 6)),
                     (me) => this.flap(me, side),
                     40 + (side > 0 ? 30 : 0),
                 ),
