@@ -29,7 +29,9 @@ type Camera = { x: number; y: number }
 export class SceneMap extends Scene {
     private selectedId: MapNodeId
     private readonly nodeElements = new Map<MapNodeId, HTMLElement>()
-    private mapWorldEl!: HTMLElement
+    // カメラに合わせて動かす要素(ワールド本体と、方眼・紙の質感などの背景)。
+    // すべて同じtransformで動かすので、背景がワールドから遅れることがない
+    private cameraLayers: HTMLElement[] = []
     private infoEl!: HTMLElement
     private infoShowTimer?: number
     private livesEl!: HTMLElement
@@ -67,9 +69,10 @@ export class SceneMap extends Scene {
     protected async onStart(): Promise<void> {
         console.log(`SceneMap: ${this.selectedId}`)
 
-        this.root.classList.add("scene-map")
+        this.root.classList.add("scene-map", "paper-scene")
         this.root.innerHTML = `
-            <div class="map-world">
+            <div class="map-grid map-backdrop map-camera-layer"></div>
+            <div class="map-world map-camera-layer">
                 <svg class="map-edges">
                     ${this.graph.edges.map((edge) => this.renderEdge(edge)).join("")}
                 </svg>
@@ -88,10 +91,16 @@ export class SceneMap extends Scene {
                 <div data-control="open-equip"><span class="nowrap">型の変更</span>: action(Ctrl)</div>
                 <div data-control="back-to-title"><span class="nowrap">タイトルへ戻る</span>: cancel(X)</div>
             </div>
-            <div class="texture-overlay"></div>
+            <div class="texture-overlay map-backdrop map-camera-layer"></div>
         `
 
-        this.mapWorldEl = this.root.querySelector<HTMLElement>(".map-world")!
+        this.cameraLayers = Array.from(this.root.querySelectorAll<HTMLElement>(".map-camera-layer"))
+
+        // 背景はカメラが動ける範囲+画面1枚ぶんを覆う大きさにする(map.cssの.map-backdrop参照)
+        this.root.style.setProperty("--world-min-x", `${this.worldBounds.minX}px`)
+        this.root.style.setProperty("--world-min-y", `${this.worldBounds.minY}px`)
+        this.root.style.setProperty("--world-width", `${this.worldBounds.maxX - this.worldBounds.minX}px`)
+        this.root.style.setProperty("--world-height", `${this.worldBounds.maxY - this.worldBounds.minY}px`)
 
         const nodesEl = this.root.querySelector<HTMLElement>(".map-nodes")!
         for (const node of this.graph.nodes) {
@@ -250,8 +259,10 @@ export class SceneMap extends Scene {
 
     // カメラをワールド座標posに向ける(=posが画面中央に来るようにする)。animateがtrueならアニメーションさせる
     private applyCamera(animate: boolean) {
-        this.mapWorldEl.style.transition = animate ? `transform ${CAMERA_PAN_MS}ms ease-out` : "none"
-        this.mapWorldEl.style.transform = `translate(${-this.camera.x}px, ${-this.camera.y}px)`
+        for (const el of this.cameraLayers) {
+            el.style.transition = animate ? `transform ${CAMERA_PAN_MS}ms ease-out` : "none"
+            el.style.transform = `translate(${-this.camera.x}px, ${-this.camera.y}px)`
+        }
     }
 
     // カメラがノードの存在範囲より外に出ないように制限する(スワイプで無の空間へ延々と行けてしまわないため)
@@ -328,7 +339,8 @@ export class SceneMap extends Scene {
             `<div id="equip-root"></div>
              <div id="equip-main-options" class="fadeout"></div>
              <div id="equip-sub-options" class="fadeout"></div>
-             <div class="equip-description"></div>`,
+             <div class="equip-description"></div>
+             <div class="texture-overlay"></div>`,
             {
                 elementId: "equip-root",
                 title: "--:: 型の変更 ::--",

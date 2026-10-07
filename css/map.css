@@ -1,4 +1,5 @@
-/* SceneMap 専用のUI(ステージ選択用のノード・エッジ画面)。 */
+/* SceneMap 専用のUI(ステージ選択用のノード・エッジ画面)。
+   色はタイトルと同じく base.css の4色(paper / sage / forest / gold)だけを使う。 */
 
 .scene-map {
     width: 100%;
@@ -6,12 +7,37 @@
     position: relative;
     overflow: hidden;
 
+    /* 紙色のままだと画面全体が明るすぎて眩しいので、墨を少し混ぜて落ち着かせ、四隅もほんのり暗くする */
+    --map-ground: color-mix(in srgb, var(--paper) 90%, var(--forest));
+    background:
+        radial-gradient(ellipse at center, transparent 45%, color-mix(in srgb, var(--forest) 22%, transparent)),
+        var(--map-ground);
+
     /* ドラッグでのスワイプ操作を自前で処理するので、ブラウザ標準のスクロール/ズームジェスチャーには渡さない */
     touch-action: none;
     cursor: grab;
 
     &.dragging {
         cursor: grabbing;
+    }
+
+    /* 方眼・紙の質感など、ワールドと一緒にtransformで動かす背景。
+       カメラは全ノードの範囲(--world-*)の中しか動かないので、その範囲+画面1枚ぶん(100%)を覆えば途切れない */
+    .map-backdrop {
+        position: absolute;
+        inset: auto;
+        left: calc(var(--world-min-x) - 64px);
+        top: calc(var(--world-min-y) - 64px);
+        width: calc(var(--world-width) + 100% + 128px);
+        height: calc(var(--world-height) + 100% + 128px);
+        pointer-events: none;
+    }
+
+    /* 紙に打たれた方眼の点 */
+    .map-grid {
+        background-image: radial-gradient(circle, var(--sage) 1.2px, transparent 1.6px);
+        background-size: 48px 48px;
+        opacity: 0.7;
     }
 
     /* ノードのワールド座標(px)の原点。ここを画面中央に置き、カメラ位置ぶんだけJSでtranslateする */
@@ -30,21 +56,22 @@
         overflow: visible;
 
         line {
-            stroke: #ffffff60;
-            stroke-width: 2;
+            stroke: var(--forest);
+            stroke-width: 1.5;
+            opacity: 0.55;
 
             &.locked {
-                opacity: 0.1;
+                opacity: 0.12;
             }
 
             /* 主装備standardでのクリアが条件の辺は破線 */
             &.standard {
-                stroke-dasharray: 8 6;
+                stroke-dasharray: 6 6;
             }
 
             /* 主装備laserでのクリアが条件の辺は二重線(2本の線はSceneMap側で引く) */
             &.laser {
-                stroke-width: 1.5;
+                stroke-width: 1;
             }
         }
     }
@@ -62,9 +89,8 @@
         justify-content: center;
         align-items: center;
 
-        background: #000000;
-        border: 0.05em solid #ffffff60;
-        border-radius: 0.05em;
+        background: var(--paper);
+        border: 2px solid var(--forest);
 
         font-size: 0.8em;
         text-align: center;
@@ -72,41 +98,47 @@
         cursor: pointer;
 
         transition:
-            background 0.15s ease-out,
-            border-color 0.15s ease-out,
-            transform 0.15s ease-out;
+            background 0.3s ease-out,
+            border-color 0.3s ease-out,
+            box-shadow 0.3s ease-out,
+            transform 0.3s ease-out;
 
+        &:hover {
+            border-color: var(--gold);
+        }
+
+        /* 選択中は墨で塗り、紙色の余白を挟んだ金の細い枠で囲む */
         &.selected {
-            background: #000000d0;
-            border-color: yellow;
-            color: yellow;
+            background: var(--forest);
+            border-color: var(--forest);
             transform: translate(-50%, -50%) scale(1.15);
+            box-shadow:
+                0 0 0 4px var(--map-ground),
+                0 0 0 5px var(--gold);
         }
 
         &.locked {
-            opacity: 0.35;
+            background: transparent;
+            border-color: var(--sage);
+            border-style: dashed;
+            opacity: 0.6;
             cursor: default;
         }
 
-        /* クリア済みのステージは右上に銀の星、ノーミスでクリア済みなら金の星 */
+        /* クリア済みのステージは右上に墨の星、ノーミスでクリア済みなら金の星 */
         &.cleared::after {
             content: "★";
             position: absolute;
-            top: -0.6em;
-            right: -0.6em;
-            font-size: 0.9em;
+            top: -0.65em;
+            right: -0.65em;
+            font-size: 1.5em;
             line-height: 1;
-            color: #c8d0d8;
-            text-shadow: 0 0 0.2em #000000;
+            color: var(--silver);
             pointer-events: none;
         }
 
         &.no-miss::after {
-            color: #ffd24a;
-        }
-
-        &:hover {
-            box-shadow: 0px 0px 8px 2px rgb(183 171 255 / 82%);
+            color: var(--gold);
         }
     }
 
@@ -121,13 +153,13 @@
         width: fit-content;
         white-space: nowrap;
 
-        padding: 0.5em 0.8em;
+        padding: 0.45em 1em 0.5em;
 
-        background: #000000;
-        border: 0.05em solid yellow;
-        border-radius: 0.1em;
+        background: var(--forest);
+        border-bottom: 2px solid var(--gold);
 
-        color: yellow;
+        color: var(--paper);
+        letter-spacing: 0.15em;
         text-align: center;
 
         opacity: 0;
@@ -142,7 +174,7 @@
     }
 
     .map-node-info-label {
-        font-size: 1em;
+        font-size: 0.9em;
     }
 
     .map-node-info-description {
@@ -156,7 +188,7 @@
         inset: 0;
         z-index: 200;
 
-        background: #000000e0;
+        background: color-mix(in srgb, var(--map-ground) 90%, transparent);
         cursor: default;
 
         animation: fade-in 0.15s ease-out;
@@ -168,30 +200,49 @@
         padding: 3em 1em 6em;
 
         line {
-            stroke: #ffffff60;
-            stroke-width: 2;
+            stroke: var(--forest);
+            stroke-width: 1.5;
+            opacity: 0.55;
             vector-effect: non-scaling-stroke;
         }
 
         rect {
-            fill: #000000;
-            stroke: #ffffff60;
+            fill: var(--paper);
+            stroke: var(--forest);
             stroke-width: 1.5;
             vector-effect: non-scaling-stroke;
             cursor: pointer;
 
             &.cleared {
-                fill: #c8d0d8;
+                fill: var(--sage);
             }
 
             &.no-miss {
-                fill: #ffd24a;
+                fill: var(--gold);
             }
 
             &.selected {
-                stroke: blue;
+                fill: var(--forest);
                 stroke-width: 3;
             }
+        }
+    }
+
+    /* 画面下部の操作ボタン類。タイトルのボタンと同じく細い罫線だけで、触れると墨で塗る */
+    .map-minimap-back,
+    .map-controls > div {
+        background: color-mix(in srgb, var(--map-ground) 85%, transparent);
+        border: 1px solid var(--forest);
+        color: var(--forest);
+
+        cursor: pointer;
+        transition:
+            background 0.3s ease-out,
+            color 0.3s ease-out;
+
+        &:hover {
+            background: var(--forest);
+            color: var(--paper);
         }
     }
 
@@ -204,42 +255,37 @@
         padding: 0.5em 1.5em;
 
         font-size: 0.8em;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.15em;
         white-space: nowrap;
-
-        background: #000000a8;
-        border: 0.05em solid #ffffff60;
-        border-radius: 0.1em;
-
-        cursor: pointer;
-
-        &:hover {
-            box-shadow: 0px 0px 8px 2px rgb(183 171 255 / 82%);
-        }
     }
 
+    /* 残機・スコアは帳面の書き付けのように、金の縦線を添えて左上に置く */
     .map-lives {
         position: absolute;
         display: flex;
         flex-direction: column;
         gap: 0.25em;
         top: 0.8em;
-        left: 1em;
+        left: 5%;
+
+        padding-left: 0.5em;
+        border-left: 2px solid var(--forest);
 
         font-size: 1.4em;
 
         font-family: "Courier New", monospace;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.1em;
     }
 
     .map-lives-count {
-        justify-content:start;
+        justify-content: start;
         font-size: 0.8em;
     }
 
     .map-lives-recovery {
+        justify-content: start;
         font-size: 0.6em;
-        opacity: 0.7;
+        opacity: 0.6;
     }
 
     .map-score {
@@ -275,21 +321,10 @@
             }
 
             font-size: inherit;
-            
-            cursor: pointer;
+
             padding: 0.5em 0.5em;
             /* 折り返して2行になるボタンとならないボタンとで高さが不揃いにならないようにする */
             text-align: center;
-
-            background: #000000a8;
-            border: 0.05em solid #ffffff60;
-            border-radius: 0.1em;
-
-            opacity: 0.9;
-
-            &:hover {
-                box-shadow: 0px 0px 8px 2px rgb(183 171 255 / 82%);
-            }
         }
     }
 
@@ -319,14 +354,15 @@
         right: 0;
         bottom: 0;
 
-        padding: 0.6em 0.8em;
+        padding: 0.8em 1em;
 
-        background: #000000d0;
-        border: 0.05em solid #ffffff40;
-        border-radius: 0.1em;
+        background: var(--forest);
+        border-top: 2px solid var(--gold);
+        color: var(--paper);
 
         font-size: 0.65em;
-        line-height: 1.4;
+        line-height: 1.6;
+        letter-spacing: 0.05em;
 
         opacity: 0;
         pointer-events: none;
@@ -351,8 +387,7 @@
 
         padding: 1.5em 2em;
 
-        background: #000000d0;
-        border-left: 0.05em solid #ffffff40;
+        background: color-mix(in srgb, var(--map-ground) 96%, transparent);
 
         animation: fade-in 0.15s ease-out;
 
@@ -362,6 +397,8 @@
             width: 100%;
             justify-content: center;
             white-space: nowrap;
+            letter-spacing: 0.15em;
+            color: var(--forest);
         }
 
         .option-row {
@@ -373,8 +410,21 @@
             text-align: center;
             padding: 0.3em 0.5em;
 
-            background: #000000a8;
-            border: 0.05em solid #ffffff40;
+            background: transparent;
+            border: 1px solid var(--forest);
+            border-radius: 0;
+            color: var(--forest);
+            letter-spacing: 0.1em;
+
+            transition:
+                background 0.1s ease-out,
+                color 0.1s ease-out;
+
+            &.selected {
+                background: var(--forest);
+                color: var(--paper);
+                box-shadow: 0 0.25em 0 -0.15em var(--gold);
+            }
         }
     }
 }

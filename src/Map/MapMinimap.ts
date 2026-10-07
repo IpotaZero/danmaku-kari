@@ -24,6 +24,7 @@ export class MapMinimap {
                 <g class="map-minimap-nodes"></g>
             </svg>
             <span class="map-minimap-back">戻る: cancel(X)</span>
+            <div class="texture-overlay"></div>
         `
         this.el.querySelector<HTMLElement>(".map-minimap-back")!.addEventListener("click", onBack)
 

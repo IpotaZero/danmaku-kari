@@ -15,7 +15,7 @@
     height: 90vmin;
     border-radius: 50%;
 
-    background: radial-gradient(circle, var(--title-gold) 0%, transparent 65%);
+    background: radial-gradient(circle, var(--gold) 0%, transparent 65%);
     opacity: 0.22;
     animation: meadow-sun-breathe 9s ease-in-out infinite;
 }
@@ -43,7 +43,7 @@
 
 .meadow-grass-back {
     height: 26vh;
-    color: var(--title-sage);
+    color: var(--sage);
     opacity: 0.7;
     animation-delay: -3s;
 }
@@ -51,7 +51,7 @@
 /* 左下のロゴ・Startボタンと同じ墨色なので、左側は消して右側にだけ茂らせる */
 .meadow-grass-front {
     height: 30vh;
-    color: var(--title-forest);
+    color: var(--forest);
     mask-image: linear-gradient(to right, transparent 35%, #000 75%);
 }
 
@@ -72,11 +72,11 @@
 
 /* 奥の虫は小さく淡く、手前の虫は墨色でくっきり。2層で奥行きを出す */
 .meadow-bugs-far {
-    color: var(--title-sage);
+    color: var(--sage);
 }
 
 .meadow-bugs-near {
-    color: var(--title-forest);
+    color: var(--forest);
 }
 
 /* 横移動(外側)と上下のふわふわ(内側)を別要素に分けて合成する */
@@ -186,7 +186,7 @@
     height: 0.16rem;
     border-radius: 50%;
 
-    background: var(--title-gold);
+    background: var(--gold);
 
     animation: meadow-pollen-rise var(--duration) linear infinite;
     animation-delay: var(--delay);

@@ -11,7 +11,7 @@ export class ScenePreTitle extends Scene {
     protected async onStart(): Promise<void> {
         console.log("ScenePreTitle")
 
-        this.root.classList.add("scene-pre-title")
+        this.root.classList.add("scene-pre-title", "paper-scene")
         this.root.insertAdjacentHTML("beforeend", `<div class="pre-title-message">Click or Press Any Key</div>`)
 
         const textureOverlay = document.createElement("div")

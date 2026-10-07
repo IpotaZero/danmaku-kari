@@ -53,6 +53,26 @@ body {
     display: none !important;
 }
 
+/* タイトル・マップなど、ゲーム外の画面で使う色はこの4色だけ。濃淡は透明度で作る */
+:root {
+    --paper: #f2ecdc;
+    --sage: #a7b59a;
+    --forest: #26372c;
+    --gold: #dec289;
+    --silver: silver;
+}
+
+/* 生成りの紙に墨緑で描いたような画面。ざらつきは乗算で紙の質感として見せる */
+.paper-scene {
+    background: var(--paper);
+    color: var(--forest);
+
+    .texture-overlay {
+        opacity: 0.12;
+        mix-blend-mode: multiply;
+    }
+}
+
 /* SceneTitle/SceneMapなど、画面全面にざらついた質感を重ねたいシーンで使う */
 .texture-overlay {
     position: absolute;

@@ -10,7 +10,7 @@ export class SceneTitle extends Scene {
     protected async onStart(): Promise<void> {
         console.log("SceneTitle")
 
-        this.root.classList.add("scene-title")
+        this.root.classList.add("scene-title", "paper-scene")
         this.root.appendChild(new TitleMeadow().element)
         this.root.insertAdjacentHTML(
             "beforeend",
