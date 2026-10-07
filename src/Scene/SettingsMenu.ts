@@ -25,7 +25,7 @@ const ACTION_LABELS: Record<InputAction, string> = {
 }
 
 /**
- * 音量・キーコンフィグ・セーブデータの削除をまとめた設定メニュー。
+ * 音量・キーコンフィグ・デバッグ用の全ステージ解放・セーブデータの削除をまとめた設定メニュー。
  * 呼び出し側のMenuのサブメニューとして開く。MenuのbaseHtmlには SettingsMenu.HTML を含めておくこと。
  */
 export class SettingsMenu {
@@ -54,6 +54,16 @@ export class SettingsMenu {
                         label: "キーコンフィグ",
                         hides: ["settings"],
                         subMenu: () => this.keyConfigBox(),
+                    },
+                ],
+                [
+                    {
+                        type: "select",
+                        label: this.debugUnlockAllLabel(),
+                        onSelect: () => {
+                            playerData.toggleDebugUnlockAll()
+                            this.menu.render()
+                        },
                     },
                 ],
                 [
@@ -112,6 +122,16 @@ export class SettingsMenu {
                 this.menu.render()
             },
         }
+    }
+
+    private debugUnlockAllLabel(): HTMLElement {
+        const el = document.createElement("span")
+        el.className = "settings-row"
+        el.innerHTML = `
+            <span>全ステージ解放(デバッグ)</span>
+            <span>${playerData.debugUnlockAll ? "ON" : "OFF"}</span>
+        `
+        return el
     }
 
     private volumeLabel(kind: VolumeKind): HTMLElement {

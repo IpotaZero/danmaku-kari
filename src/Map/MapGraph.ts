@@ -186,9 +186,9 @@ export class MapGraph {
         return this.edgesOf(node).map((edge) => edge.opposite(node))
     }
 
-    // スタート地点は常に解放。それ以外は、入ってくる辺のうち1つでも開いていれば解放される
+    // スタート地点は常に解放。それ以外は、入ってくる辺のうち1つでも開いていれば解放される(デバッグ用の全解放中は無条件)
     isUnlocked(node: MapNode, playerData: PlayerData): boolean {
-        if (node === this.start) return true
+        if (node === this.start || playerData.debugUnlockAll) return true
 
         return this.edges.filter((edge) => edge.to === node).some((edge) => edge.isOpen(playerData))
     }

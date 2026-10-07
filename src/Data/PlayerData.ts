@@ -25,6 +25,7 @@ type SerializedPlayerData = {
     badges?: BadgeId[]
     noMissClears?: string[]
     mapNodeId?: string
+    debugUnlockAll?: boolean
 }
 
 // 免状(道場主を倒すと授かる証)のID
@@ -61,6 +62,9 @@ export class PlayerData {
     // 授かった免状
     private readonly badges = new Set<BadgeId>()
 
+    // デバッグ用。trueならクリア状況に関係なく全ステージを解放する(MapGraph.isUnlocked参照)
+    debugUnlockAll = false
+
     constructor() {
         this.load()
         this.recoverLivesOverTime()
@@ -84,6 +88,11 @@ export class PlayerData {
 
     moveOnMap(nodeId: string) {
         this.mapNodeId = nodeId
+        this.save()
+    }
+
+    toggleDebugUnlockAll() {
+        this.debugUnlockAll = !this.debugUnlockAll
         this.save()
     }
 
@@ -182,6 +191,7 @@ export class PlayerData {
         this.lastLivesSyncedAt = Date.now()
         this.totalScore = 0
         this.badges.clear()
+        this.debugUnlockAll = false
 
         try {
             localStorage.removeItem(STORAGE_KEY)
@@ -226,6 +236,7 @@ export class PlayerData {
             this.noMissClears.clear()
             data.noMissClears?.forEach((stageId) => this.noMissClears.add(stageId))
             this.mapNodeId = data.mapNodeId
+            this.debugUnlockAll = data.debugUnlockAll ?? false
         } catch {
             // 保存データが壊れている/存在しない場合は初期値のまま進める
         }
@@ -245,6 +256,7 @@ export class PlayerData {
             badges: [...this.badges],
             noMissClears: [...this.noMissClears],
             mapNodeId: this.mapNodeId,
+            debugUnlockAll: this.debugUnlockAll,
         }
 
         try {
