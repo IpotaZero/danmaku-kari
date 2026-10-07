@@ -77,18 +77,20 @@ class EnemyPupil extends Enemy {
         // 帯が自機の上を通るころ、ゆっくりした矢を混ぜる。切れ目へ横に走る途中で、矢の筋も見ることになる
         yield* Array(Math.floor(Sand.travelFrames(this, BAND) * 0.45))
 
-        yield* remodel(this)
-            .format("diamond")
-            .color("#fff0d0")
-            .p(this.p.clone())
-            .speed(1)
-            .duplicate(31)
-            .delayByIndex()
-            .aim(this.game.player)
-            .nway(5, T / 20)
-            .g(function* (me) {
-                yield* Behavior.accel(me, 60, 8)
-            })
-            .fire(this.game.bullets)
+        for (let i = 0; i < 13; i++) {
+            yield* remodel(this)
+                .format("diamond")
+                .color("#fff0d0")
+                .p(this.p.clone())
+                .speed(1)
+                .aim(this.game.player)
+                .nway(5, T / 20)
+                .g(function* (me) {
+                    yield* Behavior.accel(me, 60, 8)
+                })
+                .fire(this.game.bullets)
+
+            yield* Array(30)
+        }
     }
 }
