@@ -2,6 +2,7 @@ import { Awaits } from "@ipota/functions"
 import { App } from "../App"
 import { Menu } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
+import { SettingsMenu } from "./SettingsMenu"
 import { TitleMeadow } from "./TitleMeadow"
 
 export class SceneTitle extends Scene {
@@ -27,8 +28,8 @@ export class SceneTitle extends Scene {
         `,
         )
 
-        this.menu = new Menu(
-            `<div class="title-menu-stack"><div id="root"></div></div>`,
+        const menu: Menu = new Menu(
+            `<div class="title-menu-stack"><div id="root"></div>${SettingsMenu.HTML}</div>`,
             {
                 elementId: "root",
                 options: () => [
@@ -41,14 +42,24 @@ export class SceneTitle extends Scene {
                             },
                         },
                     ],
+                    [
+                        {
+                            type: "submenu",
+                            label: "Settings",
+                            // #rootはtitle.css側で横へ退場させるので、ここでは隠さない
+                            hides: [],
+                            subMenu: () => new SettingsMenu(menu).box(),
+                        },
+                    ],
                 ],
             },
             App.input,
             App.se.menu,
         )
 
-        this.menu.container.classList.add("title-menu")
-        this.root.appendChild(this.menu.container)
+        menu.container.classList.add("title-menu")
+        this.root.appendChild(menu.container)
+        this.menu = menu
 
         const textureOverlay = document.createElement("div")
         textureOverlay.className = "texture-overlay"

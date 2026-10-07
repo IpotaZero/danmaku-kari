@@ -4,6 +4,7 @@ import { Dom } from "./Dom"
 import { SceneChanger } from "./utils/Scene/SceneChanger"
 import { Looper } from "@ipota/my-utils"
 import { DigitalInput } from "@ipota/input"
+import { DEFAULT_KEY_CONFIG, InputAction, Settings } from "./Data/Settings"
 
 Dom.init()
 
@@ -60,16 +61,8 @@ export namespace App {
 
     export const looper = new Looper(60)
 
-    export const input = new DigitalInput({
-        up: ["ArrowUp", "KeyW", "gamepad-axis-1-negative"],
-        down: ["ArrowDown", "KeyS", "gamepad-axis-1-positive"],
-        left: ["ArrowLeft", "KeyA", "gamepad-axis-0-negative"],
-        right: ["ArrowRight", "KeyD", "gamepad-axis-0-positive"],
-        slow: ["ShiftLeft"],
-        suicide: ["Escape"],
-        action: ["ControlLeft"],
+    export const input = new DigitalInput<InputAction>(DEFAULT_KEY_CONFIG)
 
-        ok: ["Enter", "KeyZ", "Space", "gamepad-button-0"],
-        cancel: ["KeyX", "Escape", "Backspace", "gamepad-button-1"],
-    })
+    // 保存されている音量・キーコンフィグを読み込んで、bm/se/inputへ反映する
+    export const settings = new Settings({ bgm: bm, se, input })
 }

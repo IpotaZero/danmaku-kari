@@ -168,6 +168,28 @@ export class PlayerData {
         this.save()
     }
 
+    // セーブデータを消し、初めて遊ぶときと同じ状態に戻す
+    reset() {
+        this.stageClears.clear()
+        this.noMissClears.clear()
+        this.mapNodeId = undefined
+        this.loadout = DEFAULT_LOADOUT
+        this.ownedMainEquipmentIds.clear()
+        DEFAULT_OWNED_MAIN_EQUIPMENT_IDS.forEach((id) => this.ownedMainEquipmentIds.add(id))
+        this.ownedSubEquipmentIds.clear()
+        DEFAULT_OWNED_SUB_EQUIPMENT_IDS.forEach((id) => this.ownedSubEquipmentIds.add(id))
+        this.lives = MAX_LIVES
+        this.lastLivesSyncedAt = Date.now()
+        this.totalScore = 0
+        this.badges.clear()
+
+        try {
+            localStorage.removeItem(STORAGE_KEY)
+        } catch {
+            // localStorageが使えない環境では、メモリ上の状態を戻すだけにする
+        }
+    }
+
     private load() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY)

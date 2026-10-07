@@ -39,8 +39,8 @@
     pointer-events: none;
 
     transition:
-        transform 0.45s ease-out,
-        opacity 0.45s ease-out;
+        transform 0.5s ease-out,
+        opacity 0.5s ease-out;
 }
 
 .title-version,
@@ -82,9 +82,9 @@
 .title-logo {
     position: absolute;
     left: 0;
-    /* 右下のStartボタン(#root)と被らないよう、ボタン自体の高さとは独立した
+    /* 左下のメニュー(#root)と被らないよう、ボタン自体の高さとは独立した
        固定量(rem = ルートフォントサイズ基準)だけ底から離す */
-    bottom: 4.5rem;
+    bottom: 8rem;
     padding: 0 0.15em;
 
     flex-direction: column;
@@ -147,19 +147,19 @@
     .option {
         width: 100%;
         text-align: center;
-        height: fit-content;
+        height: 100%;
         padding: 0.4em 0 0.5em;
 
         /* 細い罫線だけの控えめなボタン。選択中は墨色で塗りつぶし、金の下線を引く */
-        background: transparent;
+        background: var(--paper-alpha);
         border: 1px solid var(--forest);
         border-radius: 0;
         color: var(--forest);
         letter-spacing: 0.3em;
 
         transition:
-            background 0.3s ease-out,
-            color 0.3s ease-out;
+            background 0.1s ease-out,
+            color 0.1s ease-out;
 
         &.selected {
             background: var(--forest);
@@ -173,8 +173,8 @@
     }
 }
 
-/* #root(ルートメニュー)と#stages(Stagesサブメニュー)を同じ箱に重ねて、
-   スライドしながらクロスフェードできるようにする。
+/* #root(ルートメニュー)と設定メニュー(.settings-panel)を同じ箱に重ねる。
+   設定を開いている間は#rootを横へ退場させる。
    状態判定(:has)もこの箱の中だけで完結するので追いやすい。 */
 .title-menu-stack {
     width: 100%;
@@ -184,74 +184,104 @@
     padding: 0.5em;
     box-sizing: border-box;
 
-    #root,
-    #stages {
-        transition:
-            transform 0.45s ease-out,
-            opacity 0.45s ease-out;
-    }
-
     #root {
         position: absolute;
-        bottom: 1em;
+        bottom: 2em;
         left: 1em;
 
         display: flex;
         max-width: 20em;
         right: 1em;
 
+        transition:
+            transform 0.45s ease-out,
+            opacity 0.2s ease-out;
+
         .menu-scroll-container {
             display: flex;
             width: 100%;
+            gap: 0.4em;
         }
     }
 
-    #stages {
-        right: 1em;
-        bottom: 1em;
-        width: 12em;
+    /* SettingsMenu.tsが作るパネル。どれか1枚だけがMenuのsetHiddenで表示される */
+    .settings-panel {
+        position: absolute;
+        left: 1em;
+        bottom: 2em;
+        width: min(20em, 100% - 2em);
 
-        display: flex;
+        flex-direction: column;
 
-        transform: translateX(30vw);
-        opacity: 0;
-        pointer-events: none;
-
-        /* Menu.tsがsetHiddenで付け外しする.fadeoutは元々display:noneだが、
-           ここではdisplay:noneにするとトランジションできなくなるため、
-           透明度と位置だけで表現し直す */
-        &.fadeout {
-            display: block;
+        .menu-title {
+            letter-spacing: 0.2em;
         }
 
         .menu-scroll-container {
             width: 100%;
+            gap: 0.35em;
         }
 
         .option {
+            padding: 0.25em 0.6em 0.3em;
+            letter-spacing: 0.1em;
+
+            /* 入力待ち中など、選べない行は丸ごと薄くする(menu.cssの既定はspanごとに重ねて薄くなりすぎる) */
+            &.disabled {
+                opacity: 0.35;
+
+                span {
+                    opacity: 1;
+                }
+            }
+        }
+
+        .option-label {
             width: 100%;
-            padding: 0.4em 2em 0.5em;
+        }
+
+        /* 音量の行: 左右の矢印ボタンは文字幅だけ取り、残りを名前とゲージに回す */
+        .option-row:has(.settings-arrow) {
+            gap: 0.3em;
+        }
+
+        .option:has(.settings-arrow) {
+            width: auto;
+            flex: none;
+            padding: 0.25em 0.5em 0.3em;
         }
     }
 
-    &:has(#stages:not(.fadeout)) {
-        #root {
-            transform: translateX(-30vw);
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        #stages {
-            transform: translateX(0);
-            opacity: 1;
-            pointer-events: auto;
-        }
+    &:has(.settings-panel:not(.fadeout)) #root {
+        transform: translateX(-30vw);
+        opacity: 0;
+        pointer-events: none;
     }
 }
 
-/* Stagesが選択されている間、タイトルロゴ・3Dモデルを左へスライドさせながら透明にする。
-   見るのは.title-menu-stack自身の状態だけなので、シーン全体を跨ぐ必要がない */
-.scene-title:has(.title-menu-stack #stages:not(.fadeout)) .title-content {
+/* 名前を左、値(音量ゲージ・割り当てキー)を右に寄せた1行 */
+.settings-row {
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1em;
+}
+
+/* ■□を詰めて、狭い画面でも矢印と同じ行に収まるようにする */
+.title-menu-stack .settings-panel .settings-gauge {
+    letter-spacing: 0;
+    font-size: 8pt;
+}
+
+.title-menu-stack .settings-panel .settings-keys {
+    font-size: 12pt;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    text-align: right;
+}
+
+/* 設定を開いている間、タイトルロゴを左へスライドさせながら透明にする */
+.scene-title:has(.title-menu-stack .settings-panel:not(.fadeout)) .title-content {
     transform: translateX(-30vw);
     opacity: 0;
     pointer-events: none;

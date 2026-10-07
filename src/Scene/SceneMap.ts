@@ -4,6 +4,7 @@ import { playerData } from "../Data/PlayerData"
 import { mainEquipments, subEquipments } from "../Game/Equipment/PlayerEquipment"
 import { MapBounds, MapEdge, MapGraph, MapNode, MapNodeId } from "../Map/MapGraph"
 import { MapMinimap } from "../Map/MapMinimap"
+import { InputCode } from "../utils/InputCode"
 import { Menu, MenuOption, MenuOptionBox } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
 
@@ -91,9 +92,9 @@ export class SceneMap extends Scene {
                 <div class="map-score"></div>
             </div>
             <div class="map-controls">
-                <div data-control="toggle-minimap"><span class="nowrap">全体図</span>: slow(Shift)</div>
-                <div data-control="open-equip"><span class="nowrap">型の変更</span>: action(Ctrl)</div>
-                <div data-control="back-to-title"><span class="nowrap">タイトルへ戻る</span>: cancel(X)</div>
+                <div data-control="toggle-minimap"><span class="nowrap">全体図</span>: slow(${InputCode.primaryLabel(App.settings.keyConfig.slow)})</div>
+                <div data-control="open-equip"><span class="nowrap">型の変更</span>: action(${InputCode.primaryLabel(App.settings.keyConfig.action)})</div>
+                <div data-control="back-to-title"><span class="nowrap">タイトルへ戻る</span>: cancel(${InputCode.primaryLabel(App.settings.keyConfig.cancel)})</div>
             </div>
             <div class="texture-overlay map-backdrop map-camera-layer"></div>
         `

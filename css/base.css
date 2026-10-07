@@ -56,6 +56,7 @@ body {
 /* タイトル・マップなど、ゲーム外の画面で使う色はこの4色だけ。濃淡は透明度で作る */
 :root {
     --paper: #f2ecdc;
+    --paper-alpha: #f2ecdcc0;
     --sage: #a7b59a;
     --forest: #26372c;
     --gold: #e5b450;
@@ -91,7 +92,7 @@ body {
 div,
 span {
     display: flex;
-    justify-content: center;
+    justify-content: center;    
 }
 
 .fadeout {
