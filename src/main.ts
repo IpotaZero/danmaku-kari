@@ -21,3 +21,5 @@ window.addEventListener("keydown", (e) => {
 window.addEventListener("contextmenu", (e) => {
     e.preventDefault()
 })
+
+;(window as any).App = App

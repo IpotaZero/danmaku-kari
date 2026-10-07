@@ -66,6 +66,9 @@ export class SceneTitle extends Scene {
             })
             this.root.appendChild(fullscreenToggle)
         }
+
+        await App.bm.load({ src: "assets/bgm/title.mp3" })
+        await App.bm.play()
     }
 
     protected async onEnd(): Promise<void> {}
