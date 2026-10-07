@@ -2,7 +2,7 @@ import { App } from "./App.js"
 
 document.addEventListener("DOMContentLoaded", async () => {
     App.looper.start()
-    App.sc.goto(async () => await import("./Scene/SceneTitle.js").then(({ SceneTitle }) => new SceneTitle()))
+    App.sc.goto(async () => await import("./Scene/ScenePreTitle.js").then(({ ScenePreTitle }) => new ScenePreTitle()))
 })
 
 App.looper.addHandler((timeScale) => {

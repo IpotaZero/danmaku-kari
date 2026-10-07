@@ -1,5 +1,7 @@
-/* SceneTitle 専用のUI(バージョン表記・コピーライト・ロゴ・メニュー)。 */
+/* SceneTitle 専用のUI(バージョン表記・コピーライト・ロゴ・メニュー)。
+   ScenePreTitleもタイトルと同じ紙の色にして、切り替わりを目立たせない */
 
+.scene-pre-title,
 .scene-title {
     position: absolute;
     inset: 0;
@@ -17,6 +19,27 @@
     .texture-overlay {
         opacity: 0.12;
         mix-blend-mode: multiply;
+    }
+}
+
+.scene-pre-title {
+    align-items: center;
+}
+
+/* 押されるまで待つ画面なので、急かさないようゆっくり明滅させる */
+.pre-title-message {
+    font-size: 0.8em;
+    letter-spacing: 0.3em;
+    animation: pre-title-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes pre-title-breathe {
+    0%,
+    100% {
+        opacity: 0.25;
+    }
+    50% {
+        opacity: 1;
     }
 }
 

@@ -1,3 +1,4 @@
+import { Awaits } from "@ipota/functions"
 import { App } from "../App"
 import { Menu } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
@@ -67,7 +68,11 @@ export class SceneTitle extends Scene {
             this.root.appendChild(fullscreenToggle)
         }
 
-        await App.bm.load({ src: "assets/bgm/title.mp3" })
+        this.startBGM()
+    }
+
+    private async startBGM() {
+        await Promise.all([App.bm.load({ src: "assets/bgm/title.mp3" }), Awaits.sleep(1000)])
         await App.bm.play()
     }
 
