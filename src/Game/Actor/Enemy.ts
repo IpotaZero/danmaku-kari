@@ -5,6 +5,7 @@ import { Game } from "../Game"
 import { IEnemyRenderer } from "./IEnemyRenderer"
 import { EnemyRendererMob } from "./EnemyRendererMob"
 import { seededRandom } from "../../utils/Functions/seededRandom"
+import { Battery } from "./Battery"
 
 export abstract class Enemy extends Actor {
     private readonly baseR: number
@@ -13,9 +14,8 @@ export abstract class Enemy extends Actor {
     frame = 0
     damaged = false
 
-    // 充電を行わない敵では常に0のまま。レンダラーはこれを見てHPバー/充電バーを切り替える
-    chargeRemaining = 0
-    chargeMax = 0
+    // 攻撃の前に yield* this.battery.charge(frame) と書くと、充電が満ちるまで待つ
+    readonly battery = new Battery()
 
     isInvincible = false
 
@@ -97,9 +97,14 @@ export abstract class Enemy extends Actor {
         ctx.restore()
     }
 
-    hit() {
+    hit(damage: number) {
         this.damaged = true
         this.addScript(this.hitG.bind(this))
+
+        // 充電中は攻撃が効かず、そのぶん充電が早まる
+        if (this.battery.absorb(damage)) return
+
+        this.life -= damage
     }
 
     *onDead(): Generator<void, void, void> {

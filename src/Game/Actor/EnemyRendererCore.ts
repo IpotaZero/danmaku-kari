@@ -27,14 +27,13 @@ export class EnemyRendererCore implements IEnemyRenderer {
     }
 
     private drawHpBar(ctx: CanvasRenderingContext2D, e: Enemy): void {
-        const isCharging = e.chargeRemaining > 0
         const barW = e.r * 3
         const barH = 6
         const barPos = e.p.add(vec(-barW / 2, -e.r - 24))
 
-        if (isCharging && e.chargeMax > 0) {
+        if (e.battery.isCharging()) {
             // 充電中はHPバーを隠し、充電進捗バーのみ表示
-            const chargeRatio = 1 - e.chargeRemaining / e.chargeMax
+            const chargeRatio = e.battery.ratio()
 
             Ctx.rect(ctx, barPos, vec(barW, barH), CHARGE_BG, { lineWidth: 1 })
             Ctx.rect(ctx, barPos, vec(barW * chargeRatio, barH), CHARGE_FILL)

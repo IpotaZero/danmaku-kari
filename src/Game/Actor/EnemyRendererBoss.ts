@@ -38,10 +38,9 @@ export class EnemyRendererBoss implements IEnemyRenderer {
 
     /**
      * 上部に大きく表示されるボス専用HPゲージ。
-     * 充電中はHPバーを青くし、直下に充電進捗バーを表示する。
+     * 充電中はHPバーの代わりに、青い充電進捗バーを表示する。
      */
     private drawBossHpBar(ctx: CanvasRenderingContext2D, e: Enemy): void {
-        const isCharging = e.chargeRemaining > 0
         const width = e.game.WIDTH * 0.8
         const height = 24
         // ワールド座標は左上原点の [0, WIDTH] x [0, HEIGHT]
@@ -56,9 +55,9 @@ export class EnemyRendererBoss implements IEnemyRenderer {
             lineWidth: 2,
         })
 
-        if (isCharging && e.chargeMax > 0) {
+        if (e.battery.isCharging()) {
             // 充電中：充電進捗バーのみ表示
-            const chargeRatio = 1 - e.chargeRemaining / e.chargeMax
+            const chargeRatio = e.battery.ratio()
 
             Ctx.rect(ctx, { x, y: 0 }, vec(width * chargeRatio, height), CHARGE_FILL)
             Ctx.rect(ctx, { x, y: height * 0.7 }, vec(width * chargeRatio, height * 0.3), "rgba(255, 255, 255, 0.3)")

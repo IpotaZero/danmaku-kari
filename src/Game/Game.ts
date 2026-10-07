@@ -267,8 +267,7 @@ export class Game extends IteratorQueue {
                         // レーザーは貫通させ、当たった敵ごとに消えず触れている間ずっと削り続ける
                         if (b.collision !== "rect") b.life = 0
 
-                        e.life -= b.damage
-                        e.hit()
+                        e.hit(b.damage)
                     }
                 })
             })
