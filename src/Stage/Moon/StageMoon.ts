@@ -7,6 +7,7 @@ import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
+import { Charge } from "../Charge"
 
 // ステージ「スズムシ」(月影道場・道場主)
 // 道場主は大きなスズムシ。鳴らす二枚の翅・二本の長い触角・胴の下に吊るした六つの鈴を持ち、それぞれが別々の攻撃をする。
@@ -14,12 +15,12 @@ import { Part } from "../Part"
 // 触角: 探るように弾を撒き、少しして自機の方へ向きを変えて飛ばす。
 // 鈴: そろって振り子のように揺れながら、順に鈴玉を落とす。鈴玉は少し落ちてから、輪になって鳴り響く。
 // 鈴は胴の下にぶら下がっているので、胴を撃とうとすると鈴に当たる。鈴を落とすと胴の下が開ける。
-// 一段目: 翅を両方落とすまで、胴に攻撃が効かない。胴はときどき輪を放つ。
-// 二段目: 月の輪。一度広がって止まり、くるりと回ってから散る輪を放つ。
-// 三段目: 合奏。胴は大きく息を吸う(充電)。吸っている間は攻撃が効かず、撃つほど早く吸い終わる。
-//         吸い終わると三匹の子スズムシが現れ、それぞれ小鈴(孫機)を二つ吊るしている。
-//         子スズムシも半円の波を鳴らすので、三つの波が重なって、隙間がもっと細かくなる。
-// 四段目: 満月。胴は自分でも半円の波を鳴らしながら、月の輪を放つ。
+// 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ。
+// 一段目: 翅を両方落とすと次の段へ。胴はときどき輪を放つ。
+// 合奏: 胴は大きく息を吸い込んで、三匹の子スズムシを呼ぶ。子スズムシは小鈴(孫機)を二つずつ吊るしていて、小鈴を落とすまで子スズムシに攻撃が効かない。
+// 二段目: 子スズムシをすべて落とすと次の段へ。子スズムシも半円の波を鳴らすので、三つの波が重なって、隙間がもっと細かくなる。
+//         胴は月の輪(一度広がって止まり、くるりと回ってから散る輪)を放つ。
+// 三段目: 満月。胴に攻撃が効くようになり、胴は自分でも半円の波を鳴らしながら、月の輪を放つ。
 
 export default class extends Stage {
     *G() {
@@ -99,7 +100,7 @@ class EnemySuzumushi extends Enemy {
     readonly parts = [...this.wings, ...this.antennae, ...this.bells]
 
     constructor(game: Game) {
-        super(game, 3000, 46, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, 46, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -123,23 +124,16 @@ class EnemySuzumushi extends Enemy {
     }
 
     private *phases() {
-        // 一段目: 翅が残っている間は、胴に攻撃が効かない
+        // 一段目: 翅を両方落とすと次の段へ
         this.addScript(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
         while (this.wings.some((p) => p.life > 0)) yield
 
-        // 二段目: 月の輪
-        this.isInvincible = false
-        this.game.camera.shake(6, 20)
-        this.addScript(() => this.moonRing(), { loop: Infinity, id: "body" })
-
-        while (this.life > this.maxLife * 0.6) yield
-
-        // 三段目: 合奏。息を吸ってから、小鈴(孫機)を吊るした子スズムシを呼ぶ
+        // 合奏。大きく息を吸い込んでから、小鈴(孫機)を吊るした子スズムシを呼ぶ
         this.removeScript("body")
-        yield* this.battery.charge(180)
+        yield* Charge.gather(this, 150, "#fff0b0")
         this.game.camera.shake(8, 30)
 
-        for (const k of [-1, 0, 1]) {
+        const crickets = [-1, 0, 1].map((k) => {
             const cricket = new Part(
                 this.game,
                 this,
@@ -161,15 +155,18 @@ class EnemySuzumushi extends Enemy {
                         100 + (side > 0 ? 60 : 0),
                     ),
             )
+            cricket.guardedBy(smallBells)
             this.game.enemies.push(cricket, ...smallBells)
-        }
+            return cricket
+        })
 
+        // 二段目: 子スズムシをすべて落とすと次の段へ。胴は月の輪を放つ
         this.addScript(() => this.moonRing(), { loop: Infinity, margin: 90, id: "body" })
+        while (crickets.some((p) => p.life > 0)) yield
 
-        while (this.life > this.maxLife * 0.25) yield
-
-        // 四段目: 満月。胴も半円の波を鳴らす
-        this.game.camera.shake(6, 20)
+        // 三段目: 満月。胴に攻撃が効くようになり、胴も半円の波を鳴らす
+        this.isInvincible = false
+        this.game.camera.shake(8, 30)
         this.addScript(() => this.chirp(this, 0, 21), { loop: Infinity, margin: 30, id: "song" })
     }
 
