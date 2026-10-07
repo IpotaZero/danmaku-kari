@@ -14,8 +14,12 @@ import { Part } from "../Part"
 // 甲羅: 胴を囲んで回りながら、順に外向きの水弾を放つ。甲羅が胴を囲んでいるので、胴を狙った弾は甲羅に当たる。
 // 蛇の頭: 亀のまわりを速く回りながら、自機へ毒牙(針の三方向)を飛ばす。
 // 蛇の胴: 頭のあとに続いて回りながら、順に水滴を垂らす。水滴はだんだん速く真下へ落ちる。
-// 亀の胴: 甲羅をすべて割るまで攻撃が効かない。甲羅を割ると、画面の幅いっぱいの波を三列続けて押し寄せる。
-//         波には一か所だけ隙間があり、列ごとに少しずつずれる。隙間をたどってくぐり抜ける。
+// 一段目: 甲羅をすべて割るまで、胴に攻撃が効かない。胴はときどき輪を放つ。
+// 二段目: 津波。画面の幅いっぱいの波を三列続けて押し寄せる。波には一か所だけ隙間があり、列ごとに少しずつずれる。
+// 三段目: 子亀。胴は水を溜める(充電)。溜めている間は攻撃が効かず、撃つほど早く溜まる。
+//         溜まると、二匹の子亀が泳ぎ出てくる。子亀のまわりには三枚の小甲羅(孫機)が回っていて、小甲羅を割るまで子亀に攻撃が効かない。
+//         子亀は泡を吐き、小甲羅は外向きに水滴を飛ばす。胴は津波を続ける。
+// 四段目: 渦潮。津波に加えて、曲がりながら広がる四本腕の渦を巻く。
 
 export default class extends Stage {
     *G() {
@@ -27,12 +31,6 @@ export default class extends Stage {
 
         const boss = new EnemyGenbu(this.game)
         this.game.enemies.push(boss, ...boss.parts)
-
-        // 甲羅が残っている間は、胴に攻撃が効かない
-        while (boss.life > 0) {
-            boss.isInvincible = boss.frame < 120 || boss.shells.some((p) => p.life > 0)
-            yield
-        }
 
         yield* this.waitAllEnemiesDead()
         this.scorenizeAllBullets()
@@ -51,7 +49,7 @@ class EnemyGenbu extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.06, 2, 3)
 
     // 甲羅(六枚)。胴を囲んで回る
-    readonly shells = [0, 1, 2, 3, 4, 5].map(
+    private readonly shells = [0, 1, 2, 3, 4, 5].map(
         (k) =>
             new Part(
                 this.game,
@@ -93,10 +91,11 @@ class EnemyGenbu extends Enemy {
     readonly parts = [...this.shells, this.snakeHead, ...this.snakeBody]
 
     constructor(game: Game) {
-        super(game, 3000, 44, { renderer: new EnemyRendererBoss() })
+        super(game, 3200, 44, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
+        this.addScript(() => this.phases())
     }
 
     private *enter() {
@@ -104,7 +103,6 @@ class EnemyGenbu extends Enemy {
         yield* this.moveTo(this.home(), 120)
 
         this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.tide(), { loop: Infinity, margin: 60 })
     }
 
     private home() {
@@ -114,6 +112,58 @@ class EnemyGenbu extends Enemy {
     private *move() {
         this.p = this.path((this.frame - 120) / 220).add(this.home())
         yield
+    }
+
+    private *phases() {
+        // 一段目: 甲羅が残っている間は、胴に攻撃が効かない
+        this.addScript(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
+        while (this.shells.some((p) => p.life > 0)) yield
+
+        // 二段目: 津波
+        this.isInvincible = false
+        this.game.camera.shake(6, 20)
+        this.addScript(() => this.tide(), { loop: Infinity, id: "body" })
+
+        while (this.life > this.maxLife * 0.6) yield
+
+        // 三段目: 水を溜めてから、小甲羅(孫機)に守られた子亀を呼ぶ
+        this.removeScript("body")
+        yield* this.battery.charge(180)
+        this.game.camera.shake(10, 40)
+
+        for (const side of [-1, 1]) {
+            const baby = new Part(
+                this.game,
+                this,
+                300,
+                20,
+                (me) => vec(side * (120 + 10 * Math.sin(me.frame / 40)), 130 + 8 * Math.sin(me.frame / 25)),
+                (me) => this.bubbles(me),
+                60 + (side > 0 ? 50 : 0),
+            )
+            const smallShells = [0, 1, 2].map(
+                (k) =>
+                    new Part(
+                        this.game,
+                        baby,
+                        80,
+                        10,
+                        (me) => vec.arg(me.frame / 30 + (T * k) / 3).scale(34),
+                        (me) => this.droplet(me, baby),
+                        60 + k * 30,
+                    ),
+            )
+            baby.guardedBy(smallShells)
+            this.game.enemies.push(baby, ...smallShells)
+        }
+
+        this.addScript(() => this.tide(), { loop: Infinity, margin: 90, id: "body" })
+
+        while (this.life > this.maxLife * 0.25) yield
+
+        // 四段目: 渦潮。津波に渦を重ねる
+        this.game.camera.shake(8, 30)
+        this.addScript(() => this.whirlpool(), { loop: Infinity, margin: 30, id: "whirlpool" })
     }
 
     // 甲羅の水弾。k 番目の甲羅は 8k フレーム待ってから、胴から外向きに五方向の水弾を放つ
@@ -167,24 +217,53 @@ class EnemyGenbu extends Enemy {
         yield* Array(90 - j * 10)
     }
 
-    // 亀の胴の波。甲羅があるうちは、ときどき輪を放つ。
-    // 甲羅を割ると、画面の幅いっぱいの波を三列続けて押し寄せる。隙間は一か所で、列ごとに少しずつずれる
+    // 子亀の泡。下へ向けて大きな泡を三つ吐く。泡はゆっくり出て、だんだん速くなる
+    private *bubbles(me: Part) {
+        yield* remodel(me)
+            .format("big-ball")
+            .color("#c0e8ff")
+            .p(me.p.clone())
+            .speed(1)
+            .radian(T / 4)
+            .nway(3, 0.4)
+            .g((b) => Behavior.ease(b, "speed", 5, 50, Ease.In))
+            .fire(this.game.bullets)
+
+        yield* Array(100)
+    }
+
+    // 小甲羅の水滴。子亀から見て外向きに、小さな水滴を二つ飛ばす
+    private *droplet(me: Part, baby: Part) {
+        yield* remodel(me)
+            .format("small-ball")
+            .r(5)
+            .color("#b0e8ff")
+            .p(me.p.clone())
+            .speed(3.5)
+            .radian(me.p.sub(baby.p).radian())
+            .nway(2, 0.2)
+            .fire(this.game.bullets)
+
+        yield* Array(90)
+    }
+
+    // 一段目の胴。ときどき輪を放つ
+    private *ring() {
+        yield* remodel(this)
+            .format("small-ball")
+            .r(5)
+            .color("#90d0ff")
+            .p(this.p.clone())
+            .speed(3.5)
+            .radian(this.random() * T)
+            .ex(16)
+            .fire(this.game.bullets)
+
+        yield* Array(160)
+    }
+
+    // 津波。画面の幅いっぱいの波を三列続けて押し寄せる。隙間は一か所で、列ごとに少しずつずれる
     private *tide() {
-        if (this.shells.some((p) => p.life > 0)) {
-            yield* remodel(this)
-                .format("small-ball")
-                .r(5)
-                .color("#90d0ff")
-                .p(this.p.clone())
-                .speed(3.5)
-                .radian(this.random() * T)
-                .ex(16)
-                .fire(this.game.bullets)
-
-            yield* Array(160)
-            return
-        }
-
         const gap = this.game.WIDTH * (0.25 + 0.5 * this.random())
         const drift = this.random() < 0.5 ? -50 : 50
 
@@ -203,6 +282,26 @@ class EnemyGenbu extends Enemy {
                 .g((b) => Behavior.ease(b, "speed", 5.5, 60, Ease.In))
                 .fire(this.game.bullets)
             yield* Array(24)
+        }
+
+        yield* Array(150)
+    }
+
+    // 渦潮。曲がりながら広がる四本腕の渦
+    private *whirlpool() {
+        const base = this.random() * T
+
+        for (let f = 0; f < 60; f += 5) {
+            yield* remodel(this)
+                .format("diamond")
+                .color("#a0d8ff")
+                .p(this.p.clone())
+                .speed(4)
+                .radian(base + f * 0.02)
+                .ex(4)
+                .g((b) => Behavior.rotating(b, 0.012, 120))
+                .fire(this.game.bullets)
+            yield* Array(5)
         }
 
         yield* Array(150)
