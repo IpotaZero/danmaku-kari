@@ -168,7 +168,7 @@ class EnemySuzaku extends Enemy {
             .color(FEATHER)
             .p(this.p.clone())
             .speed(0.5)
-            .aim(this.game.player.p)
+            .aim(this.game.player)
             .nway(way, T / 22)
             .g((me) => Behavior.accel(me, 60, 3))
             .fire(this.game.bullets)

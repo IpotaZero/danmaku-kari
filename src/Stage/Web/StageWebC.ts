@@ -107,7 +107,7 @@ class EnemyMother extends Enemy {
                 .p(this.p.clone())
                 .duplicate(63)
                 .scatter({ p: 120, hue: [0, 360] })
-                .aim(this.game.player.p)
+                .aim(this.game.player)
                 .delayByIndex()
                 .speed(12)
                 .appear(30)

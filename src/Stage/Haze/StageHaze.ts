@@ -173,7 +173,7 @@ class EnemyHaze extends Enemy {
             .color(ARROW_COLOR)
             .p(this.p.clone())
             .speed(0.5)
-            .aim(this.game.player.p)
+            .aim(this.game.player)
             .nway(way, T / 24)
             .g((me) => Behavior.accel(me, 50, 3.6))
     }

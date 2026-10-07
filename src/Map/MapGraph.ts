@@ -38,12 +38,17 @@ const stageLoaders: ReadonlyMap<string, () => Promise<StageModule>> = (() => {
     return loaders
 })()
 
+// ステージのファイルが見つからないノードでは、代わりにこのステージを遊ばせる
+const MISSING_STAGE_NAME = "Test/StageNotImplemented"
+
 export class MapNode {
+    private readonly loadStage: () => Promise<StageModule>
+
     constructor(
         // Canvasのカードのid。同じステージを複数のノードで使い回せるよう、ステージ名とは別に持つ
         readonly id: MapNodeId,
         readonly label: string,
-        private readonly stageName: string,
+        stageName: string,
         // ワールド座標(px)。原点や単位に意味はなく、ノード間の相対位置だけが重要
         readonly x: number,
         readonly y: number,
@@ -53,13 +58,15 @@ export class MapNode {
         // クリアすると授かる免状。道場主のノードにだけ付く
         readonly badge?: BadgeId,
     ) {
-        // 書き間違いにはマップ読み込みの時点で気づけるようにする(ステージに入ってから落ちるのを防ぐ)
-        if (!stageLoaders.has(stageName)) {
+        // 見つからなくてもマップ全体は遊べるよう止めずに代わりのステージにする。書き間違いには読み込み時点の警告で気づけるようにする
+        const loadStage = stageLoaders.get(stageName)
+        if (!loadStage) {
             const available = [...stageLoaders.keys()].join(", ")
-            throw new Error(
-                `ステージのファイルが見つかりません: ${stageName} (ノード「${label}」)。候補: [${available}]`,
+            console.warn(
+                `ステージのファイルが見つかりません: ${stageName} (ノード「${label}」)。${MISSING_STAGE_NAME}で代用します。候補: [${available}]`,
             )
         }
+        this.loadStage = loadStage ?? stageLoaders.get(MISSING_STAGE_NAME)!
     }
 
     // カード本文の1行目をラベル、2行目をステージの相対パスまたは一意なファイル名として読む。座標はカードの中心。
@@ -86,7 +93,7 @@ export class MapNode {
     }
 
     async stage(game: Game): Promise<Stage> {
-        const { default: StageClass } = await stageLoaders.get(this.stageName)!()
+        const { default: StageClass } = await this.loadStage()
         return new StageClass(game)
     }
 }

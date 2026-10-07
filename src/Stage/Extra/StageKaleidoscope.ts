@@ -105,7 +105,7 @@ class EnemyKaleidoscope extends Enemy {
                 .color("#ffffff")
                 .p(this.p.clone())
                 .speed(0.5)
-                .aim(this.game.player.p)
+                .aim(this.game.player)
                 .nway(3, T / 24)
                 .g((me) => Behavior.accel(me, 50, 3.4))
                 .rotational(this.center, FOLD)

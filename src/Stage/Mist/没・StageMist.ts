@@ -28,7 +28,7 @@ const LANTERN_LIFE = 260
 const LANTERN_RADIUS = 64
 
 // 一段目。霧の渦の腕の数・回る速さ、霧を撃ち続ける時間と休む時間
-const SPIRAL_ARMS = 12
+const SPIRAL_ARMS = 31
 const SPIRAL_SPIN = T / 260
 const SPIRAL_FRAMES = 240
 const REST_FRAMES = 160
@@ -221,7 +221,7 @@ class EnemyKagerou extends Enemy {
             .color(ARROW_COLOR)
             .p(this.p.clone())
             .speed(0.5)
-            .aim(this.game.player.p)
+            .aim(this.game.player)
             .nway(way, T / 20)
             .g((me) => Behavior.accel(me, 60, 3.2))
             .fire(this.game.bullets)

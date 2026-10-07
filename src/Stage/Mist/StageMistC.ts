@@ -26,7 +26,7 @@ const ROUND_INTERVAL = 110
 const LAND_MIN = 90
 const LAND_MAX = 170
 // 手裏剣は40フレーム霧のまま飛び、刺さって45フレーム後に弾ける
-const SHURIKEN: Mist.Shuriken = { flight: 40, stuck: 45, burstCount: 14, burstSpeed: 1.8, color: "#e0e0ff" }
+const SHURIKEN: Mist.Shuriken = { flight: 90, stuck: 45, burstCount: 14, burstSpeed: 1.8, color: "#e0e0ff" }
 
 const CLONE_COUNT = 4
 const CLONE_LIFE = 450

@@ -111,7 +111,7 @@ class EnemyMaster extends Enemy {
             .format("arrow")
             .color("#bfe9ff")
             .p(this.p.clone())
-            .aim(this.game.player.p.clone())
+            .aim(this.game.player)
             .duplicate(3, (me, i) => {
                 me.radian = T * (i / 3)
                 me.speed = 4 + 4 * (i / 3)

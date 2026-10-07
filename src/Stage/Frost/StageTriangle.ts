@@ -72,7 +72,7 @@ class EnemyLine extends Enemy {
             })
             .p(this.p)
             .speed(4)
-            .aim(this.game.player.p)
+            .aim(this.game.player)
             .nway(3, T / 24)
             .fire(this.game.bullets)
         yield

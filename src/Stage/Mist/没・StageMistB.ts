@@ -16,7 +16,7 @@ import { Mist } from "./Mist"
 // 左右の忍び(衛星)が、霧にならない苦無を投げてくる。苦無をよけようとして実体の石に触れないよう、飛び移る先を選ぶ。
 
 const ENTRANCE_FRAMES = 150
-const CLOCK = new Mist.Clock(140, 30)
+const CLOCK = new Mist.Clock(360, 60)
 // 石は霧の姿で現れて70フレーム後に入れ替わり始め、時計の3周分続ける。
 // 石の半径は24なので、四つの石に囲まれた真ん中にしか常に安全な場所はない
 const FIELD: Mist.Field = { spacing: 44, top: 0.34, intro: 70, active: CLOCK.period * 3, fade: 30 }
@@ -105,12 +105,12 @@ class EnemyShinobi extends Enemy {
             if (this.life <= 0) return
 
             yield* remodel(this)
-                .format("arrow")
+                .format("diamond")
                 .r(16)
                 .color("#ffe0a0")
                 .p(this.p.clone())
                 .speed(2.8)
-                .aim(this.game.player.p)
+                .aim(this.game.player)
                 .nway(3, T / 24)
                 .fire(this.game.bullets)
 

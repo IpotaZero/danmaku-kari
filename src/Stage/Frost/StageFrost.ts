@@ -204,7 +204,7 @@ class EnemyFrost extends Enemy {
                 .p(this.p.clone())
                 .speed(1.5)
                 .color("#bfe9ff")
-                .aim(this.game.player.p.clone())
+                .aim(this.game.player)
                 .nway(7, T / 28)
                 .g(function* (me) {
                     yield* Behavior.accel(me, 40, 5)
@@ -298,7 +298,7 @@ class EnemyFrost extends Enemy {
                 .delayByIndex()
                 .speed(8)
                 .g((me) => Behavior.reaccel(me, 30, 30, 30))
-                .aim(this.game.player.p)
+                .aim(this.game.player)
                 .fire(this.game.bullets)
 
             yield* Array(120)

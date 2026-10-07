@@ -20,7 +20,7 @@ const ENTRANCE_FRAMES = 150
 // 段の間(32px)は自機の当たり判定の8倍よりわずかに広い。筋の砂粒の間隔(10px)は狭いので、切れ目以外は抜けられない
 const BAND: Sand.Band = {
     rows: 8,
-    rowGap: 40,
+    rowGap: 80,
     speed: 1.6,
     spacing: 10,
     segment: [90, 170],
@@ -39,7 +39,7 @@ export default class extends Stage {
 }
 
 class EnemyPupil extends Enemy {
-    private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.05, 1, 2)
+    private readonly path = Curves.lissajous(this.game.WIDTH * 0.8, this.game.HEIGHT * 0.1, 8, 13)
 
     constructor(game: Game) {
         super(game, 3000, 48, { renderer: new EnemyRendererCore() })
@@ -59,7 +59,7 @@ class EnemyPupil extends Enemy {
     }
 
     private *move() {
-        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 1500).add(this.home())
+        this.p = this.path((this.frame - ENTRANCE_FRAMES) / 300).add(this.home())
         yield
     }
 
@@ -76,14 +76,19 @@ class EnemyPupil extends Enemy {
 
         // 帯が自機の上を通るころ、ゆっくりした矢を混ぜる。切れ目へ横に走る途中で、矢の筋も見ることになる
         yield* Array(Math.floor(Sand.travelFrames(this, BAND) * 0.45))
+
         yield* remodel(this)
-            .format("arrow")
+            .format("diamond")
             .color("#fff0d0")
             .p(this.p.clone())
-            .speed(0.5)
-            .aim(this.game.player.p)
+            .speed(1)
+            .duplicate(31)
+            .delayByIndex()
+            .aim(this.game.player)
             .nway(5, T / 20)
-            .g((me) => Behavior.accel(me, 60, 2.5))
+            .g(function* (me) {
+                yield* Behavior.accel(me, 60, 8)
+            })
             .fire(this.game.bullets)
     }
 }

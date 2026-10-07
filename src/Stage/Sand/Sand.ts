@@ -55,6 +55,7 @@ export namespace Sand {
 
             yield* remodel(e)
                 .format("small-ball")
+                .isScorable(false)
                 .color(COLOR)
                 .speed(0)
                 .duplicate(grains.length, (b, i) => {

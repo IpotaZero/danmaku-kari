@@ -47,7 +47,7 @@ class EnemyCore extends Enemy {
         yield* remodel(this)
             .format("diamond")
             .r(20)
-            .aim(this.game.player.p)
+            .aim(this.game.player)
             .color("#bbffaa")
             .speed(8)
             .p(this.p)

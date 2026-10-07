@@ -92,7 +92,7 @@ class EnemyStar extends Enemy {
             .color("#e0d8ff")
             .p(this.p.clone())
             .speed(0.5)
-            .aim(this.game.player.p)
+            .aim(this.game.player)
             .nway(3, T / 20)
             .g((me) => Behavior.accel(me, 60, 3))
             .fire(this.game.bullets)

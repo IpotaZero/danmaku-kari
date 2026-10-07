@@ -128,7 +128,7 @@ class EnemyFlame extends Enemy {
             .format("arrow")
             .color(ARROW_COLOR)
             .p(this.p.clone())
-            .aim(this.game.player.p)
+            .aim(this.game.player)
             .ex(13)
             .delayByIndex()
             .speed(4)

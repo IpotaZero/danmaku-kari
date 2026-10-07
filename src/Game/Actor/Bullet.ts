@@ -22,6 +22,7 @@ export class Bullet extends Actor {
     damage: number = 1
     isScorable: boolean = true
 
+    // Remodel の fire を始めてから撃たれるまでのフレーム数。来るまで、Remodel の次の加工の手前で待つ
     delay: number = 0
 
     appearance: "donut" | "ball" | "line" | "arrow" | "laser" | "beam" | "player" | "score" | Polygon.Type = "donut"

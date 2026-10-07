@@ -99,7 +99,7 @@ class EnemyMob extends Enemy {
             .colorful(this.frame)
             .format("small-ball")
             .p(this.p.clone())
-            .aim(this.game.player.p)
+            .aim(this.game.player)
             .nway(17, T / 24)
             .delayByIndex()
             .speed(12)

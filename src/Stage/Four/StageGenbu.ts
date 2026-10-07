@@ -160,7 +160,7 @@ class EnemyGenbu extends Enemy {
             .format("diamond")
             .color(COLOR)
             .speed(speed)
-            .aim(this.game.player.p)
+            .aim(this.game.player)
             .nway(way, spread)
             .fire(this.game.bullets)
     }

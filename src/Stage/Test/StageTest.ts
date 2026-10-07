@@ -151,7 +151,7 @@ class EnemyBoss extends Enemy {
             .r(4)
             .speed(8)
             .color("#ffffff")
-            .aim(this.game.player.p.clone())
+            .aim(this.game.player)
             .nway(13, T / 120)
             .delayByIndex()
             .g(function* (me, i) {
@@ -200,7 +200,6 @@ class EnemySatellite extends Enemy {
 
         const stopFrames = 40
         const accelFrames = 60
-        const target = this.game.player.p.clone()
 
         yield* remodel(this)
             .p(this.p.clone())
@@ -208,7 +207,7 @@ class EnemySatellite extends Enemy {
             .r(12)
             .speed(6)
             .color("#ff3366")
-            .aim(target)
+            .aim(this.game.player)
             .nway(nway, angle)
             .delayByIndex()
             .g(function* (me, i) {

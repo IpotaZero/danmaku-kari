@@ -107,7 +107,7 @@ class EnemyPlanet extends Enemy {
             .color("#ffe8a0")
             .p(this.p.clone())
             .speed(0.5)
-            .aim(this.game.player.p)
+            .aim(this.game.player)
             .nway(3, T / 18)
             .g((me) => Behavior.accel(me, 60, 2.6))
             .fire(this.game.bullets)

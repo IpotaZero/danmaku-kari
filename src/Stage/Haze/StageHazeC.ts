@@ -84,7 +84,7 @@ class EnemySpark extends Enemy {
             .format("arrow")
             .color("#ffe0b0")
             .p(this.p.clone())
-            .aim(this.game.player.p)
+            .aim(this.game.player)
             .nway(3, T / 20)
             .delayByIndex()
             .speed(4)

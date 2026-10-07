@@ -277,7 +277,7 @@ class EnemyKabuto extends Enemy {
             .color("#ffe0a0")
             .p(this.p.clone())
             .speed(0.5)
-            .aim(this.game.player.p)
+            .aim(this.game.player)
             .nway(way, spread)
             .g((me) => Behavior.accel(me, 50, 3.4))
             .fire(this.game.bullets)

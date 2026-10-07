@@ -22,10 +22,10 @@ const CYCLE_FRAMES = 560
 const RING_FRAMES = 200
 const RING_INTERVAL = 20
 // 一つの輪の弾の数と、広がる速さ
-const RING_COUNT = 30
+const RING_COUNT = 31
 const RING_SPEED = 2.2
 // 二色が一度ずつ実体になるまでの長さと、入れ替わりにかかる時間
-const CLOCK = new Mist.Clock(160, 36)
+const CLOCK = new Mist.Clock(360, 36)
 const COLORS: Color[] = ["#ffb0d0", "#a0c8ff"]
 
 const LANTERN_LIFE = 700
@@ -82,9 +82,9 @@ class EnemyPupil extends Enemy {
                 .color("#ffffff")
                 .p(this.p.clone())
                 .speed(0.5)
-                .aim(this.game.player.p)
+                .aim(this.game.player)
                 .nway(3, T / 16)
-                .g((me) => Behavior.accel(me, 60, 4))
+                .g((me) => Behavior.accel(me, 60, 8))
                 .fire(this.game.bullets)
         }
     }
@@ -113,10 +113,8 @@ class EnemyLantern extends Enemy {
     // 時計に合わせて霧になる輪を、一定の間隔で広げる。輪ごとに向きを半分ずらす
     private *rings(phase: number) {
         for (let k = 0; k < RING_FRAMES / RING_INTERVAL; k++) {
-            if (this.life <= 0) return
-
             yield* remodel(this)
-                .format("donut")
+                .format("diamond")
                 .color(COLORS[phase])
                 .p(this.p.clone())
                 .speed(RING_SPEED)

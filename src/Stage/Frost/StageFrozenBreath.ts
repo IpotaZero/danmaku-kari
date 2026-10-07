@@ -118,7 +118,7 @@ class EnemyPupil extends Enemy {
             .color("#bfe9ff")
             .p(this.p.clone())
             .speed(2.5)
-            .aim(this.game.player.p.clone())
+            .aim(this.game.player)
             .nway(7, T / 20)
             .fire(this.game.bullets)
     }

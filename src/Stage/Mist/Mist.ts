@@ -133,8 +133,6 @@ export namespace Mist {
             .format("diamond")
             .color(config.color)
             .p(start.clone())
-            .type("neutral")
-            .alpha(0.25)
             .speed(0)
             .g(function* (me) {
                 // 弾の向きは進む向きでもあるので、回して見せるために位置は直接動かす

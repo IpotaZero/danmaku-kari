@@ -8,7 +8,7 @@ import { Enemy } from "./Actor/Enemy"
 import { seededRandom } from "../utils/Functions/seededRandom"
 
 export function remodel<Parent extends Actor>(e: Parent) {
-    return new Remodel([new Bullet(e.game)], e)
+    return new Remodel(e)
 }
 
 // Bullet のうち、値として書き換えられるプロパティ(メソッドと readonly を除く)
@@ -190,17 +190,20 @@ export namespace Behavior {
     }
 }
 
+// 流れていく弾と、duplicate されるたびに積まれていく「何番目の複製か」
+type Shot = { me: Bullet; indices: number[] }
+
 // BulletSetters は constructor が返す Proxy によって実装される
 export interface Remodel<Parent extends Actor> extends BulletSetters<Remodel<Parent>> {}
 
+// 弾への加工を積んでおき、fire で弾を流す。加工は fire で弾が流れてきたときに初めて行われる。
+// delay が来ていない弾は次の加工の手前で待つので、delay を決めた後に積んだ加工(aim など)は、その弾が撃たれる瞬間に行われる
 export class Remodel<Parent extends Actor> {
-    private readonly indices: number[][]
+    // 弾の流れ。undefined は「1フレーム待つ」合図
+    private flow: Iterable<Shot | undefined>
 
-    constructor(
-        private bullets: Bullet[],
-        private readonly parent: Parent,
-    ) {
-        this.indices = bullets.map(() => [])
+    constructor(private readonly parent: Parent) {
+        this.flow = [{ me: new Bullet(parent.game), indices: [] }]
 
         return new Proxy(this, {
             get(target, key, receiver: Remodel<Parent>) {
@@ -211,24 +214,48 @@ export class Remodel<Parent extends Actor> {
         })
     }
 
-    // 発射
+    // 発射。すべての弾が bullets にたどり着くまで続く
     *fire(bullets: Bullet[]) {
-        this.bullets.forEach((b) => {
-            b.init()
+        this.pipe(({ me }) => {
+            me.init()
+            bullets.push(me)
+            return []
         })
 
-        let frame = 0
+        for (const _ of this.flow) yield
+    }
 
-        this.bullets.sort((a, b) => a.delay - b.delay)
+    // 加工を一つ積む。f は流れてきた弾を受け取り、代わりに流す弾を返す。index はこの加工を通った順番。
+    // delay が来ていない弾は、来るまでこの加工の手前で待たせる
+    private pipe(f: (shot: Shot, index: number) => Iterable<Shot>) {
+        const upstream = this.flow
 
-        for (const b of this.bullets) {
-            while (b.delay > frame) {
-                frame++
+        this.flow = (function* () {
+            let waiting: Shot[] = []
+            let frame = 0
+            let index = 0
+
+            // 1フレーム待ってから、delay の来た弾を通す
+            const tick = function* () {
                 yield
+                frame++
+
+                const due = waiting.filter((shot) => shot.me.delay <= frame)
+                waiting = waiting.filter((shot) => shot.me.delay > frame)
+
+                for (const shot of due) yield* f(shot, index++)
             }
 
-            bullets.push(b)
-        }
+            for (const shot of upstream) {
+                if (shot === undefined) yield* tick()
+                else if (shot.me.delay > frame) waiting.push(shot)
+                else yield* f(shot, index++)
+            }
+
+            while (waiting.length > 0) yield* tick()
+        })()
+
+        return this
     }
 
     format(type: keyof typeof Format.r) {
@@ -246,7 +273,7 @@ export class Remodel<Parent extends Actor> {
             })
     }
 
-    // 出現を遅らせる
+    // 出現を遅らせる。この後に積んだ加工は、弾が出現する瞬間に行われる
     delayByIndex(scalar: number = 1) {
         return this.forEach((b, index) => {
             b.delay = index * scalar
@@ -260,10 +287,10 @@ export class Remodel<Parent extends Actor> {
         })
     }
 
-    // 弾の向きを指定した座標に向ける
-    aim(target: Vec) {
-        return this.forEach((b) => {
-            b.radian = target.sub(b.p).radian()
+    // 弾の向きを target に向ける。target の位置は、弾がこの加工を通る瞬間のものを使う
+    aim(target: Actor) {
+        return this.forEach((me) => {
+            me.radian = target.p.sub(me.p).radian()
         })
     }
 
@@ -336,41 +363,12 @@ export class Remodel<Parent extends Actor> {
 
     // 弾を複製する。map で複製した弾のプロパティを変更できる
     duplicate(num: number, map?: (me: Bullet, index: number, ...parentIndices: number[]) => Bullet) {
-        if (map) {
-            const result: Bullet[] = []
-            const resultIndices: number[][] = []
-
-            const length = this.bullets.length
-
-            for (let i = 0; i < length; i++) {
-                const bullet = this.bullets[i]
-
-                for (let j = 0; j < num; j++) {
-                    result.push(map(bullet.clone(), j, ...this.indices[i]))
-                    resultIndices.push([...this.indices[i], j])
-                }
-            }
-
-            this.bullets = result
-            this.indices.splice(0, this.indices.length, ...resultIndices)
-
-            return this
-        } else {
-            const result: Bullet[] = []
-            const resultIndices: number[][] = []
-
-            this.bullets.forEach((bullet, i) => {
-                for (let j = 0; j < num; j++) {
-                    result.push(bullet.clone())
-                    resultIndices.push([...this.indices[i], j])
-                }
-            })
-
-            this.bullets = result
-            this.indices.splice(0, this.indices.length, ...resultIndices)
-
-            return this
-        }
+        return this.pipe(({ me, indices }) =>
+            Array.from({ length: num }, (_, j) => ({
+                me: map ? map(me.clone(), j, ...indices) : me.clone(),
+                indices: [...indices, j],
+            })),
+        )
     }
 
     // 弾を円形に配置する。direction は弾の向きの方向を指定する
@@ -488,40 +486,19 @@ export class Remodel<Parent extends Actor> {
     // 弾ごとに、鏡 mirror を挟んで鏡写しになる双子の弾を加える(Bullet.reflection)。
     // 双子は元の弾の姿を写し取るだけなので、挙動(g など)をすべて付け終えた後、fire の直前に呼ぶ
     mirror(mirror: Reflector) {
-        const result: Bullet[] = []
-        const resultIndices: number[][] = []
-
-        this.bullets.forEach((b, i) => {
-            result.push(b, b.reflection(mirror))
-            resultIndices.push(this.indices[i], this.indices[i])
-        })
-
-        this.bullets = result
-        this.indices.splice(0, this.indices.length, ...resultIndices)
-
-        return this
+        return this.pipe((shot) => [shot, { me: shot.me.reflection(mirror), indices: shot.indices }])
     }
 
     // 弾ごとに、center を中心に一周を num 等分した向きへ回した双子の弾を加える(Bullet.rotation)。弾は num 倍になる。
     // mirror と同じく、fire の直前に呼ぶ
     rotational(center: Vec, num: number) {
-        const result: Bullet[] = []
-        const resultIndices: number[][] = []
-
-        this.bullets.forEach((b, i) => {
-            result.push(b)
-            resultIndices.push(this.indices[i])
-
-            for (let k = 1; k < num; k++) {
-                result.push(b.rotation(center, (T * k) / num))
-                resultIndices.push(this.indices[i])
-            }
-        })
-
-        this.bullets = result
-        this.indices.splice(0, this.indices.length, ...resultIndices)
-
-        return this
+        return this.pipe((shot) => [
+            shot,
+            ...Array.from({ length: num - 1 }, (_, k) => ({
+                me: shot.me.rotation(center, (T * (k + 1)) / num),
+                indices: shot.indices,
+            })),
+        ])
     }
 
     // 複数の鏡に順に映す(mirror を重ねる)。弾は 2^(鏡の数) 個になる。fire の直前に呼ぶ
@@ -552,15 +529,14 @@ export class Remodel<Parent extends Actor> {
         config: { loop?: number; margin?: number; id?: string } = {},
     ) {
         const parent = this.parent
-        const indices = this.indices
 
-        this.bullets.forEach((b, index) => {
-            // 敵の弾は、弾ごとに専用の乱数で動かす。シードは弾を作った時点で決めるので、
+        return this.pipe((shot, index) => {
+            // 敵の弾は、弾ごとに専用の乱数で動かす。シードは弾がこの加工を通った時点で決めるので、
             // ほかの弾が途中で消えても値がずれない
             const seed = parent instanceof Enemy ? Math.floor(parent.random() * 2 ** 32) : 0
 
-            b.bookScript(function* (me: Bullet) {
-                const behavior = g.call(parent, me, index, ...indices[index])
+            shot.me.bookScript(function* (me: Bullet) {
+                const behavior = g.call(parent, me, index, ...shot.indices)
 
                 if (parent instanceof Enemy) {
                     yield* parent.withRandom(seededRandom(seed), behavior)
@@ -568,24 +544,24 @@ export class Remodel<Parent extends Actor> {
                     yield* behavior
                 }
             }, config)
-        })
 
-        return this
+            return [shot]
+        })
     }
 
-    // 弾に対して処理を行う。
+    // 弾に対して処理を行う。index はこの加工を通った順番
     forEach(handler: (me: Bullet, index: number) => void) {
-        this.bullets.forEach(handler)
-        return this
+        return this.pipe((shot, index) => {
+            handler(shot.me, index)
+            return [shot]
+        })
     }
 
     // 弾のプロパティを一括で変更する
     set<K extends BulletProps>(key: K, value: Bullet[K]) {
-        this.bullets.forEach((b) => {
-            b[key] = value
+        return this.forEach((me) => {
+            me[key] = value
         })
-
-        return this
     }
 
     x(x: number) {

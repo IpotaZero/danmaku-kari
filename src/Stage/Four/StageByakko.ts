@@ -224,7 +224,7 @@ class EnemyByakko extends Enemy {
                             .r(18)
                             .p(me.p.clone())
                             .speed(0.5)
-                            .aim(me.game.player.p)
+                            .aim(me.game.player)
                             .nway(3, T / 18)
                             .g((b, i) =>
                                 GenUtils.all({
