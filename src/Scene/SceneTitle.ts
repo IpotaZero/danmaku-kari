@@ -72,11 +72,13 @@ export class SceneTitle extends Scene {
     }
 
     private async startBGM() {
-        await Promise.all([App.bm.load({ src: "assets/bgm/title.mp3" }), Awaits.sleep(1000)])
+        await Promise.all([App.bm.load({ src: "assets/bgm/title.mp3", trackVolume: 0.5 }), Awaits.sleep(1000)])
         await App.bm.play()
     }
 
-    protected async onEnd(): Promise<void> {}
+    protected async onEnd(): Promise<void> {
+        await App.bm.fadeOut(1)
+    }
 
     update(): void {
         this.menu?.update()
