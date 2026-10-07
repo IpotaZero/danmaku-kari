@@ -11,9 +11,13 @@ import { Part } from "../Part"
 
 // ステージ「青龍」(四天王)
 // 青龍の頭のうしろに十の胴の節が連なり、頭の通った道をそのままたどって、画面の中ほどを大きくうねる。
-// 宝珠: 頭のまわりを回る珠。自機の方へ三本の雷を落とす。雷は落ちる前に細い線で見える。宝珠を落とすまで、頭には攻撃が効かない。
+// 宝珠: 頭のまわりを回る珠。自機の方へ三本の雷を落とす。雷は落ちる前に細い線で見える。
 // 胴の節: 頭から尾へ順に、体の両脇へ鱗を払う。龍がうねっているので、鱗はあちこちへ向かう。
-// 頭: 宝珠があるうちは、ときどき輪を吐く。宝珠を落とすと、通った跡に雷を残すようになる。残った雷は少しして弾ける。
+// 一段目: 宝珠を落とすまで、頭に攻撃が効かない。頭はときどき輪を吐く。
+// 二段目: 雷跡。頭は通った跡に雷を残す。残った雷は少しして弾ける。
+// 三段目: 雷雨。頭は雲を呼ぶ力を溜める(充電)。溜めている間は攻撃が効かず、撃つほど早く溜まる。
+//         溜まると、画面の上に三つの雷雲が現れる。雷雲は雨を降らせ、雷雲のまわりを回る雷玉(孫機)は真下へ雷を落とす。
+// 四段目: 昇龍。頭は雷跡を残しながら、ときどき咆哮する。咆哮は下向きの大きな扇で、だんだん速くなる。
 
 export default class extends Stage {
     *G() {
@@ -26,19 +30,13 @@ export default class extends Stage {
         const boss = new EnemySeiryu(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
-        // 宝珠が残っている間は、頭に攻撃が効かない
-        while (boss.life > 0) {
-            boss.isInvincible = boss.frame < 120 || boss.pearl.life > 0
-            yield
-        }
-
         yield* this.waitAllEnemiesDead()
         this.scorenizeAllBullets()
 
         yield* Array(300)
 
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["……見事。宝珠も、我が身も、砕かれたか。"], { name: "青龍" })
+        yield* this.game.textBox.say(["……見事。宝珠も、雷雲も、我が身も、砕かれたか。"], { name: "青龍" })
         yield* this.game.textBox.say(["うねうね動くから、狙うのが大変だったよ。"], { name: "ハチノコ" })
         yield* this.game.textBox.say(["南へ進め。朱雀が待っている。"], { name: "青龍" })
         this.hideFigure("hachinoko")
@@ -50,7 +48,7 @@ class EnemySeiryu extends Enemy {
     private readonly trail: Vec[] = []
 
     // 宝珠。頭のまわりを回る
-    readonly pearl = new Part(
+    private readonly pearl = new Part(
         this.game,
         this,
         1500,
@@ -81,6 +79,7 @@ class EnemySeiryu extends Enemy {
         this.isInvincible = true
 
         this.addScript(() => this.enter())
+        this.addScript(() => this.phases())
     }
 
     private *enter() {
@@ -88,7 +87,6 @@ class EnemySeiryu extends Enemy {
         yield* this.moveTo(this.home(), 120)
 
         this.addScript(() => this.move())
-        this.addScript(() => this.breath(), { loop: Infinity, margin: 60 })
     }
 
     private home() {
@@ -105,6 +103,57 @@ class EnemySeiryu extends Enemy {
             this.trail.length = Math.min(this.trail.length, 100)
             yield
         }
+    }
+
+    private *phases() {
+        // 一段目: 宝珠が残っている間は、頭に攻撃が効かない
+        this.addScript(() => this.ring(), { loop: Infinity, margin: 180, id: "head" })
+        while (this.pearl.life > 0) yield
+
+        // 二段目: 雷跡
+        this.isInvincible = false
+        this.game.camera.shake(6, 20)
+        this.addScript(() => this.thunderTrail(), { loop: Infinity, id: "head" })
+
+        while (this.life > this.maxLife * 0.65) yield
+
+        // 三段目: 雷雨。力を溜めてから、雷玉(孫機)を連れた雷雲を呼ぶ
+        this.removeScript("head")
+        yield* this.battery.charge(180)
+        this.game.camera.shake(10, 40)
+
+        for (const i of [0, 1, 2]) {
+            const cloud = new Part(
+                this.game,
+                this,
+                400,
+                30,
+                (me) => vec(this.game.WIDTH * (0.2 + 0.3 * i) + 24 * Math.sin(me.frame / 40 + i), 70).sub(this.p),
+                (me) => this.rain(me),
+                30 + i * 20,
+            )
+            const orbs = [0, 1].map(
+                (k) =>
+                    new Part(
+                        this.game,
+                        cloud,
+                        100,
+                        10,
+                        (me) => vec.arg(me.frame / 25 + k * Math.PI).scale(44),
+                        (me) => this.bolt(me),
+                        60 + i * 40 + k * 90,
+                    ),
+            )
+            this.game.enemies.push(cloud, ...orbs)
+        }
+
+        this.addScript(() => this.thunderTrail(), { loop: Infinity, margin: 60, id: "head" })
+
+        while (this.life > this.maxLife * 0.25) yield
+
+        // 四段目: 昇龍。雷跡に咆哮を重ねる
+        this.game.camera.shake(8, 30)
+        this.addScript(() => this.roar(), { loop: Infinity, margin: 30, id: "roar" })
     }
 
     // 宝珠の雷。自機を狙った一本と、その両脇の二本。細い線で見えてから落ちる
@@ -139,23 +188,49 @@ class EnemySeiryu extends Enemy {
         yield* Array(150 - k * 6)
     }
 
-    // 頭の息。宝珠があるうちは輪を吐く。宝珠を落とすと、通った跡に雷を残す。残った雷は少しして弾ける
-    private *breath() {
-        if (this.pearl.life > 0) {
-            yield* remodel(this)
-                .format("small-ball")
-                .r(5)
-                .color("#c0f0ff")
-                .p(this.p.clone())
-                .speed(3.5)
-                .radian(this.random() * T)
-                .ex(20)
-                .fire(this.game.bullets)
+    // 雷雲の雨。雲の下のあちこちから、細い雨粒が真下へ速く落ちる
+    private *rain(me: Part) {
+        yield* remodel(me)
+            .format("line")
+            .color("#b0d8ff")
+            .p(me.p.clone())
+            .speed(7)
+            .radian(T / 4)
+            .duplicate(8)
+            .scatter({ p: 40 })
+            .delayByIndex(5)
+            .fire(this.game.bullets)
 
-            yield* Array(150)
-            return
-        }
+        yield* Array(70)
+    }
 
+    // 雷玉の雷。真下へ、細い線で見えてから落ちる
+    private *bolt(me: Part) {
+        yield* remodel(me)
+            .color("#e0f8ff")
+            .laser(35, 15, me.p.clone(), me.p.add(vec.arg(T / 4 + (this.random() - 0.5) * 0.3).scale(1500)))
+            .fire(this.game.bullets)
+
+        yield* Array(180)
+    }
+
+    // 一段目の頭。ときどき輪を吐く
+    private *ring() {
+        yield* remodel(this)
+            .format("small-ball")
+            .r(5)
+            .color("#c0f0ff")
+            .p(this.p.clone())
+            .speed(3.5)
+            .radian(this.random() * T)
+            .ex(20)
+            .fire(this.game.bullets)
+
+        yield* Array(150)
+    }
+
+    // 雷跡。通った跡に雷を残す。残った雷は少しして弾ける
+    private *thunderTrail() {
         for (let f = 0; f < 100; f += 4) {
             yield* remodel(this)
                 .format("small-ball")
@@ -174,5 +249,20 @@ class EnemySeiryu extends Enemy {
         }
 
         yield* Array(60)
+    }
+
+    // 昇龍の咆哮。下向きの大きな扇が、ゆっくり出てだんだん速くなる
+    private *roar() {
+        yield* remodel(this)
+            .format("line")
+            .color("#a0ffd0")
+            .p(this.p.clone())
+            .speed(1.5)
+            .radian(T / 4)
+            .nway(15, 0.17)
+            .g((b) => Behavior.ease(b, "speed", 7.5, 45, Ease.In))
+            .fire(this.game.bullets)
+
+        yield* Array(110)
     }
 }
