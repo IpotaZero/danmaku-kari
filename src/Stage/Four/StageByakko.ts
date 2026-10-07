@@ -14,7 +14,12 @@ import { Part } from "../Part"
 // 後脚: 横へ風を蹴り出す。風は大きく弧を描いて、画面の両脇から下へ回り込む。
 // 尾: 縞模様の帯を、何本も続けて振り下ろす。帯の弾の間は狭く、帯の端を回り込んでかわす。
 // 子虎: 親の下にじゃれついて、小さな輪を放つ。親の下にいるので、親を狙った弾をさえぎる。
-// 胴: 両方の前脚を落とすまで攻撃が効かない。前脚を落とすと、吠えるたびに三重の輪を放つ。
+// 一段目: 前脚と尾を落とすまで、胴に攻撃が効かない(尾は胴のうしろにあるが、胴に攻撃が効かない間は弾が胴を素通りする)。
+// 二段目: 咆哮。吠えるたびに、速さの違う三重の輪を放つ。
+// 三段目: 若虎。白虎は遠吠えをする(充電)。吠えている間は攻撃が効かず、撃つほど早く吠え終わる。
+//         吠え終わると、二匹の若虎が駆けつけて、親の両脇を少し遅れて追いかける。若虎は前脚に爪(孫機)を一本ずつ持つ。
+//         若虎は止まってから散る輪を放ち、爪は真下へ三本の爪痕を落とす。
+// 四段目: 疾風。白虎は構える時間が短くなり、跳んで着地するたびに衝撃の輪を放つ。
 
 export default class extends Stage {
     *G() {
@@ -26,12 +31,6 @@ export default class extends Stage {
 
         const boss = new EnemyByakko(this.game)
         this.game.enemies.push(boss, ...boss.parts)
-
-        // 前脚が残っている間は、胴に攻撃が効かない
-        while (boss.life > 0) {
-            boss.isInvincible = boss.frame < 120 || boss.paws.some((p) => p.life > 0)
-            yield
-        }
 
         yield* this.waitAllEnemiesDead()
         this.scorenizeAllBullets()
@@ -47,11 +46,11 @@ export default class extends Stage {
 }
 
 class EnemyByakko extends Enemy {
-    // 親がこれまでにいた位置。新しいものほど前にある。子虎はこれをたどって追いかける
+    // 親がこれまでにいた位置。新しいものほど前にある。子虎と若虎はこれをたどって追いかける
     private readonly trail: Vec[] = []
 
     // 前脚(左右)
-    readonly paws = [-1, 1].map(
+    private readonly paws = [-1, 1].map(
         (side) =>
             new Part(
                 this.game,
@@ -64,7 +63,7 @@ class EnemyByakko extends Enemy {
             ),
     )
 
-    // 後脚(左右)
+    // 後脚(左右)。胴の真後ろに隠れないよう、胴の幅より外に出す
     private readonly hindLegs = [-1, 1].map(
         (side) =>
             new Part(
@@ -72,13 +71,13 @@ class EnemyByakko extends Enemy {
                 this,
                 350,
                 20,
-                () => vec(side * 62, -26),
+                () => vec(side * 72, -24),
                 (me) => this.wind(me, side),
                 170 + (side > 0 ? 45 : 0),
             ),
     )
 
-    // 尾。胴の上で、ゆらりと揺れる
+    // 尾。胴のうしろで、ゆらりと揺れる
     private readonly tail = new Part(
         this.game,
         this,
@@ -103,22 +102,24 @@ class EnemyByakko extends Enemy {
             ),
     )
 
+    // 落とさないと胴に攻撃が効かない部位
+    private readonly guards = [...this.paws, this.tail]
     readonly parts = [...this.paws, ...this.hindLegs, this.tail, ...this.cubs]
 
     constructor(game: Game) {
-        super(game, 2800, 46, { renderer: new EnemyRendererBoss() })
+        super(game, 3000, 46, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
         this.addScript(() => this.remember(), { loop: Infinity })
+        this.addScript(() => this.phases())
     }
 
     private *enter() {
         this.p = vec(-200, -200)
         yield* this.moveTo(vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.16), 120)
 
-        this.addScript(() => this.pounce(), { loop: Infinity })
-        this.addScript(() => this.roar(), { loop: Infinity, margin: 60 })
+        this.addScript(() => this.pounce(), { loop: Infinity, id: "move" })
     }
 
     // いた位置を覚えておく
@@ -128,6 +129,61 @@ class EnemyByakko extends Enemy {
         yield
     }
 
+    private *phases() {
+        // 一段目: 前脚と尾が残っている間は、胴に攻撃が効かない
+        this.addScript(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
+        while (this.guards.some((p) => p.life > 0)) yield
+
+        // 二段目: 咆哮
+        this.isInvincible = false
+        this.game.camera.shake(6, 20)
+        this.addScript(() => this.roar(), { loop: Infinity, id: "body" })
+
+        while (this.life > this.maxLife * 0.6) yield
+
+        // 三段目: 遠吠えをしてから、爪(孫機)を持った若虎を呼ぶ
+        this.removeScript("body")
+        yield* this.battery.charge(150)
+        this.game.camera.shake(10, 40)
+
+        for (const side of [-1, 1]) {
+            const young = new Part(
+                this.game,
+                this,
+                350,
+                22,
+                // 親の両脇の少しうしろを追いかける。画面の外へは出ない
+                () => {
+                    const anchor = this.trail[side > 0 ? 20 : 32] ?? this.p
+                    return vec(Math.min(Math.max(anchor.x + side * 125, 40), this.game.WIDTH - 40), anchor.y + 40).sub(
+                        this.p,
+                    )
+                },
+                (me) => this.youngRoar(me),
+                50 + (side > 0 ? 50 : 0),
+            )
+            const claw = new Part(
+                this.game,
+                young,
+                100,
+                11,
+                () => vec(-side * 20, 30),
+                (me) => this.scratch(me),
+                80,
+            )
+            this.game.enemies.push(young, claw)
+        }
+
+        this.addScript(() => this.roar(), { loop: Infinity, margin: 90, id: "body" })
+
+        while (this.life > this.maxLife * 0.25) yield
+
+        // 四段目: 疾風。構える時間が短くなり、着地するたびに衝撃の輪を放つ
+        this.removeScript("body")
+        this.game.camera.shake(8, 30)
+        this.addScript(() => this.gale(), { loop: Infinity, id: "move" })
+    }
+
     // 少し構えてから、画面の上の方の別の場所へ素早く跳ぶ
     private *pounce() {
         yield* Array(70)
@@ -135,6 +191,25 @@ class EnemyByakko extends Enemy {
             vec(this.game.WIDTH * (0.2 + 0.6 * this.random()), this.game.HEIGHT * (0.1 + 0.12 * this.random())),
             22,
         )
+    }
+
+    // 疾風。短く構えて素早く跳び、着地するたびに衝撃の輪を放つ
+    private *gale() {
+        yield* Array(40)
+        yield* this.moveTo(
+            vec(this.game.WIDTH * (0.2 + 0.6 * this.random()), this.game.HEIGHT * (0.1 + 0.14 * this.random())),
+            16,
+        )
+
+        yield* remodel(this)
+            .format("diamond")
+            .color("#ffffff")
+            .p(this.p.clone())
+            .speed(2)
+            .radian(this.random() * T)
+            .ex(24)
+            .g((b) => Behavior.ease(b, "speed", 6, 30, Ease.In))
+            .fire(this.game.bullets)
     }
 
     // 前脚の爪。自機へ向けて三本の爪痕を薄く見せてから、爪痕に沿って速い爪を走らせる
@@ -238,23 +313,56 @@ class EnemyByakko extends Enemy {
         yield* Array(90)
     }
 
-    // 胴の咆哮。前脚があるうちは、ときどき輪を放つ。前脚を落とすと、速さの違う三重の輪を放つ
+    // 若虎の咆哮。止まってから散る輪
+    private *youngRoar(me: Part) {
+        yield* remodel(me)
+            .format("small-ball")
+            .r(5)
+            .color("#f0f0ff")
+            .p(me.p.clone())
+            .speed(4)
+            .radian(this.random() * T)
+            .ex(14)
+            .g((b) => Behavior.reaccel(b, 20, 20, 30, 5))
+            .fire(this.game.bullets)
+
+        yield* Array(110)
+    }
+
+    // 若虎の爪。真下へ三本の爪痕を落とす
+    private *scratch(me: Part) {
+        yield* remodel(me)
+            .format("line")
+            .color("#ffffff")
+            .p(me.p.clone())
+            .speed(3)
+            .radian(T / 4)
+            .duplicate(4)
+            .delayByIndex(3)
+            .shift(3, 16)
+            .g((b) => Behavior.ease(b, "speed", 8, 30, Ease.In))
+            .fire(this.game.bullets)
+
+        yield* Array(90)
+    }
+
+    // 一段目の胴。ときどき輪を放つ
+    private *ring() {
+        yield* remodel(this)
+            .format("small-ball")
+            .r(5)
+            .color("#ffffff")
+            .p(this.p.clone())
+            .speed(3.5)
+            .radian(this.random() * T)
+            .ex(16)
+            .fire(this.game.bullets)
+
+        yield* Array(160)
+    }
+
+    // 咆哮。速さの違う三重の輪
     private *roar() {
-        if (this.paws.some((p) => p.life > 0)) {
-            yield* remodel(this)
-                .format("small-ball")
-                .r(5)
-                .color("#ffffff")
-                .p(this.p.clone())
-                .speed(3.5)
-                .radian(this.random() * T)
-                .ex(16)
-                .fire(this.game.bullets)
-
-            yield* Array(160)
-            return
-        }
-
         yield* remodel(this)
             .format("diamond")
             .color("#ffffff")
