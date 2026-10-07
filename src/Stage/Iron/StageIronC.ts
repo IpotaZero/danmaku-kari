@@ -40,8 +40,8 @@ class EnemyMaster extends Enemy {
     )
 
     constructor(game: Game) {
-        // 主機の体力は子機の総和くらい
-        // ↑この場合は子機が先にすべての攻撃を受けるから相応しくない。もともとの理由を思い出せ。
+        // 盾持ちが先に攻撃をすべて受け止めるので、師範代を撃てるのは盾持ちが減ってから。
+        // 師範代だけが残るつまらない時間を短くするため、体力は盾持ちの総和よりずっと少なくする
         super(game, 1200, 40, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
