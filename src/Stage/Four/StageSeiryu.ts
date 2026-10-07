@@ -8,16 +8,17 @@ import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
+import { Charge } from "../Charge"
 
 // ステージ「青龍」(四天王)
 // 青龍の頭のうしろに十の胴の節が連なり、頭の通った道をそのままたどって、画面の中ほどを大きくうねる。
 // 宝珠: 頭のまわりを回る珠。自機の方へ三本の雷を落とす。雷は落ちる前に細い線で見える。
 // 胴の節: 頭から尾へ順に、体の両脇へ鱗を払う。龍がうねっているので、鱗はあちこちへ向かう。
-// 一段目: 宝珠を落とすまで、頭に攻撃が効かない。頭はときどき輪を吐く。
-// 二段目: 雷跡。頭は通った跡に雷を残す。残った雷は少しして弾ける。
-// 三段目: 雷雨。頭は雲を呼ぶ力を溜める(充電)。溜めている間は攻撃が効かず、撃つほど早く溜まる。
-//         溜まると、画面の上に三つの雷雲が現れる。雷雲は雨を降らせ、雷雲のまわりを回る雷玉(孫機)は真下へ雷を落とす。
-// 四段目: 昇龍。頭は雷跡を残しながら、ときどき咆哮する。咆哮は下向きの大きな扇で、だんだん速くなる。
+// 段は部位を落とすと進む。頭に攻撃が効くのは最後の段だけ。
+// 一段目: 宝珠を落とすと次の段へ。頭はときどき輪を吐く。
+// 雷雲: 頭は雷の力を集めて、画面の上に三つの雷雲を呼ぶ。雷雲のまわりには雷玉(孫機)が二つずつ回り、雷玉を落とすまで雷雲に攻撃が効かない。
+// 二段目: 雷雲をすべて落とすと次の段へ。雷雲は雨を降らせ、雷玉は真下へ雷を落とす。頭は通った跡に雷を残し、残った雷は少しして弾ける。
+// 三段目: 昇龍。頭に攻撃が効くようになり、雷跡を残しながら、ときどき咆哮する。咆哮は下向きの大きな扇で、だんだん速くなる。
 
 export default class extends Stage {
     *G() {
@@ -75,7 +76,7 @@ class EnemySeiryu extends Enemy {
     readonly parts = [this.pearl, ...this.segments]
 
     constructor(game: Game) {
-        super(game, 3000, 40, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, 40, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -106,23 +107,16 @@ class EnemySeiryu extends Enemy {
     }
 
     private *phases() {
-        // 一段目: 宝珠が残っている間は、頭に攻撃が効かない
+        // 一段目: 宝珠を落とすと次の段へ
         this.addScript(() => this.ring(), { loop: Infinity, margin: 180, id: "head" })
         while (this.pearl.life > 0) yield
 
-        // 二段目: 雷跡
-        this.isInvincible = false
-        this.game.camera.shake(6, 20)
-        this.addScript(() => this.thunderTrail(), { loop: Infinity, id: "head" })
-
-        while (this.life > this.maxLife * 0.65) yield
-
-        // 三段目: 雷雨。力を溜めてから、雷玉(孫機)を連れた雷雲を呼ぶ
+        // 雷雲。雷の力を集めてから、雷玉(孫機)に守られた雷雲を呼ぶ
         this.removeScript("head")
-        yield* this.battery.charge(180)
+        yield* Charge.gather(this, 150, "#c0f0ff")
         this.game.camera.shake(10, 40)
 
-        for (const i of [0, 1, 2]) {
+        const clouds = [0, 1, 2].map((i) => {
             const cloud = new Part(
                 this.game,
                 this,
@@ -144,14 +138,17 @@ class EnemySeiryu extends Enemy {
                         60 + i * 40 + k * 90,
                     ),
             )
+            cloud.guardedBy(orbs)
             this.game.enemies.push(cloud, ...orbs)
-        }
+            return cloud
+        })
 
+        // 二段目: 雷雲をすべて落とすと次の段へ。頭は雷跡を残す
         this.addScript(() => this.thunderTrail(), { loop: Infinity, margin: 60, id: "head" })
+        while (clouds.some((p) => p.life > 0)) yield
 
-        while (this.life > this.maxLife * 0.25) yield
-
-        // 四段目: 昇龍。雷跡に咆哮を重ねる
+        // 三段目: 昇龍。頭に攻撃が効くようになり、雷跡に咆哮を重ねる
+        this.isInvincible = false
         this.game.camera.shake(8, 30)
         this.addScript(() => this.roar(), { loop: Infinity, margin: 30, id: "roar" })
     }
