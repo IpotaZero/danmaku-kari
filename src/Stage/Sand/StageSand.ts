@@ -117,7 +117,7 @@ class EnemyUsuba extends Enemy {
     constructor(game: Game) {
         super(game, 2600, 48, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
-        this.abdomen.isInvincible = true
+        this.abdomen.guardedBy(this.sandbags)
 
         this.addScript(() => this.enter())
         this.addScript(() => this.phases())
@@ -145,13 +145,10 @@ class EnemyUsuba extends Enemy {
     }
 
     private *phases() {
-        // 一段目: 大顎と腹が残っている間は、胴に攻撃が効かない。砂袋が残っている間は、腹に攻撃が効かない
+        // 一段目: 大顎と腹が残っている間は、胴に攻撃が効かない
         this.addScript(() => this.ring(), { loop: Infinity, margin: 150, id: "body" })
 
-        while (this.guards.some((p) => p.life > 0)) {
-            this.abdomen.isInvincible = this.sandbags.some((p) => p.life > 0)
-            yield
-        }
+        while (this.guards.some((p) => p.life > 0)) yield
 
         this.isInvincible = false
         this.game.camera.shake(6, 20)

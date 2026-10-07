@@ -21,6 +21,18 @@ export class Part extends Enemy {
         this.addScript(() => attack(this), { loop: Infinity, margin: delay })
     }
 
+    // guards(この部位の盾になる部位や孫機)がすべて倒れるまで、この部位には攻撃が効かない。
+    // 攻撃が効かない間は弾が素通りするので、うしろにある guards にも弾が届く
+    guardedBy(guards: readonly Enemy[]) {
+        this.isInvincible = true
+        this.addScript(() => this.guard(guards), { loop: Infinity, id: "guard" })
+    }
+
+    private *guard(guards: readonly Enemy[]) {
+        this.isInvincible = guards.some((p) => p.life > 0)
+        yield
+    }
+
     *onDead() {
         this.game.camera.shake(4, 15)
 
