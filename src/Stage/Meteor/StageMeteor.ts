@@ -9,18 +9,19 @@ import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Meteor } from "./Meteor"
+import { Charge } from "../Charge"
 
 // ステージ「ホタル」(流星道場・道場主)
 // 道場主は大きなホタル。光る尻(発光器)・二本の触角・まわりを飛ぶ八匹の子蛍を持ち、それぞれが別々の攻撃をする。
 // 発光器: 自機へ向けて、発光器を通る三本の流れ星を流す。流れ星は画面の上の端から、発光器を抜けて駆け抜ける。
 // 触角: 自機へ向けて、針を一列に突き出す。
-// 子蛍: 胴のまわりを速く回り、順に瞬く。瞬いた子蛍のまわりに光の粒が浮かび、一拍おいて輪になって散る。
-// 一段目: 発光器を落とすまで、胴に攻撃が効かない。胴はときどき輪を放つ。
-// 二段目: 胴そのものが光りだし、胴を通る四本の流れ星を扇のように流す。
-// 三段目: 蛍の群れ。胴は光を溜める(充電)。溜めている間は攻撃が効かず、撃つほど早く溜まる。
-//         溜まると、四匹の大蛍が現れて胴のまわりを大きく回る。大蛍のまわりには二匹ずつ孫蛍(孫機)が飛ぶ。
-//         大蛍は通った跡に光を残し、光は少しして雨のように降る。孫蛍は小さな輪を放つ。
-// 四段目: 最後の灯。胴はもう一度光を溜めてから、自機を狙った三本の流れ星と、止まってから散る輪を交互に放つ。
+// 子蛍: 胴のまわりの円を、そろってゆっくり回り、順に瞬く。瞬いた子蛍のまわりに光の粒が浮かび、一拍おいて輪になって散る。
+// 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ。
+// 一段目: 発光器を落とすと次の段へ。胴はときどき輪を放つ。
+// 蛍集め: 胴はまわりから光を集めて、四匹の大蛍を呼ぶ。大蛍のまわりには二匹ずつ孫蛍(孫機)が回り、孫蛍を落とすまで大蛍に攻撃が効かない。
+// 二段目: 大蛍をすべて落とすと次の段へ。大蛍はゆっくり左右に揺れながら光の帯を残し、帯は少しして雨のように降る。孫蛍は小さな輪を放つ。
+//         胴そのものが光りだし、胴を通る四本の流れ星を扇のように流す。
+// 三段目: 最後の灯。胴に攻撃が効くようになり、自機を狙った三本の流れ星と、止まってから散る輪を交互に放つ。
 
 export default class extends Stage {
     *G() {
@@ -50,7 +51,7 @@ export default class extends Stage {
 }
 
 class EnemyHotaru extends Enemy {
-    private readonly path = Curves.lissajous(this.game.WIDTH * 0.35, this.game.HEIGHT * 0.08, 2, 3)
+    private readonly path = Curves.lissajous(this.game.WIDTH * 0.25, this.game.HEIGHT * 0.08, 2, 3)
 
     // 発光器。胴の下でゆらゆら光る
     private readonly lantern = new Part(
@@ -58,7 +59,7 @@ class EnemyHotaru extends Enemy {
         this,
         900,
         32,
-        (me) => vec(0, 70 + 6 * Math.sin(me.frame / 12)),
+        (me) => vec(0, 70 + 5 * Math.sin(me.frame / 30)),
         (me) => this.glow(me),
         150,
     )
@@ -71,13 +72,13 @@ class EnemyHotaru extends Enemy {
                 this,
                 350,
                 16,
-                (me) => vec(side * (64 + 4 * Math.sin(me.frame / 7)), -46),
+                (me) => vec(side * 64 + 4 * Math.sin(me.frame / 30), -46),
                 (me) => this.needles(me),
                 130 + (side > 0 ? 30 : 0),
             ),
     )
 
-    // 子蛍(八匹)。胴のまわりを速く回る
+    // 子蛍(八匹)。胴のまわりの円を、等間隔のまま、そろってゆっくり回る
     private readonly fireflies = [0, 1, 2, 3, 4, 5, 6, 7].map(
         (i) =>
             new Part(
@@ -85,7 +86,7 @@ class EnemyHotaru extends Enemy {
                 this,
                 200,
                 14,
-                (me) => vec.arg(me.frame / 50 + (T * i) / 8).scale(130 + 20 * Math.sin(me.frame / 20 + i)),
+                (me) => vec.arg(me.frame / 120 + (T * i) / 8).scale(140),
                 (me) => this.blink(me, i),
                 160,
             ),
@@ -94,7 +95,7 @@ class EnemyHotaru extends Enemy {
     readonly parts = [this.lantern, ...this.antennae, ...this.fireflies]
 
     constructor(game: Game) {
-        super(game, 3200, 46, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, 46, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -118,32 +119,23 @@ class EnemyHotaru extends Enemy {
     }
 
     private *phases() {
-        // 一段目: 発光器が残っている間は、胴に攻撃が効かない
+        // 一段目: 発光器を落とすと次の段へ
         this.addScript(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
         while (this.lantern.life > 0) yield
 
-        // 二段目: 胴が光りだす
-        this.isInvincible = false
-        this.game.camera.shake(6, 20)
-        this.addScript(() => this.meteorFan(), { loop: Infinity, id: "body" })
-
-        while (this.life > this.maxLife * 0.65) yield
-
-        // 三段目: 蛍の群れ。光を溜めてから、孫蛍を連れた大蛍を呼ぶ
+        // 蛍集め。光を集めてから、孫蛍(孫機)に守られた大蛍を呼ぶ
         this.removeScript("body")
-        yield* this.battery.charge(200)
+        yield* Charge.gather(this, 150, "#d8ff90")
         this.game.camera.shake(8, 30)
 
-        for (const i of [0, 1, 2, 3]) {
+        // 大蛍の持ち場。胴の両脇と、斜め下
+        const bigs = [vec(-150, 10), vec(150, 10), vec(-80, 140), vec(80, 140)].map((slot, i) => {
             const big = new Part(
                 this.game,
                 this,
                 280,
                 18,
-                (me) => {
-                    const angle = me.frame / 70 + (T * i) / 4
-                    return vec(Math.cos(angle) * 130, Math.sin(angle) * 100)
-                },
+                (me) => slot.add(vec(40 * Math.sin(me.frame / 40 + i), 0)),
                 (me) => this.trail(me),
                 40 + i * 20,
             )
@@ -154,23 +146,25 @@ class EnemyHotaru extends Enemy {
                         big,
                         90,
                         9,
-                        (me) => vec.arg(me.frame / 12 + k * Math.PI).scale(26),
+                        (me) => vec.arg(me.frame / 30 + k * Math.PI).scale(28),
                         (me) => this.spark(me),
                         70 + k * 50,
                     ),
             )
+            big.guardedBy(grandchildren)
             this.game.enemies.push(big, ...grandchildren)
-        }
+            return big
+        })
 
-        this.addScript(() => this.meteorFan(), { loop: Infinity, margin: 120, id: "body" })
+        // 二段目: 大蛍をすべて落とすと次の段へ。胴が光りだす
+        this.addScript(() => this.meteorFan(), { loop: Infinity, margin: 60, id: "body" })
+        while (bigs.some((p) => p.life > 0)) yield
 
-        while (this.life > this.maxLife * 0.25) yield
-
-        // 四段目: 最後の灯。もう一度光を溜めてから、流れ星と輪を交互に放つ
+        // 三段目: 最後の灯。胴に攻撃が効くようになる
         this.removeScript("body")
-        yield* this.battery.charge(120)
+        this.isInvincible = false
         this.game.camera.shake(8, 30)
-        this.addScript(() => this.lastLight(), { loop: Infinity, id: "body" })
+        this.addScript(() => this.lastLight(), { loop: Infinity, margin: 30, id: "body" })
     }
 
     // 発光器の流れ星。自機を狙った線と、その両脇の線の三本。どれも発光器を通る
@@ -235,7 +229,7 @@ class EnemyHotaru extends Enemy {
         yield* Array(240 - i * 10)
     }
 
-    // 大蛍の光跡。通った跡に光を残し、残った光は少しして、そろって雨のように降る
+    // 大蛍の光の帯。揺れながら通った跡に光を残し、残った光は少しして、そろって雨のように降る
     private *trail(me: Part) {
         for (let f = 0; f < 60; f += 4) {
             yield* remodel(me)
