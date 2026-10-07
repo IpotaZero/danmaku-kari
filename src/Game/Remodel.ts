@@ -288,7 +288,7 @@ export class Remodel<Parent extends Actor> {
     }
 
     // 弾の向きを target に向ける。target の位置は、弾がこの加工を通る瞬間のものを使う
-    aim(target: Actor) {
+    aim(target: { p: Vec }) {
         return this.forEach((me) => {
             me.radian = target.p.sub(me.p).radian()
         })
