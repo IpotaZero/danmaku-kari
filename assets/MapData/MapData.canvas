@@ -11,7 +11,7 @@
 		{"id":"db446724e01017d8","type":"text","text":"修行場・波紋\nStageRipple","x":0,"y":1120,"width":160,"height":160},
 		{"id":"6f7d531dbb3567f7","type":"text","text":"修行場・花火\nStageFirework","x":0,"y":1400,"width":160,"height":160},
 		{"id":"46e539f50437a678","type":"text","text":"四天王・青龍\nStageSeiryu","x":8640,"y":420,"width":160,"height":160},
-		{"id":"534a94c5e210d65c","type":"text","text":"四天王・\n","x":8900,"y":420,"width":160,"height":160},
+		{"id":"534a94c5e210d65c","type":"text","text":"四天王・朱雀\nStageSuzaku","x":8900,"y":420,"width":160,"height":160},
 		{"id":"98c07e56e131e418","type":"text","text":"四天王・\n","x":9160,"y":420,"width":160,"height":160},
 		{"id":"3bceb29a6b35762f","type":"text","text":"四天王・\n ","x":9420,"y":420,"width":160,"height":160},
 		{"id":"ca68c9295dde0dbf","type":"text","text":"チャンピオン\nStageChampion","x":9820,"y":380,"width":240,"height":240},
