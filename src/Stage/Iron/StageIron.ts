@@ -124,7 +124,9 @@ class EnemyKabuto extends Enemy {
     private *fly() {
         const path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.22, 2, 3)
         for (let f = 0; ; f++) {
-            this.p = path(f / 150).add(this.home()).add(vec(0, this.game.HEIGHT * 0.06))
+            this.p = path(f / 150)
+                .add(this.home())
+                .add(vec(0, this.game.HEIGHT * 0.06))
             yield
         }
     }

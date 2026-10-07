@@ -99,7 +99,11 @@ class EnemyHornet extends Enemy {
                 this,
                 150,
                 13,
-                (me) => vec(Math.sign(x) * (6 + 22 * Math.abs(x)), 38 - 8 * Math.abs(x) + 5 * Math.sin(me.frame / 8 + order)),
+                (me) =>
+                    vec(
+                        Math.sign(x) * (6 + 22 * Math.abs(x)),
+                        38 - 8 * Math.abs(x) + 5 * Math.sin(me.frame / 8 + order),
+                    ),
                 (me) => this.claws(me, order),
                 170,
             ),

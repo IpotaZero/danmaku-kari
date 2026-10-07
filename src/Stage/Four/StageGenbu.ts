@@ -84,9 +84,7 @@ class EnemyGenbu extends Enemy {
                 160,
                 14,
                 (me) =>
-                    vec
-                        .arg(me.frame / 35 - (j + 1) * 0.28)
-                        .scale(125 + 15 * Math.sin(me.frame / 10 - (j + 1) * 0.8)),
+                    vec.arg(me.frame / 35 - (j + 1) * 0.28).scale(125 + 15 * Math.sin(me.frame / 10 - (j + 1) * 0.8)),
                 (me) => this.drip(me, j),
                 160,
             ),
