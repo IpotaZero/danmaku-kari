@@ -229,8 +229,26 @@
                 fill: var(--gold);
             }
 
+            /* 選択中はノード自身の枠も金で太くする(塗りはクリア状況を見せるためそのまま) */
             &.selected {
+                stroke: var(--gold);
+                stroke-width: 3;
             }
+        }
+
+        /* 選択中のノードを外側から囲む金の枠。ゆっくり点滅させ、ノード間を移るときは滑らせる */
+        .map-minimap-cursor {
+            fill: none;
+            stroke: var(--gold);
+            stroke-width: 3;
+            pointer-events: none;
+
+            transition:
+                x 0.1s ease-out,
+                y 0.1s ease-out,
+                width 0.1s ease-out,
+                height 0.1s ease-out;
+            animation: map-minimap-cursor-blink 0.8s ease-in-out infinite alternate;
         }
     }
 
@@ -432,5 +450,14 @@
                 box-shadow: 0 0.25em 0 -0.15em var(--gold);
             }
         }
+    }
+}
+
+@keyframes map-minimap-cursor-blink {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0.3;
     }
 }
