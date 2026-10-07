@@ -8,18 +8,19 @@ import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
+import { Charge } from "../Charge"
 
 // ステージ「玄武」(四天王)
 // 玄武は、蛇の巻きついた大亀。胴のまわりを六枚の甲羅が回り、そのまわりを蛇がとぐろを巻いて這いまわる。
 // 甲羅: 胴を囲んで回りながら、順に外向きの水弾を放つ。甲羅が胴を囲んでいるので、胴を狙った弾は甲羅に当たる。
 // 蛇の頭: 亀のまわりを速く回りながら、自機へ毒牙(針の三方向)を飛ばす。
 // 蛇の胴: 頭のあとに続いて回りながら、順に水滴を垂らす。水滴はだんだん速く真下へ落ちる。
-// 一段目: 甲羅をすべて割るまで、胴に攻撃が効かない。胴はときどき輪を放つ。
-// 二段目: 津波。画面の幅いっぱいの波を三列続けて押し寄せる。波には一か所だけ隙間があり、列ごとに少しずつずれる。
-// 三段目: 子亀。胴は水を溜める(充電)。溜めている間は攻撃が効かず、撃つほど早く溜まる。
-//         溜まると、二匹の子亀が泳ぎ出てくる。子亀のまわりには三枚の小甲羅(孫機)が回っていて、小甲羅を割るまで子亀に攻撃が効かない。
-//         子亀は泡を吐き、小甲羅は外向きに水滴を飛ばす。胴は津波を続ける。
-// 四段目: 渦潮。津波に加えて、曲がりながら広がる四本腕の渦を巻く。
+// 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ。
+// 一段目: 甲羅をすべて割ると次の段へ。胴はときどき輪を放つ。
+// 子亀: 胴はまわりの水を集めて、二匹の子亀を呼ぶ。子亀のまわりには三枚の小甲羅(孫機)が回っていて、小甲羅を割るまで子亀に攻撃が効かない。
+// 二段目: 子亀をすべて落とすと次の段へ。子亀は泡を吐き、小甲羅は外向きに水滴を飛ばす。
+//         胴は津波を起こす。画面の幅いっぱいの波を三列続けて押し寄せる。波には一か所だけ隙間があり、列ごとに少しずつずれる。
+// 三段目: 渦潮。胴に攻撃が効くようになり、津波に加えて、曲がりながら広がる四本腕の渦を巻く。
 
 export default class extends Stage {
     *G() {
@@ -91,7 +92,7 @@ class EnemyGenbu extends Enemy {
     readonly parts = [...this.shells, this.snakeHead, ...this.snakeBody]
 
     constructor(game: Game) {
-        super(game, 3200, 44, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, 44, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -115,23 +116,16 @@ class EnemyGenbu extends Enemy {
     }
 
     private *phases() {
-        // 一段目: 甲羅が残っている間は、胴に攻撃が効かない
+        // 一段目: 甲羅をすべて割ると次の段へ
         this.addScript(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
         while (this.shells.some((p) => p.life > 0)) yield
 
-        // 二段目: 津波
-        this.isInvincible = false
-        this.game.camera.shake(6, 20)
-        this.addScript(() => this.tide(), { loop: Infinity, id: "body" })
-
-        while (this.life > this.maxLife * 0.6) yield
-
-        // 三段目: 水を溜めてから、小甲羅(孫機)に守られた子亀を呼ぶ
+        // 子亀。水を集めてから、小甲羅(孫機)に守られた子亀を呼ぶ
         this.removeScript("body")
-        yield* this.battery.charge(180)
+        yield* Charge.gather(this, 150, "#90d0ff")
         this.game.camera.shake(10, 40)
 
-        for (const side of [-1, 1]) {
+        const babies = [-1, 1].map((side) => {
             const baby = new Part(
                 this.game,
                 this,
@@ -155,13 +149,15 @@ class EnemyGenbu extends Enemy {
             )
             baby.guardedBy(smallShells)
             this.game.enemies.push(baby, ...smallShells)
-        }
+            return baby
+        })
 
+        // 二段目: 子亀をすべて落とすと次の段へ。胴は津波を起こす
         this.addScript(() => this.tide(), { loop: Infinity, margin: 90, id: "body" })
+        while (babies.some((p) => p.life > 0)) yield
 
-        while (this.life > this.maxLife * 0.25) yield
-
-        // 四段目: 渦潮。津波に渦を重ねる
+        // 三段目: 渦潮。胴に攻撃が効くようになり、津波に渦を重ねる
+        this.isInvincible = false
         this.game.camera.shake(8, 30)
         this.addScript(() => this.whirlpool(), { loop: Infinity, margin: 30, id: "whirlpool" })
     }
