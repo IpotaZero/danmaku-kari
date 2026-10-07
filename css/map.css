@@ -1,5 +1,6 @@
 /* SceneMap 専用のUI(ステージ選択用のノード・エッジ画面)。
-   色はタイトルと同じく base.css の4色(paper / sage / forest / gold)だけを使う。 */
+   色はタイトルと同じく base.css の4色(paper / sage / forest / gold)だけを使う。
+   ただし戦闘画面(黒地)との明るさの差を小さくするため、タイトルとは逆に「暗い地に紙色で描く」配色にする。 */
 
 .scene-map {
     width: 100%;
@@ -7,11 +8,18 @@
     position: relative;
     overflow: hidden;
 
-    /* 紙色のままだと画面全体が明るすぎて眩しいので、墨を少し混ぜて落ち着かせ、四隅もほんのり暗くする */
-    --map-ground: color-mix(in srgb, var(--paper) 90%, var(--forest));
+    /* 墨緑をさらに黒へ寄せた夜の地。四隅はほぼ黒まで落とし、戦闘画面の黒地へ自然につなげる */
+    --map-ground: color-mix(in srgb, var(--forest) 55%, black);
     background:
-        radial-gradient(ellipse at center, transparent 45%, color-mix(in srgb, var(--forest) 22%, transparent)),
+        radial-gradient(ellipse at center, transparent 40%, color-mix(in srgb, black 60%, transparent)),
         var(--map-ground);
+    color: var(--paper);
+
+    /* 暗い地では乗算だと質感が沈んで見えないので、ソフトライトで粒子だけを浮かせる */
+    .texture-overlay {
+        mix-blend-mode: soft-light;
+        opacity: 0.4;
+    }
 
     /* ドラッグでのスワイプ操作を自前で処理するので、ブラウザ標準のスクロール/ズームジェスチャーには渡さない */
     touch-action: none;
@@ -37,7 +45,7 @@
     .map-grid {
         background-image: radial-gradient(circle, var(--sage) 1.2px, transparent 1.6px);
         background-size: 48px 48px;
-        opacity: 0.7;
+        opacity: 0.25;
     }
 
     /* ノードのワールド座標(px)の原点。ここを画面中央に置き、カメラ位置ぶんだけJSでtranslateする */
@@ -56,12 +64,12 @@
         overflow: visible;
 
         line {
-            stroke: var(--forest);
+            stroke: var(--paper);
             stroke-width: 1.5;
-            opacity: 0.55;
+            opacity: 0.4;
 
             &.locked {
-                opacity: 0.12;
+                opacity: 0.08;
             }
 
             /* 主装備standardでのクリアが条件の辺は破線 */
@@ -89,8 +97,8 @@
         justify-content: center;
         align-items: center;
 
-        background: var(--paper);
-        border: 2px solid var(--forest);
+        background: var(--map-ground);
+        border: 2px solid color-mix(in srgb, var(--paper) 70%, transparent);
 
         font-size: 0.8em;
         text-align: center;
@@ -107,10 +115,10 @@
             border-color: var(--gold);
         }
 
-        /* 選択中は墨で塗り、紙色の余白を挟んだ金の細い枠で囲む */
+        /* 選択中は紙色で塗り、地の色の余白を挟んだ金の細い枠で囲む */
         &.selected {
-            background: var(--forest);
-            border-color: var(--forest);
+            background: var(--paper);
+            border-color: var(--paper);
             transform: translate(-50%, -50%) scale(1.15);
             box-shadow:
                 0 0 0 4px var(--map-ground),
@@ -121,11 +129,11 @@
             background: transparent;
             border-color: var(--sage);
             border-style: dashed;
-            opacity: 0.6;
+            opacity: 0.45;
             cursor: default;
         }
 
-        /* クリア済みのステージは右上に墨の星、ノーミスでクリア済みなら金の星 */
+        /* クリア済みのステージは右上に銀の星、ノーミスでクリア済みなら金の星 */
         &.cleared::after {
             content: "★";
             position: absolute;
@@ -156,7 +164,7 @@
         padding: 0.45em 1em 0.5em;
 
         background: var(--forest);
-        border-bottom: 2px solid var(--gold);
+        border: 1px solid var(--gold);
 
         color: var(--paper);
         letter-spacing: 0.15em;
@@ -200,15 +208,15 @@
         padding: 3em 1em 6em;
 
         line {
-            stroke: var(--forest);
+            stroke: var(--paper);
             stroke-width: 1.5;
-            opacity: 0.55;
+            opacity: 0.4;
             vector-effect: non-scaling-stroke;
         }
 
         rect {
-            fill: var(--paper);
-            stroke: var(--forest);
+            fill: var(--map-ground);
+            stroke: var(--paper);
             stroke-width: 1.5;
             vector-effect: non-scaling-stroke;
             cursor: pointer;
@@ -222,18 +230,18 @@
             }
 
             &.selected {
-                fill: var(--forest);
+                fill: var(--paper);
                 stroke-width: 3;
             }
         }
     }
 
-    /* 画面下部の操作ボタン類。タイトルのボタンと同じく細い罫線だけで、触れると墨で塗る */
+    /* 画面下部の操作ボタン類。タイトルのボタンと同じく細い罫線だけで、触れると紙色で塗る */
     .map-minimap-back,
     .map-controls > div {
         background: color-mix(in srgb, var(--map-ground) 85%, transparent);
-        border: 1px solid var(--forest);
-        color: var(--forest);
+        border: 1px solid color-mix(in srgb, var(--paper) 60%, transparent);
+        color: var(--paper);
 
         cursor: pointer;
         transition:
@@ -241,8 +249,8 @@
             color 0.3s ease-out;
 
         &:hover {
-            background: var(--forest);
-            color: var(--paper);
+            background: var(--paper);
+            color: var(--forest);
         }
     }
 
@@ -269,7 +277,7 @@
         left: 5%;
 
         padding-left: 0.5em;
-        border-left: 2px solid var(--forest);
+        border-left: 2px solid var(--sage);
 
         font-size: 1.4em;
 
@@ -398,7 +406,7 @@
             justify-content: center;
             white-space: nowrap;
             letter-spacing: 0.15em;
-            color: var(--forest);
+            color: var(--paper);
         }
 
         .option-row {
@@ -411,9 +419,9 @@
             padding: 0.3em 0.5em;
 
             background: transparent;
-            border: 1px solid var(--forest);
+            border: 1px solid color-mix(in srgb, var(--paper) 60%, transparent);
             border-radius: 0;
-            color: var(--forest);
+            color: var(--paper);
             letter-spacing: 0.1em;
 
             transition:
@@ -421,8 +429,8 @@
                 color 0.1s ease-out;
 
             &.selected {
-                background: var(--forest);
-                color: var(--paper);
+                background: var(--paper);
+                color: var(--forest);
                 box-shadow: 0 0.25em 0 -0.15em var(--gold);
             }
         }

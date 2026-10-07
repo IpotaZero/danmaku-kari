@@ -1,4 +1,5 @@
 import { App } from "../App"
+import { Dom } from "../Dom"
 import { playerData } from "../Data/PlayerData"
 import { mainEquipments, subEquipments } from "../Game/Equipment/PlayerEquipment"
 import { MapBounds, MapEdge, MapGraph, MapNode, MapNodeId } from "../Map/MapGraph"
@@ -16,6 +17,9 @@ const DRAG_THRESHOLD = 6
 
 // ノード選択時、そのノードが画面中央に来るまでのカメラ移動にかける時間
 const CAMERA_PAN_MS = 250
+
+// 全体図・型の変更画面を閉じるときのフェードアウトにかける時間
+const OVERLAY_FADE_OUT_MS = 200
 
 const DIRECTION_VECTORS: Record<Direction, { x: number; y: number }> = {
     up: { x: 0, y: -1 },
@@ -242,7 +246,7 @@ export class SceneMap extends Scene {
         App.se.cursor.play()
 
         if (this.minimap) {
-            this.minimap.el.remove()
+            Dom.fadeOutAndRemove(this.minimap.el, OVERLAY_FADE_OUT_MS)
             this.minimap = undefined
             return
         }
@@ -358,7 +362,7 @@ export class SceneMap extends Scene {
     }
 
     private closeEquipMenu() {
-        this.equipMenu?.container.remove()
+        if (this.equipMenu) Dom.fadeOutAndRemove(this.equipMenu.container, OVERLAY_FADE_OUT_MS)
         this.equipMenu = undefined
         this.equipDescriptionEl = undefined
     }
