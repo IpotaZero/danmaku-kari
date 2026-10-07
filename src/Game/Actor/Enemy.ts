@@ -79,6 +79,24 @@ export abstract class Enemy extends Actor {
         this.damaged = false
     }
 
+    // 弾は加算合成で描かれるので、密集すると白く飛んで敵の線が埋もれてしまう。
+    // 本体の下だけ暗くして、弾が重なっても当たり判定の輪郭が読めるようにする。
+    // 弾を隠しはせず減光にとどめる(見た目と当たり判定を乖離させない)
+    drawShade(ctx: CanvasRenderingContext2D) {
+        const gradient = ctx.createRadialGradient(this.p.x, this.p.y, 0, this.p.x, this.p.y, this.r * 1.5)
+        gradient.addColorStop(0, "rgba(0, 0, 0, 0.6)")
+        gradient.addColorStop(0.7, "rgba(0, 0, 0, 0.6)")
+        gradient.addColorStop(1, "rgba(0, 0, 0, 0)")
+
+        ctx.save()
+        ctx.globalCompositeOperation = "source-over"
+        ctx.fillStyle = gradient
+        ctx.beginPath()
+        ctx.arc(this.p.x, this.p.y, this.r * 1.5, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.restore()
+    }
+
     hit() {
         this.damaged = true
         this.addScript(this.hitG.bind(this))

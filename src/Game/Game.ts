@@ -316,6 +316,8 @@ export class Game extends IteratorQueue {
 
         ctx.save()
         this.camera.apply(ctx, this.WIDTH, this.HEIGHT)
+        // 重なった敵の影が別の敵の線を暗くしないよう、影は先にまとめて描く
+        this.enemies.forEach((e) => e.drawShade(ctx))
         this.enemies.forEach((e) => e.draw(ctx))
         if (this.state !== "game-over") this.player.draw(ctx)
         this.worldDrawings.forEach((f) => {
