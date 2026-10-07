@@ -60,6 +60,8 @@ body {
     --forest: #26372c;
     --gold: #e5b450;
     --silver: silver;
+    /* 墨緑を黒へ寄せた夜の地。マップ・戦闘画面の背景に使う */
+    --night: color-mix(in srgb, var(--forest) 55%, black);
 }
 
 /* 生成りの紙に墨緑で描いたような画面。ざらつきは乗算で紙の質感として見せる */

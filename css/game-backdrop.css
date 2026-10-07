@@ -1,0 +1,152 @@
+/* 戦闘画面のキャンバス外に敷く夜の草むら(GameBackdrop.ts)。
+   色は base.css の4色だけを使い、マップ画面と同じ夜の地(--night)につなげる。
+   キャンバスより目立たないよう、どれも暗く・ゆっくり動かす。 */
+
+.game-backdrop {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+
+    /* 上の黒から地平線(下)へ、4段の帯でほんのわずかずつ墨緑を混ぜていく。どの段もほぼ黒で、目立たせない。
+       なめらかなグラデーションにはせず、段と段の境目だけを3%幅で少しぼかす */
+    background: linear-gradient(
+        180deg,
+        black 0% 22%,
+        color-mix(in srgb, var(--forest) 7%, black) 25% 47%,
+        color-mix(in srgb, var(--forest) 13%, black) 50% 72%,
+        color-mix(in srgb, var(--forest) 20%, black) 75% 100%
+    );
+}
+
+/* 右上の月明かり。枝のシルエットをこの明るみに重ねて見せる。
+   ぼんやり広がる光ではなく、月暈(つきがさ)のような3重の輪にし、輪の縁だけを少しぼかす */
+.backdrop-moon {
+    position: absolute;
+    top: -25vmin;
+    right: -15vmin;
+    width: 80vmin;
+    height: 80vmin;
+    border-radius: 50%;
+
+    background: radial-gradient(
+        circle,
+        color-mix(in srgb, var(--gold) 6%, transparent) 0% 16%,
+        color-mix(in srgb, var(--gold) 3.5%, transparent) 18% 30%,
+        color-mix(in srgb, var(--gold) 1.5%, transparent) 32% 46%,
+        transparent 48%
+    );
+}
+
+/* 草も枝も、地よりさらに暗いほぼ黒で描いてシルエットにする */
+.backdrop-grass,
+.backdrop-branch {
+    color: color-mix(in srgb, var(--forest) 8%, black);
+}
+
+.backdrop-grass {
+    position: absolute;
+    left: -2%;
+    width: 104%;
+    bottom: 0;
+    transform-origin: bottom center;
+    animation: backdrop-sway-skew 9s ease-in-out infinite;
+}
+
+.backdrop-grass-back {
+    height: 22vh;
+    /* 奥の草だけは一番下の帯よりわずかに明るくして、手前の草と重なりを分ける */
+    color: color-mix(in srgb, var(--forest) 28%, black);
+    animation-delay: -4s;
+}
+
+.backdrop-grass-front {
+    height: 26vh;
+}
+
+@keyframes backdrop-sway-skew {
+    0%,
+    100% {
+        transform: skewX(-1.2deg);
+    }
+    50% {
+        transform: skewX(1.2deg);
+    }
+}
+
+/* 上の隅から垂れ下がる枝。付け根(角)を軸にゆっくり揺らす */
+.backdrop-branch {
+    position: absolute;
+    top: 0;
+    width: 45vmin;
+    height: auto;
+    aspect-ratio: 400 / 260;
+    overflow: visible;
+    animation: backdrop-sway-rotate 11s ease-in-out infinite;
+}
+
+.backdrop-branch-left {
+    left: 0;
+    width: 32vmin;
+    transform-origin: top left;
+    animation-delay: -5s;
+}
+
+/* 右側は左上から垂れる枝をSVG内で左右反転して使う(GameBackdrop.ts) */
+.backdrop-branch-right {
+    right: 0;
+    transform-origin: top right;
+}
+
+@keyframes backdrop-sway-rotate {
+    0%,
+    100% {
+        transform: rotate(-1.5deg);
+    }
+    50% {
+        transform: rotate(1.5deg);
+    }
+}
+
+/* ホタル。ふわふわ漂う動き(transform)と明滅(opacity)を別々の周期で重ねる */
+.backdrop-firefly {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: 0.2rem;
+    height: 0.2rem;
+    border-radius: 50%;
+
+    background: var(--gold);
+    box-shadow: 0 0 0.5rem 0.2rem color-mix(in srgb, var(--gold) 30%, transparent);
+
+    animation:
+        backdrop-firefly-drift var(--drift) ease-in-out infinite alternate,
+        backdrop-firefly-glow var(--glow) ease-in-out infinite alternate;
+    animation-delay: var(--delay);
+}
+
+@keyframes backdrop-firefly-drift {
+    0% {
+        transform: translate(0, 0);
+    }
+    33% {
+        transform: translate(var(--dx), calc(var(--dy) * -1));
+    }
+    66% {
+        transform: translate(calc(var(--dx) * -0.5), var(--dy));
+    }
+    100% {
+        transform: translate(calc(var(--dx) * 0.7), calc(var(--dy) * 0.4));
+    }
+}
+
+@keyframes backdrop-firefly-glow {
+    0%,
+    40% {
+        opacity: 0.05;
+    }
+    100% {
+        opacity: 0.5;
+    }
+}

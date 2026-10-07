@@ -15,11 +15,15 @@
         min-width: 0;
         min-height: 0;
 
+        /* 後ろに敷いたGameBackdrop(position: absolute)より手前に描かせるため */
+        position: relative;
+
         touch-action: none;
 
         background-color: black;
 
-        border: white 1px solid;
+        /* 夜の草むらに馴染むよう、枠線は紙色を薄くして控えめにする */
+        border: 1px solid color-mix(in srgb, var(--paper) 35%, transparent);
 
         /* width/height:100%は縦横比が合わない場合(非全画面でアドレスバー分だけ低くなる等)に
            キャンバスを歪めて引き伸ばしてしまうため使わない。max-width/max-heightによる

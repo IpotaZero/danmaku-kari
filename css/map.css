@@ -9,7 +9,7 @@
     overflow: hidden;
 
     /* 墨緑をさらに黒へ寄せた夜の地。四隅はほぼ黒まで落とし、戦闘画面の黒地へ自然につなげる */
-    --map-ground: color-mix(in srgb, var(--forest) 55%, black);
+    --map-ground: var(--night);
     background:
         radial-gradient(ellipse at center, transparent 40%, color-mix(in srgb, black 60%, transparent)),
         var(--map-ground);
@@ -163,7 +163,7 @@
 
         padding: 0.45em 1em 0.5em;
 
-        background: var(--forest);
+        background: #1118;
         border: 1px solid var(--gold);
 
         color: var(--paper);
@@ -230,8 +230,6 @@
             }
 
             &.selected {
-                fill: var(--paper);
-                stroke-width: 3;
             }
         }
     }
@@ -239,7 +237,7 @@
     /* 画面下部の操作ボタン類。タイトルのボタンと同じく細い罫線だけで、触れると紙色で塗る */
     .map-minimap-back,
     .map-controls > div {
-        background: color-mix(in srgb, var(--map-ground) 85%, transparent);
+        background-color: #1118;
         border: 1px solid color-mix(in srgb, var(--paper) 60%, transparent);
         color: var(--paper);
 

@@ -6,6 +6,7 @@ import type { MapNode } from "../Map/MapGraph";
 import { Menu } from "../utils/Menu/Menu";
 import { Scene } from "../utils/Scene/Scene";
 import { App } from "../App";
+import { GameBackdrop } from "./GameBackdrop";
 
 export class SceneGame extends Scene {
     private game?: Game;
@@ -40,7 +41,7 @@ export class SceneGame extends Scene {
 
         this.root.classList.add("scene-game");
         this.game.canvas.id = "main";
-        this.root.append(this.game.canvas, this.game.figureLayer.box, this.game.textBox.box);
+        this.root.append(new GameBackdrop().element, this.game.canvas, this.game.figureLayer.box, this.game.textBox.box);
     }
 
     protected async onEnd(): Promise<void> {
