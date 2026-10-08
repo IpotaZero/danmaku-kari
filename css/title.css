@@ -16,6 +16,7 @@
 
 /* 題辞。縦書きの句と、その下に小さく作者名。ゆっくり浮かび上がらせる */
 .pre-title-epigraph {
+    position: absolute;
     writing-mode: vertical-rl;
     /* 縦書きでは column が右から左へ並ぶ。句の左に作者名を置き、作者名は下に寄せる */
     flex-direction: column;
@@ -50,6 +51,8 @@
 
 /* 押されるまで待つ画面なので、急かさないようゆっくり明滅させる */
 .pre-title-message {
+    position: absolute;
+    bottom: 1em;
     letter-spacing: 0.3em;
     max-width: 100%;
     padding: 0 1em;
