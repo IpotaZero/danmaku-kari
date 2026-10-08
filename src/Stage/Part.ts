@@ -32,10 +32,4 @@ export class Part extends Enemy {
         this.isInvincible = guards.some((p) => p.life > 0)
         yield
     }
-
-    *onDead() {
-        this.game.camera.shake(4, 15)
-
-        yield* super.onDead()
-    }
 }
