@@ -13,7 +13,7 @@ import { Charge } from "../Charge"
 // 道場主は大きなスズムシ。鳴らす二枚の翅・二本の長い触角・胴の下に吊るした六つの鈴を持ち、それぞれが別々の攻撃をする。
 // 翅: 擦り合わせて音を鳴らす。左右の翅から同時に半円の波が広がり、二つの波が重なって格子のような隙間ができる。
 // 触角: 探るように弾を撒き、少しして自機の方へ向きを変えて飛ばす。
-// 鈴: そろって振り子のように揺れながら、順に鈴玉を落とす。鈴玉は少し落ちてから、輪になって鳴り響く。
+// 鈴: 胴の下に弧を描いて並び、順に鈴玉を落とす。鈴玉は少し落ちてから、輪になって鳴り響く。
 // 鈴は胴の下にぶら下がっているので、胴を撃とうとすると鈴に当たる。鈴を落とすと胴の下が開ける。
 // 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ。
 // 一段目: 翅を両方落とすと次の段へ。胴はときどき輪を放つ。
@@ -52,7 +52,7 @@ export default class extends Stage {
 class EnemySuzumushi extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.35, this.game.HEIGHT * 0.07, 2, 3)
 
-    // 翅(左右)。ゆっくり開いたり閉じたりして、音を鳴らす
+    // 翅(左右)。胴の両脇に並ぶ
     private readonly wings = [-1, 1].map(
         (side) =>
             new Part(
@@ -60,13 +60,13 @@ class EnemySuzumushi extends Enemy {
                 this,
                 700,
                 34,
-                (me) => vec(side * (52 + 6 * Math.sin(me.frame / 20)), -14),
+                () => vec(side * 54, -14),
                 (me) => this.chirp(me, side, 17),
                 150,
             ),
     )
 
-    // 触角(左右)。胴の斜め上へ長く伸びて、ゆっくり左右に揺れる
+    // 触角(左右)。胴の斜め上に並ぶ
     private readonly antennae = [-1, 1].map(
         (side) =>
             new Part(
@@ -74,13 +74,13 @@ class EnemySuzumushi extends Enemy {
                 this,
                 300,
                 14,
-                (me) => vec(side * 95 + 10 * Math.sin(me.frame / 40), -90),
+                () => vec(side * 95, -90),
                 (me) => this.probe(me, side),
                 130 + (side > 0 ? 35 : 0),
             ),
     )
 
-    // 鈴(六つ)。胴の下に吊るされて、六つそろって振り子のように揺れる。外側の鈴ほど糸が長い
+    // 鈴(六つ)。胴の下に、外側ほど低くなる弧を描いて並ぶ
     private readonly bells = [0, 1, 2, 3, 4, 5].map(
         (k) =>
             new Part(
@@ -88,10 +88,7 @@ class EnemySuzumushi extends Enemy {
                 this,
                 180,
                 14,
-                (me) =>
-                    vec((k - 2.5) * 40, 30).add(
-                        vec.arg(T / 4 + 0.25 * Math.sin(me.frame / 35)).scale(60 + 12 * Math.abs(k - 2.5)),
-                    ),
+                () => vec((k - 2.5) * 40, 90 + 12 * Math.abs(k - 2.5)),
                 (me) => this.bell(me, k),
                 170,
             ),
@@ -139,7 +136,7 @@ class EnemySuzumushi extends Enemy {
                 this,
                 320,
                 20,
-                (me) => vec(k * 115 + 12 * Math.sin(me.frame / 30), 210 - Math.abs(k) * 30),
+                () => vec(k * 115, 210 - Math.abs(k) * 30),
                 (me) => this.chirp(me, k, 13),
                 60 + (k + 1) * 8,
             )
@@ -150,7 +147,7 @@ class EnemySuzumushi extends Enemy {
                         cricket,
                         90,
                         10,
-                        (me) => vec(side * 18, 0).add(vec.arg(T / 4 + 0.25 * Math.sin(me.frame / 35)).scale(34)),
+                        () => vec(side * 18, 34),
                         (me) => this.smallBell(me),
                         100 + (side > 0 ? 60 : 0),
                     ),
