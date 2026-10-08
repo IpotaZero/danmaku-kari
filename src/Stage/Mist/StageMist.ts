@@ -13,7 +13,7 @@ import { Part } from "../Part"
 // 道場主は大きなカゲロウ。四枚の翅と三本の尾を持ち、それぞれが別々の攻撃をする。翅と尾をすべて落とすまで、胴には攻撃が効かない。
 // 前翅: 羽ばたくたびに、外側の斜め下へ扇を払う。
 // 後翅: 鱗粉を撒く。鱗粉はその場に漂ってから、ばらばらに落ちてくる。
-// 尾: 細い霧の糸を垂らし、糸は尾と一緒に左右に振れる。三本の糸が交差しながら画面を薙ぐ。
+// 尾: 細い霧の糸を垂らし、糸は左右に振れる。三本の糸が交差しながら画面を薙ぐ。
 // 胴: 部位が減るほど、輪が濃くなっていく。すべての部位を落とすと、胴に攻撃が効くようになり、輪は止まってから散るようになる。
 
 export default class extends Stage {
@@ -62,7 +62,7 @@ class EnemyKagerou extends Enemy {
                 this,
                 380,
                 26,
-                (me) => vec(side * 80, -20 - 18 * Math.sin(me.frame / 8)),
+                () => vec(side * 100, -20),
                 (me) => this.gust(me, side),
                 150 + (side > 0 ? 35 : 0),
             ),
@@ -76,13 +76,13 @@ class EnemyKagerou extends Enemy {
                 this,
                 380,
                 22,
-                (me) => vec(side * 62, 22 - 12 * Math.sin(me.frame / 8 + 1)),
+                () => vec(side * 55, 30),
                 (me) => this.scales(me),
                 180 + (side > 0 ? 30 : 0),
             ),
     )
 
-    // 尾(三本)。胴の下に垂れて、左右に揺れる
+    // 尾(三本)。胴の下に並ぶ。真ん中の尾だけ少し長い
     private readonly tails = [-1, 0, 1].map(
         (k) =>
             new Part(
@@ -90,7 +90,7 @@ class EnemyKagerou extends Enemy {
                 this,
                 300,
                 16,
-                (me) => vec(k * 30 + 26 * Math.sin(me.frame / 24 + k), 90 + (k === 0 ? 40 : 0)),
+                () => vec(k * 36, 92 + (k === 0 ? 38 : 0)),
                 (me) => this.thread(me, k),
                 160 + (k + 1) * 25,
             ),
@@ -158,7 +158,7 @@ class EnemyKagerou extends Enemy {
         yield* Array(60)
     }
 
-    // 尾の霧の糸。尾と一緒に左右へ振れながら、真下寄りに細い糸を垂らし続ける
+    // 尾の霧の糸。左右へ振れながら、真下寄りに細い糸を垂らし続ける
     private *thread(me: Part, k: number) {
         for (let f = 0; f < 70; f += 4) {
             yield* remodel(me)
