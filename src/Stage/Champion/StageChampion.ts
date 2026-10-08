@@ -10,12 +10,13 @@ import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 
 // ステージ「チャンピオン」
-// チャンピオンは大きなスズメバチ。大顎・四枚の翅・六本の脚・毒針を持ち、まわりを六匹の働き蜂が飛びまわる。それぞれが別々の攻撃をする。
+// チャンピオンのまわりに子機が幾何学的に並ぶ。胴を囲む正方形に四枚の翅、胴の前の横一列に大顎の一対と毒針、胴の左右の横一列に六つの脚。
+// そのまわりの大きな楕円を、六匹の働き蜂がそろって回る。それぞれが別々の攻撃をする。
 // 大顎: 横へ開いた弾が一度止まり、自機のいた所へ一斉に噛みつく。左右の大顎が交互に噛みつく。
 // 翅: 羽音。くねくねと揺れながら進む弾の列を、斜め下へ流す。
 // 脚: 左の脚から右の脚へ順に、だんだん速くなる爪を落とす。爪が幕のように左から右へ降りていく。
-// 毒針: 胴の下に突き出している。自機の方へ扇のように五本の線を薄く見せてから、端から順に線に沿って針を撃ち込む。
-// 働き蜂: 大きな楕円を描いて速く飛びまわり、進む向きへ短い弾の列を撃つ。
+// 毒針: 自機の方へ扇のように五本の線を薄く見せてから、端から順に線に沿って針を撃ち込む。
+// 働き蜂: 大きな楕円を速く回り、進む向きへ短い弾の列を撃つ。
 // 胴: 四枚の翅をすべて落とすまで攻撃が効かない。翅を落とすと、女王の怒り(向きを変えながら回る六本腕の渦)を撒きはじめる。
 
 export default class extends Stage {
@@ -58,7 +59,7 @@ export default class extends Stage {
 class EnemyHornet extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.07, 2, 3)
 
-    // 大顎(左右)。胴の前に並ぶ
+    // 大顎(左右一対)。胴の前の横一列の両端
     private readonly mandibles = [-1, 1].map(
         (side) =>
             new Part(
@@ -66,13 +67,13 @@ class EnemyHornet extends Enemy {
                 this,
                 500,
                 18,
-                () => vec(side * 20, 64),
+                () => vec(side * 55, 130),
                 (me) => this.bite(me, side),
                 140 + (side > 0 ? 60 : 0),
             ),
     )
 
-    // 翅(四枚)。胴の両脇に、上下二段に並ぶ
+    // 翅(四枚)。胴を囲む正方形の四つの角
     readonly wings = [
         [-1, 0],
         [1, 0],
@@ -85,13 +86,13 @@ class EnemyHornet extends Enemy {
                 this,
                 300,
                 24,
-                () => vec(side * (86 - row * 22), -54 + row * 30),
+                () => vec(side * 71, row === 0 ? -71 : 71),
                 (me) => this.buzz(me, side),
                 150 + row * 40 + (side > 0 ? 20 : 0),
             ),
     )
 
-    // 脚(六本)。胴の前に、左右三つずつ斜め一直線に並ぶ
+    // 脚(六つ)。胴の左右に、横一列に三つずつ並ぶ
     private readonly legs = [-3, -2, -1, 1, 2, 3].map(
         (x, order) =>
             new Part(
@@ -99,19 +100,19 @@ class EnemyHornet extends Enemy {
                 this,
                 150,
                 13,
-                () => vec(Math.sign(x) * (6 + 22 * Math.abs(x)), 38 - 8 * Math.abs(x)),
+                () => vec(Math.sign(x) * (70 + 30 * Math.abs(x)), 20),
                 (me) => this.claws(me, order),
                 170,
             ),
     )
 
-    // 毒針。胴の下に突き出している
+    // 毒針。胴の前の横一列の真ん中
     private readonly stinger = new Part(
         this.game,
         this,
         600,
         16,
-        () => vec(0, 100),
+        () => vec(0, 130),
         (me) => this.sting(me),
         200,
     )
@@ -126,7 +127,7 @@ class EnemyHornet extends Enemy {
                 14,
                 (me) => {
                     const angle = me.frame / 40 + (T * i) / 6
-                    return vec(Math.cos(angle) * 170, Math.sin(angle) * 95)
+                    return vec(Math.cos(angle) * 160, Math.sin(angle) * 95)
                 },
                 (me) => this.patrol(me, i),
                 130,
