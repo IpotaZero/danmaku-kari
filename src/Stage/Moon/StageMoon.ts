@@ -128,7 +128,6 @@ class EnemySuzumushi extends Enemy {
         // 合奏。大きく息を吸い込んでから、小鈴(孫機)を吊るした子スズムシを呼ぶ
         this.removeScript("body")
         yield* Charge.gather(this, 150, "#fff0b0")
-        this.game.camera.shake(8, 30)
 
         const crickets = [-1, 0, 1].map((k) => {
             const cricket = new Part(

@@ -160,7 +160,6 @@ class EnemyUsuba extends Enemy {
         // 羽化。砂を吸い込んで力を溜めてから、四枚の翅を生やす
         this.removeScript("body")
         yield* Charge.gather(this, 150, "#ffd890")
-        this.game.camera.shake(10, 40)
 
         const wings = [
             [-1, 0],

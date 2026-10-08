@@ -126,7 +126,6 @@ class EnemyHotaru extends Enemy {
         // 蛍集め。光を集めてから、孫蛍(孫機)に守られた大蛍を呼ぶ
         this.removeScript("body")
         yield* Charge.gather(this, 150, "#d8ff90")
-        this.game.camera.shake(8, 30)
 
         // 大蛍の持ち場。胴の両脇と、斜め下
         const bigs = [vec(-150, 10), vec(150, 10), vec(-80, 140), vec(80, 140)].map((slot, i) => {

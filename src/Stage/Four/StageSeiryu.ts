@@ -114,7 +114,6 @@ class EnemySeiryu extends Enemy {
         // 雷雲。雷の力を集めてから、雷玉(孫機)に守られた雷雲を呼ぶ
         this.removeScript("head")
         yield* Charge.gather(this, 150, "#c0f0ff")
-        this.game.camera.shake(10, 40)
 
         const clouds = [0, 1, 2].map((i) => {
             const cloud = new Part(

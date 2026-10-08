@@ -140,7 +140,6 @@ class EnemyByakko extends Enemy {
         this.removeScript("body")
         this.removeScript("move")
         yield* Charge.gather(this, 150, "#f0f0ff")
-        this.game.camera.shake(10, 40)
         this.addScript(() => this.pounce(), { loop: Infinity, id: "move" })
 
         const youngs = [-1, 1].map((side) => {

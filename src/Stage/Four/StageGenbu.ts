@@ -122,7 +122,6 @@ class EnemyGenbu extends Enemy {
         // 子亀。水を集めてから、小甲羅(孫機)に守られた子亀を呼ぶ
         this.removeScript("body")
         yield* Charge.gather(this, 150, "#90d0ff")
-        this.game.camera.shake(10, 40)
 
         const babies = [-1, 1].map((side) => {
             const baby = new Part(

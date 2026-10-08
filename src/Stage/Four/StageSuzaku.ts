@@ -49,9 +49,6 @@ export default class extends Stage {
             yield* Array(40)
             this.game.enemies.push(new EnemyEgg(this.game, from))
             yield* this.waitAllEnemiesDead()
-
-            this.flash("#ff9050c0", 30)
-            this.game.camera.shake(12, 45)
         }
 
         this.scorenizeAllBullets()
@@ -67,7 +64,7 @@ export default class extends Stage {
 }
 
 // 灰の中から現れる炎の卵。温まりきる(充電が満ちる)まで何もせず、撃っても割れない。撃つほど早く温まる。
-// 温まっている間、まわりから炎の粒が卵へ吸い込まれていく
+// 温まっている間、まわりから炎の粒と炎の輪が卵へ吸い込まれていく
 class EnemyEgg extends Enemy {
     constructor(game: Game, p: Vec) {
         super(game, 1, 26)
@@ -88,6 +85,7 @@ class EnemyEgg extends Enemy {
 
     private *glow() {
         yield* Charge.particle(this, "#ff9050")
+        if (this.frame % 24 < 3) yield* Charge.ring(this, "#ff9050")
         yield* Array(3)
     }
 }
