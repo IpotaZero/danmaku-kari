@@ -63,6 +63,9 @@ type MenuLayer = {
 // レイヤーの表示/非表示切り替えにかけるフェード時間(ms)
 const TRANSITION_MS = 150
 
+// 触れてから離すまでにこの距離(px)以上動いたら、タップではなくなぞり(ホバー)とみなす
+const TAP_TOLERANCE_PX = 10
+
 export class Menu {
     readonly container = document.createElement("div")
     private cursor: MenuCursor = { row: 0, col: 0 }
@@ -76,6 +79,9 @@ export class Menu {
 
     private optionElements: HTMLElement[][] = []
     private scrollRows: HTMLElement[] = []
+
+    // 触れ始めの位置。指が動きすぎた(=タップではなくホバー目的のなぞり)場合や複数指の場合はundefined
+    private tapStart: { x: number; y: number } | undefined
 
     onBack = () => {}
 
@@ -94,6 +100,11 @@ export class Menu {
         this.container.innerHTML = baseHtml
         this.container.addEventListener("click", (e) => this.handleContainerClick(e))
         this.container.addEventListener("mouseover", (e) => this.handleContainerHover(e))
+        // タッチではmouseoverが指の移動に追従して発火しないので、touchイベントでホバー相当(指が乗っている選択肢へのカーソル移動)を扱う
+        this.container.addEventListener("touchstart", (e) => this.handleContainerTouchStart(e), { passive: true })
+        this.container.addEventListener("touchmove", (e) => this.handleContainerTouchMove(e), { passive: true })
+        this.container.addEventListener("touchend", (e) => this.handleContainerTouchEnd(e), { passive: false })
+        this.container.addEventListener("touchcancel", () => (this.tapStart = undefined), { passive: true })
 
         // 初期状態ではoptionsは空配列。直後のrender(true)で評価される
         this.layerStack = [{ box: this.root, options: [] }]
@@ -125,8 +136,8 @@ export class Menu {
     }
 
     // タップ/ホバー操作用。containerに1つだけ張ったリスナーからイベント委譲で呼ばれる
-    private findOptionCell(e: Event): MenuCursor | undefined {
-        const optionEl = (e.target as HTMLElement).closest<HTMLElement>(".option")
+    private findOptionCell(target: EventTarget | null): MenuCursor | undefined {
+        const optionEl = (target as HTMLElement | null)?.closest<HTMLElement>(".option")
         if (!optionEl) return undefined
 
         for (let r = 0; r < this.optionElements.length; r++) {
@@ -137,7 +148,7 @@ export class Menu {
     }
 
     private handleContainerClick(e: MouseEvent) {
-        const cell = this.findOptionCell(e)
+        const cell = this.findOptionCell(e.target)
         if (!cell) return
 
         this.moveCursorTo(cell.row, cell.col)
@@ -145,10 +156,58 @@ export class Menu {
     }
 
     private handleContainerHover(e: MouseEvent) {
-        const cell = this.findOptionCell(e)
+        const cell = this.findOptionCell(e.target)
         if (!cell) return
 
         this.moveCursorTo(cell.row, cell.col)
+    }
+
+    // touchイベントのtargetは触れ始めた要素に固定されるので、指の現在位置から選択肢を引き直す
+    private findOptionCellAtTouch(touch: Touch | undefined): MenuCursor | undefined {
+        if (!touch) return undefined
+
+        return this.findOptionCell(document.elementFromPoint(touch.clientX, touch.clientY))
+    }
+
+    private hoverTouch(touch: Touch | undefined) {
+        const cell = this.findOptionCellAtTouch(touch)
+        if (!cell) return
+
+        this.moveCursorTo(cell.row, cell.col)
+    }
+
+    private handleContainerTouchStart(e: TouchEvent) {
+        const touch = e.touches[0]
+        this.tapStart = e.touches.length === 1 && touch ? { x: touch.clientX, y: touch.clientY } : undefined
+
+        this.hoverTouch(touch)
+    }
+
+    private handleContainerTouchMove(e: TouchEvent) {
+        const touch = e.touches[0]
+
+        if (this.tapStart && touch) {
+            const moved = Math.hypot(touch.clientX - this.tapStart.x, touch.clientY - this.tapStart.y)
+            if (moved > TAP_TOLERANCE_PX) this.tapStart = undefined
+        }
+
+        this.hoverTouch(touch)
+    }
+
+    // 明確なタップ(ほとんど動かさずに離した)の場合のみ決定する。なぞって離した場合はカーソル移動だけにとどめる。
+    // どちらの場合もtouchendをpreventDefaultして、後続の疑似click(二重決定)を止める
+    private handleContainerTouchEnd(e: TouchEvent) {
+        e.preventDefault()
+
+        const isTap = this.tapStart !== undefined
+        this.tapStart = undefined
+        if (!isTap) return
+
+        const cell = this.findOptionCellAtTouch(e.changedTouches[0])
+        if (!cell) return
+
+        this.moveCursorTo(cell.row, cell.col)
+        this.select()
     }
 
     // 既にカーソルが乗っている場合は何もしない(選択枠再描画やonFocus再発火を防ぐ)
