@@ -4,6 +4,7 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
+import { Figure } from "../Figure"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
@@ -11,8 +12,8 @@ import { Part } from "../Part"
 import { Meteor } from "./Meteor"
 import { Charge } from "../Charge"
 
-// ステージ「ホタル」(流星道場・道場主)
-// 道場主のまわりに子機が幾何学的に並ぶ。胴の下に発光器、胴の左右に触角の一対、胴のまわりの円に八匹の子蛍。
+// ステージ「ホタル」(三日前・星の河原)
+// ボスのまわりに子機が幾何学的に並ぶ。胴の下に発光器、胴の左右に触角の一対、胴のまわりの円に八匹の子蛍。
 // 発光器: 自機へ向けて、発光器を通る三本の流れ星を流す。流れ星は画面の上の端から、発光器を抜けて駆け抜ける。
 // 触角: 自機へ向けて、針を一列に突き出す。
 // 子蛍: 胴のまわりの円を、そろってゆっくり回り、順に瞬く。瞬いた子蛍のまわりに光の粒が浮かび、一拍おいて輪になって散る。
@@ -23,8 +24,23 @@ import { Charge } from "../Charge"
 //         胴そのものが光りだし、胴を通る四本の流れ星を扇のように流す。
 // 三段目: 最後の灯。胴に攻撃が効くようになり、自機を狙った三本の流れ星と、止まってから散る輪を交互に放つ。
 
+// 十一月にホタルはいない。ホタルは姉の口調で話しかけてくるが、幻かどうかは書かない
 export default class extends Stage {
     *G() {
+        yield* this.narrate(
+            "三日前。星の河原。",
+            "夜。冷えこみで、翅がうまく動かない。",
+            "河原に、小さな光がいくつも灯っていた。",
+        )
+
+        this.showFigure(Figure.hachinoko)
+        yield* this.talk("ハチノコ", "……ホタル? 十一月なのに。")
+        yield* this.talk("ホタル", "ハチノコ。")
+        yield* this.talk("ハチノコ", "……ねえさん?")
+        yield* this.talk("ホタル", "もう、いいんだよ。", "ここは、あったかいよ。みんないる。妹たちも。")
+        yield* this.talk("ホタル", "おいで。")
+        this.hideAllFigures()
+
         const boss = new EnemyHotaru(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -32,6 +48,14 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
+
+        yield* this.narrate("光は、ひとつずつ消えていった。", "河原には、冷たい石しかなかった。")
+        this.showFigure(Figure.hachinoko)
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk("ユキムシ", "……ねえ。", "さっきから、誰と話してたの?")
+        yield* this.talk("ハチノコ", "……。")
+        yield* this.talk("ユキムシ", "あと三日。")
+        this.hideAllFigures()
     }
 }
 

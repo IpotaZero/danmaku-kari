@@ -38,8 +38,16 @@ export class Bullet extends Actor {
         config: { loop?: number; margin?: number; id?: string },
     ][] = []
 
+    // owner はこの弾を撃った者。撃った敵が倒れると、その敵の弾は蜜に変わる(Game.cancelBulletsOf)
+    constructor(
+        game: Game,
+        readonly owner: Actor,
+    ) {
+        super(game)
+    }
+
     clone() {
-        const b = Object.assign(new Bullet(this.game), this)
+        const b = Object.assign(new Bullet(this.game, this.owner), this)
 
         // 参照型のプロパティは共有しないよう作り直す
         b.p = this.p.clone()

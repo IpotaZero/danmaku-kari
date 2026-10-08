@@ -13,6 +13,7 @@ import { FigureLayer } from "../utils/FigureLayer"
 import { TouchControls } from "./TouchControls"
 import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 import { Dom } from "../Dom"
+import { Ctx } from "../utils/Functions/Ctx"
 
 const FPS = 60
 
@@ -288,12 +289,25 @@ export class Game extends IteratorQueue {
             if (e.life <= 0) {
                 this.se.crush.play()
                 this.addScript(() => e.onDead())
+                this.cancelBulletsOf(e)
             }
 
             return e.life > 0
         })
         this.enemies.length = 0
         this.enemies.push(...aliveEnemies)
+    }
+
+    // 倒れた敵が撃って画面に残っている弾を、すべて蜜に変える。
+    // 部位を壊せば、その部位の弾がその場で消えるので、今いちばん邪魔な弾を撃っている部位を狙う理由になる。
+    // 障壁と同じく、まだ当たり判定のない(現れかけの)弾も変える。レーザーなど蜜にならない弾は、撃ち手が倒れたときの消え方を自分で持っている
+    private cancelBulletsOf(e: Enemy) {
+        this.bullets.forEach((b) => {
+            if (b.owner !== e || !b.isScorable) return
+            if (b.type !== "enemy" && b.type !== "neutral") return
+
+            b.scorenize()
+        })
     }
 
     private updatePlayer(): void {
@@ -330,6 +344,14 @@ export class Game extends IteratorQueue {
             ctx.restore()
         })
         ctx.restore()
+
+        // 集めた蜜。弾をかすめたり、敵を倒してその弾を蜜に変えたりすると増える
+        Ctx.text(ctx, { x: this.WIDTH - 12, y: 8 }, "rgba(255, 236, 190, 0.6)", `蜜 ${this.score}`, {
+            align: "right",
+            baseline: "top",
+            fontFamily: "dot",
+            fontSize: 18,
+        })
 
         this.stage.drawOverlay(ctx, this.WIDTH, this.HEIGHT)
     }

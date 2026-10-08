@@ -28,11 +28,11 @@ export class SceneGame extends Scene {
             se: App.se,
             onWin: () => {
                 this.node.recordClear(playerData, playerData.getLoadout().main, playerData.getLives() === initialLives);
-                this.showResultMenu("--:: 道場破り ::--");
+                this.showResultMenu("--:: 越えた ::--");
             },
             onLose: (score) => {
                 playerData.addScore(score);
-                this.showResultMenu("--:: 敗北 ::--");
+                this.showResultMenu("--:: 墜ちた ::--");
             },
             onScoreCollected: (score) => playerData.addScore(score),
             playerConfig: createPlayerConfig(),

@@ -2,7 +2,7 @@ import { Silhouette } from "../utils/Silhouette"
 import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 
 /**
- * 戦闘画面の、キャンバスの外側(左右の余白)に敷く夜の草むら。
+ * 戦闘画面の、キャンバスの外側(左右の余白)に敷く晩秋の夜の草むら。雪虫が漂っている。
  * キャンバスの後ろに置くだけなので、見えるのはキャンバスからはみ出た部分だけになる。
  * プレイの邪魔にならないよう、動きはどれもゆっくり・暗めにしてある。色と動きはCSS(game-backdrop.css)に任せる。
  */
@@ -28,17 +28,13 @@ export class GameBackdrop {
         `
 
         for (let i = 0; i < 24; i++) {
-            const firefly = document.createElement("div")
-            firefly.className = "backdrop-firefly"
-            firefly.style.setProperty("--x", `${Math.random() * 100}%`)
-            // 草むらの上あたりに多く集める
-            firefly.style.setProperty("--y", `${45 + Math.random() * 50}%`)
-            firefly.style.setProperty("--dx", `${(Math.random() - 0.5) * 8}rem`)
-            firefly.style.setProperty("--dy", `${(Math.random() - 0.5) * 5}rem`)
-            firefly.style.setProperty("--drift", `${14 + Math.random() * 12}s`)
-            firefly.style.setProperty("--glow", `${2.5 + Math.random() * 3}s`)
-            firefly.style.setProperty("--delay", `${-Math.random() * 20}s`)
-            this.element.appendChild(firefly)
+            const yukimushi = document.createElement("div")
+            yukimushi.className = "backdrop-yukimushi"
+            yukimushi.style.setProperty("--x", `${Math.random() * 100}%`)
+            yukimushi.style.setProperty("--drift", `${(Math.random() - 0.5) * 12}rem`)
+            yukimushi.style.setProperty("--fall", `${22 + Math.random() * 18}s`)
+            yukimushi.style.setProperty("--delay", `${-Math.random() * 40}s`)
+            this.element.appendChild(yukimushi)
         }
     }
 }

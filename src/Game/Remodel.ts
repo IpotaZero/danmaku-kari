@@ -8,7 +8,7 @@ import { Enemy } from "./Actor/Enemy"
 import { seededRandom } from "../utils/Functions/seededRandom"
 
 export function remodel<Parent extends Actor>(e: Parent) {
-    return new Remodel([new Bullet(e.game)], e)
+    return new Remodel([new Bullet(e.game, e)], e)
 }
 
 // Bullet のうち、値として書き換えられるプロパティ(メソッドと readonly を除く)

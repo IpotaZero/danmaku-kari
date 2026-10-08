@@ -12,7 +12,17 @@ export class ScenePreTitle extends Scene {
         console.log("ScenePreTitle")
 
         this.root.classList.add("scene-pre-title", "paper-scene")
-        this.root.insertAdjacentHTML("beforeend", `<div class="pre-title-message">Click or Press Any Key</div>`)
+        // 物語は、冬まで生き残ってしまった蜂を詠んだこの句の前日譚。最後にもう一度この句に戻ってくる
+        this.root.insertAdjacentHTML(
+            "beforeend",
+            `
+            <div class="pre-title-epigraph">
+                <span class="pre-title-haiku">冬蜂の死にどころなく歩きけり</span>
+                <span class="pre-title-poet">村上鬼城</span>
+            </div>
+            <div class="pre-title-message">Click or Press Any Key</div>
+        `,
+        )
 
         const textureOverlay = document.createElement("div")
         textureOverlay.className = "texture-overlay"

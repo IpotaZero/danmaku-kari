@@ -4,6 +4,7 @@ import { playerData } from "../Data/PlayerData"
 import { mainEquipments, subEquipments } from "../Game/Equipment/PlayerEquipment"
 import { MapBounds, MapEdge, MapGraph, MapNode, MapNodeId } from "../Map/MapGraph"
 import { MapMinimap } from "../Map/MapMinimap"
+import { Day } from "../Map/Day"
 import { InputCode } from "../utils/InputCode"
 import { Menu, MenuOption, MenuOptionBox } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
@@ -19,7 +20,7 @@ const DRAG_THRESHOLD = 6
 // ノード選択時、そのノードが画面中央に来るまでのカメラ移動にかける時間
 const CAMERA_PAN_MS = 250
 
-// 全体図・型の変更画面を閉じるときのフェードアウトにかける時間
+// 全体図・支度画面を閉じるときのフェードアウトにかける時間
 const OVERLAY_FADE_OUT_MS = 200
 
 const DIRECTION_VECTORS: Record<Direction, { x: number; y: number }> = {
@@ -86,6 +87,7 @@ export class SceneMap extends Scene {
                     <div class="map-node-info-label"></div>
                 </div>
             </div>
+            <div class="map-day"></div>
             <div class="map-lives">
                 <div class="map-lives-count"></div>
                 <div class="map-lives-recovery"></div>
@@ -93,7 +95,7 @@ export class SceneMap extends Scene {
             </div>
             <div class="map-controls">
                 <div data-control="toggle-minimap"><span class="nowrap">全体図</span>: slow(${InputCode.primaryLabel(App.settings.keyConfig.slow)})</div>
-                <div data-control="open-equip"><span class="nowrap">型の変更</span>: action(${InputCode.primaryLabel(App.settings.keyConfig.action)})</div>
+                <div data-control="open-equip"><span class="nowrap">支度</span>: action(${InputCode.primaryLabel(App.settings.keyConfig.action)})</div>
                 <div data-control="back-to-title"><span class="nowrap">タイトルへ戻る</span>: cancel(${InputCode.primaryLabel(App.settings.keyConfig.cancel)})</div>
             </div>
             <div class="texture-overlay map-backdrop map-camera-layer"></div>
@@ -155,7 +157,11 @@ export class SceneMap extends Scene {
 
         // scoreはステージ内でのみ変動する値で、SceneMap滞在中には変わらないので一度だけ表示すればよい
         this.root.querySelector<HTMLElement>(".map-score")!.textContent =
-            `銭 ${playerData.getTotalScore().toLocaleString()}`
+            `蜜 ${playerData.getTotalScore().toLocaleString()}`
+
+        // 日付もステージを越えたときにしか進まないので、一度だけ表示すればよい
+        const today = this.graph.today(playerData)
+        this.root.querySelector<HTMLElement>(".map-day")!.textContent = today === undefined ? "" : Day.countdown(today)
 
         // 初期カメラは選択中ノードを中央に据えた状態から始める(アニメーションなし)
         this.camera = this.clampCamera(this.graph.node(this.selectedId))
@@ -348,7 +354,7 @@ export class SceneMap extends Scene {
              <div class="texture-overlay"></div>`,
             {
                 elementId: "equip-root",
-                title: "--:: 型の変更 ::--",
+                title: "--:: 支度 ::--",
                 options: () => this.buildEquipRootOptions(),
             },
             App.input,
@@ -374,7 +380,7 @@ export class SceneMap extends Scene {
             [
                 {
                     type: "submenu",
-                    label: `流派: ${mainEquipments[playerData.getLoadout().main]?.label ?? playerData.getLoadout().main}`,
+                    label: `針: ${mainEquipments[playerData.getLoadout().main]?.label ?? playerData.getLoadout().main}`,
                     hides: [],
                     onFocus: () => this.hideEquipDescription(),
                     subMenu: () => this.buildMainEquipmentSubMenu(),
@@ -405,7 +411,7 @@ export class SceneMap extends Scene {
     private buildMainEquipmentSubMenu(): MenuOptionBox {
         return {
             elementId: "equip-main-options",
-            title: "--:: 流派を選択 ::--",
+            title: "--:: 針を選ぶ ::--",
             options: () => this.buildMainEquipmentOptions(),
             // 開いた瞬間、現在装備している主装備にカーソルを合わせる
             initialCursor: () => {
@@ -446,7 +452,7 @@ export class SceneMap extends Scene {
     private buildSubEquipmentSubMenu(): MenuOptionBox {
         return {
             elementId: "equip-sub-options",
-            title: "--:: 技を選択 ::--",
+            title: "--:: 技を選ぶ ::--",
             options: () => this.buildSubEquipmentOptions(),
             // 開いた瞬間、現在装備している副装備にカーソルを合わせる(「なし」は先頭行)
             initialCursor: () => {
@@ -526,7 +532,8 @@ export class SceneMap extends Scene {
         this.infoEl.style.left = `${node.x}px`
         // 説明の枠はノードの上端の少し上に出す
         this.infoEl.style.top = `${node.y - node.height / 2}px`
-        this.infoEl.querySelector(".map-node-info-label")!.textContent = node.label
+        this.infoEl.querySelector(".map-node-info-label")!.textContent =
+            node.day === undefined ? node.label : `${Day.label(node.day)}　${node.label}`
         this.infoEl.classList.add("visible")
 
         this.keepInfoOnScreen()

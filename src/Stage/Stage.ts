@@ -1,6 +1,7 @@
 import { Enemy } from "../Game/Actor/Enemy"
 import { Game } from "../Game/Game"
 import { IteratorQueue } from "../Game/IteratorQueue"
+import { Figure } from "./Figure"
 
 export abstract class Stage extends IteratorQueue {
     private flashAlpha = 0
@@ -61,14 +62,27 @@ export abstract class Stage extends IteratorQueue {
         this.game.camera.shake(intensity, frame)
     }
 
-    // 立ち絵(APNG)を表示する。idを分ければ複数枚同時に並べられる。
-    // offsetPercentは画面幅に対する左右のずれ(負で左、正で右。中央基準)
-    protected showFigure(id: string, src: string, { offsetPercent = 0 }: { offsetPercent?: number } = {}) {
-        this.game.figureLayer.show(id, src, offsetPercent)
+    // 地の文。時と場所は「五日前。霧の沢。」のように一行に縮めて書く
+    protected *narrate(...texts: string[]): Generator<void, void, void> {
+        yield* this.game.textBox.say(texts)
     }
 
-    protected hideFigure(id: string) {
-        this.game.figureLayer.hide(id)
+    // 台詞。texts は同じ人物が続けて話す
+    protected *talk(name: string, ...texts: string[]): Generator<void, void, void> {
+        yield* this.game.textBox.say(texts, { name })
+    }
+
+    // 立ち絵を表示する。同じ人物の立ち絵を出し直すと、表情だけが差し替わる
+    protected showFigure(figure: Figure) {
+        this.game.figureLayer.show(figure.id, figure.src, figure.offsetPercent)
+    }
+
+    protected hideFigure(figure: Figure) {
+        this.game.figureLayer.hide(figure.id)
+    }
+
+    protected hideAllFigures() {
+        this.game.figureLayer.hideAll()
     }
 
     // Gameの描画が全て終わった後に呼ばれる、画面全体を覆うオーバーレイの描画

@@ -3,7 +3,7 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { remodel } from "../../Game/Remodel"
 import { T } from "../../T"
 
-// 砂塵道場の技。どれも撃つ敵(e)の乱数と位置を使う
+// 砂の崖の技。どれも撃つ敵(e)の乱数と位置を使う
 export namespace Sand {
     export const COLOR: Color = "#ffd890"
 

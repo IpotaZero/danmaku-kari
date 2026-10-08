@@ -3,14 +3,15 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
+import { Figure } from "../Figure"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
 
-// ステージ「スズムシ」(月影道場・道場主)
-// 道場主のまわりに子機が幾何学的に並ぶ。胴のすぐ左右に翅の一対、その外側に触角の一対、胴の下に六つの鈴の横一列。
+// ステージ「スズムシ」(三日前・月の草むら)
+// ボスのまわりに子機が幾何学的に並ぶ。胴のすぐ左右に翅の一対、その外側に触角の一対、胴の下に六つの鈴の横一列。
 // 翅: 擦り合わせて音を鳴らす。左右の翅から同時に半円の波が広がり、二つの波が重なって格子のような隙間ができる。
 // 触角: 探るように弾を撒き、少しして自機の方へ向きを変えて飛ばす。
 // 鈴: 順に鈴玉を落とす。鈴玉は少し落ちてから、輪になって鳴り響く。
@@ -22,8 +23,21 @@ import { Charge } from "../Charge"
 //         胴は月の輪(一度広がって止まり、くるりと回ってから散る輪)を放つ。
 // 三段目: 満月。胴に攻撃が効くようになり、胴は自分でも半円の波を鳴らしながら、月の輪を放つ。
 
+// 雌に食べられるために鳴く雄。「春になったら、ぼくの子は、ぼくでできてる」は結末の伏線
 export default class extends Stage {
     *G() {
+        yield* this.narrate("三日前。月の草むら。", "霜の降りた草むらで、一匹だけ鳴いている。")
+
+        this.showFigure(Figure.hachinoko)
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk("スズムシ", "リーン……。", "やあ。邪魔しないでくれよ。いま、いいところなんだ。")
+        yield* this.talk("ハチノコ", "誰に向かって鳴いてるの。")
+        yield* this.talk("スズムシ", "お嫁さん。", "歌が届いたら、来てくれる。そしたら、ぼくを食べる。")
+        yield* this.talk("ハチノコ", "……食べられるのに、呼ぶの。")
+        yield* this.talk("スズムシ", "ぼくは卵の栄養になるんだ。", "春になったら、ぼくの子は、ぼくでできてる。")
+        yield* this.talk("スズムシ", "最後まで聞いていってよ。")
+        this.hideAllFigures()
+
         const boss = new EnemySuzumushi(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -31,6 +45,13 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
+
+        this.showFigure(Figure.hachinoko)
+        yield* this.talk("スズムシ", "……届いたかな。")
+        yield* this.narrate("草むらの奥で、何かが動いた。")
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk("ユキムシ", "あと三日。")
+        this.hideAllFigures()
     }
 }
 

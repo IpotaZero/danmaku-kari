@@ -2,7 +2,7 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { remodel } from "../../Game/Remodel"
 import { T } from "../../T"
 
-// 月影道場の「満ち欠け」。輪の一部だけが照らされていて、照らされた弧だけが実体になる(影の側は薄く、当たり判定がない)
+// 月の草むらの「満ち欠け」。輪の一部だけが照らされていて、照らされた弧だけが実体になる(影の側は薄く、当たり判定がない)
 export namespace Phase {
     export type Ring = {
         count: number

@@ -22,7 +22,7 @@ export class SceneTitle extends Scene {
                 <div class="title-logo">
                     <span class="title-logo-line">The</span>
                     <span class="title-logo-line">Scattered</span>
-                    <span class="title-logo-line">Days!</span>
+                    <span class="title-logo-line">Days</span>
                 </div>
             </div>
         `,

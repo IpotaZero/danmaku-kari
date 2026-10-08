@@ -1,7 +1,7 @@
 import { Silhouette } from "../utils/Silhouette"
 
 /**
- * タイトル画面の背景(陽だまり・草むら・飛び交う虫)。
+ * タイトル画面の背景(晩秋の薄日・枯れかけた草むら・山を下りていく赤蜻蛉・一匹だけの蜂・漂う雪虫)。
  * 草も虫もすべて単色のシルエット(fill="currentColor")で描き、色と動きはCSS(title-meadow.css)に任せる。
  */
 export class TitleMeadow {
@@ -23,16 +23,8 @@ export class TitleMeadow {
 
         const far = this.element.querySelector(".meadow-bugs-far")!
         const near = this.element.querySelector(".meadow-bugs-near")!
-        const kinds = [
-            "butterfly",
-            "dragonfly",
-            "bee",
-            "ladybug",
-            "butterfly",
-            "dragonfly",
-            "bee",
-            "butterfly",
-        ] as const
+        // 蜂は一匹だけ。ほかは山を下りていく赤蜻蛉
+        const kinds = ["bee", "dragonfly", "dragonfly", "dragonfly", "dragonfly"] as const
         kinds.forEach((kind, i) => {
             const isNear = i % 2 === 0
             const bug = document.createElement("div")
@@ -49,14 +41,15 @@ export class TitleMeadow {
             ;(isNear ? near : far).appendChild(bug)
         })
 
-        for (let i = 0; i < 14; i++) {
-            const pollen = document.createElement("div")
-            pollen.className = "meadow-pollen"
-            pollen.style.setProperty("--x", `${Math.random() * 100}%`)
-            pollen.style.setProperty("--duration", `${10 + Math.random() * 10}s`)
-            pollen.style.setProperty("--delay", `${-Math.random() * 20}s`)
-            pollen.style.setProperty("--drift", `${(Math.random() - 0.5) * 6}rem`)
-            this.element.appendChild(pollen)
+        // 雪虫。飛びはじめると、七日で初雪が降る
+        for (let i = 0; i < 18; i++) {
+            const yukimushi = document.createElement("div")
+            yukimushi.className = "meadow-yukimushi"
+            yukimushi.style.setProperty("--x", `${Math.random() * 100}%`)
+            yukimushi.style.setProperty("--duration", `${16 + Math.random() * 14}s`)
+            yukimushi.style.setProperty("--delay", `${-Math.random() * 30}s`)
+            yukimushi.style.setProperty("--drift", `${(Math.random() - 0.5) * 10}rem`)
+            this.element.appendChild(yukimushi)
         }
     }
 }

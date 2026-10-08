@@ -3,7 +3,7 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { T } from "../../T"
 
-// 月影道場の「餅」。放り投げられた大きな餅は、重さに引かれて放物線を描き、画面の底で弾む。
+// 月の草むらの「餅」。放り投げられた大きな餅は、重さに引かれて放物線を描き、画面の底で弾む。
 // 弾むたびに、底から上へ向かって半円の衝撃波(小さな弾)が広がる。弾むたびに少しずつ低くなり、何度か弾むと消える。
 // 左右の壁でも跳ね返る
 export namespace Mochi {

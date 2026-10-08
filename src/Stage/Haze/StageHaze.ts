@@ -4,6 +4,7 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
+import { Figure } from "../Figure"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
@@ -11,11 +12,11 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Mirage } from "./Mirage"
 import { Heat } from "./Heat"
 
-// ステージ「陽炎」(陽炎道場・道場主)
-// 一段目: 逃げ水。画面の真ん中を通る鏡に、道場主の揺らめく輪と矢が映る。鏡は周期ごとに傾きを変えて引き直される。
+// ステージ「陽炎」(四日前・日だまりの石垣)
+// 一段目: 逃げ水。画面の真ん中を通る鏡に、ボスの揺らめく輪と矢が映る。鏡は周期ごとに傾きを変えて引き直される。
 //   鏡が引かれる間(提示)に、幻がどこに映るか、つまり下からの弾がどこから来るかを読む。
-// 二段目: 合わせ鏡。縦横の鏡で、道場主の矢が四つに映る。鏡の線から離れた部屋の真ん中で戦う。
-// 三段目: 陽炎の柱。5本の泡の柱が下から昇る中へ、道場主がゆっくりした輪を落とす。
+// 二段目: 合わせ鏡。縦横の鏡で、ボスの矢が四つに映る。鏡の線から離れた部屋の真ん中で戦う。
+// 三段目: 陽炎の柱。5本の泡の柱が下から昇る中へ、ボスがゆっくりした輪を落とす。
 // 最終段: 蝉時雨。泡の柱が真ん中の鏡に映り、上からも降りてくる。上下から伸びた柱が真ん中でつながり、画面を縦に仕切る。
 
 const ENTRANCE_FRAMES = 150
@@ -36,6 +37,17 @@ const CYCLE3_FRAMES = Heat.PLUME_TOTAL_FRAMES + 300
 
 export default class extends Stage {
     *G() {
+        yield* this.narrate("四日前。日だまりの石垣。", "石だけが、まだ少しあたたかい。", "季節はずれの声がした。")
+
+        this.showFigure(Figure.hachinoko)
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk("セミ", "ジ、ジジ……。", "よう、蜜蜂。いい天気だな。夏だ。")
+        yield* this.talk("ハチノコ", "もう、十一月だよ。")
+        yield* this.talk("セミ", "見ろよ、陽炎が立ってる。夏じゃなきゃ、立たないだろ。")
+        yield* this.talk("ユキムシ", "……あれ、ぜんぶ幻だよ。")
+        yield* this.talk("セミ", "仲間はちょっと寝坊してるだけさ。すぐに鳴きだす。", "それまで、相手をしてくれよ。")
+        this.hideAllFigures()
+
         const boss = new EnemyHaze(this.game)
         const cores = [0, 1, 2].map((i) => new EnemyCore(this.game, boss, i))
 
@@ -62,6 +74,17 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
+
+        this.showFigure(Figure.hachinoko)
+        yield* this.talk("セミ", "……寒いな。")
+        yield* this.talk("セミ", "知ってたよ。")
+        yield* this.narrate("それきり、石垣は静かになった。")
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk("ユキムシ", "あと四日。")
+        yield* this.talk("ユキムシ", "ねえ。キミも、知ってるんでしょ。妹たちのこと。")
+        yield* this.talk("ハチノコ", "……。")
+        yield* this.talk("ハチノコ", "行く。")
+        this.hideAllFigures()
     }
 }
 

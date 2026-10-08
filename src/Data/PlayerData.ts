@@ -22,14 +22,10 @@ type SerializedPlayerData = {
     lives: number
     lastLivesSyncedAt: number
     totalScore?: number
-    badges?: BadgeId[]
     noMissClears?: string[]
     mapNodeId?: string
     debugUnlockAll?: boolean
 }
-
-// 免状(道場主を倒すと授かる証)のID
-export type BadgeId = string
 
 /**
  * ステージ間・シーン間で引き継がれるプレイヤーのセーブデータを保持する。
@@ -56,11 +52,8 @@ export class PlayerData {
     // 残機回復の経過計算の基準時刻(ms epoch)。recoverLivesOverTimeを呼ぶたびに進める
     private lastLivesSyncedAt = Date.now()
 
-    // 各ステージで獲得したscoreの累計(ステージを跨いで引き継がれる)
+    // 各ステージで集めた蜜(score)の累計(ステージを跨いで引き継がれる)
     private totalScore = 0
-
-    // 授かった免状
-    private readonly badges = new Set<BadgeId>()
 
     // デバッグ用。trueならクリア状況に関係なく全ステージを解放する(MapGraph.isUnlocked参照)
     debugUnlockAll = false
@@ -100,19 +93,13 @@ export class PlayerData {
         return this.stageClears.get(stageId) ?? new Set()
     }
 
-    awardBadge(badge: BadgeId) {
-        if (this.badges.has(badge)) return
+    // 装備を手に入れる。すでに持っていれば何もしない
+    grantEquipment(slot: "main" | "sub", id: EquipmentId) {
+        const owned = slot === "main" ? this.ownedMainEquipmentIds : this.ownedSubEquipmentIds
+        if (owned.has(id)) return
 
-        this.badges.add(badge)
+        owned.add(id)
         this.save()
-    }
-
-    hasBadge(badge: BadgeId): boolean {
-        return this.badges.has(badge)
-    }
-
-    getBadges(): ReadonlySet<BadgeId> {
-        return this.badges
     }
 
     getLoadout(): Loadout {
@@ -190,7 +177,6 @@ export class PlayerData {
         this.lives = MAX_LIVES
         this.lastLivesSyncedAt = Date.now()
         this.totalScore = 0
-        this.badges.clear()
         this.debugUnlockAll = false
 
         try {
@@ -229,9 +215,6 @@ export class PlayerData {
             this.lastLivesSyncedAt = data.lastLivesSyncedAt
             // 旧形式の保存データにはこのフィールドが無いので、その場合は0から始める
             this.totalScore = data.totalScore ?? 0
-            // 旧形式の保存データにはこのフィールドが無いので、その場合は免状なしから始める
-            this.badges.clear()
-            data.badges?.forEach((badge) => this.badges.add(badge))
             // 旧形式の保存データにはこのフィールドが無いので、その場合はノーミスクリアなしから始める
             this.noMissClears.clear()
             data.noMissClears?.forEach((stageId) => this.noMissClears.add(stageId))
@@ -253,7 +236,6 @@ export class PlayerData {
             lives: this.lives,
             lastLivesSyncedAt: this.lastLivesSyncedAt,
             totalScore: this.totalScore,
-            badges: [...this.badges],
             noMissClears: [...this.noMissClears],
             mapNodeId: this.mapNodeId,
             debugUnlockAll: this.debugUnlockAll,

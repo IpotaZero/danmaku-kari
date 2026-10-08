@@ -4,6 +4,7 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
+import { Figure } from "../Figure"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
@@ -36,17 +37,27 @@ const AREA_PER_SNOW = 9000
 
 export default class extends Stage {
     *G() {
-        yield* this.game.textBox.say(["霜の降りた道場。板張りの床が冷たい。"])
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["うーさむさむ。巣に帰りたいなあ。"], { name: "ハチノコ" })
-        this.showFigure("yukimushi", "assets/figure/Yukimushi.webp", { offsetPercent: 30 })
-        yield* this.game.textBox.say(["よく来たね。ボクが霜月道場の長、ユキムシだよ。"], { name: "ユキムシ" })
-        yield* this.game.textBox.say(["あなたは寒くないんですか?"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["寒いよ。"], { name: "ユキムシ" })
-        yield* this.game.textBox.say(["あら。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["だから、弾幕で熱くなろうかっ!"], { name: "ユキムシ" })
-        this.hideFigure("hachinoko")
-        this.hideFigure("yukimushi")
+        yield* this.narrate(
+            "七日前。雪虫の野。",
+            "山を登る風が冷たい。",
+            "白いものが、ふわふわと飛んでいた。雪ではなかった。",
+        )
+
+        this.showFigure(Figure.hachinoko)
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk("ユキムシ", "蜜蜂だ。めずらしい。この時期に、ひとりで。")
+        yield* this.talk("ハチノコ", "スズメバチの巣を探してる。")
+        yield* this.talk("ユキムシ", "山のてっぺん。……何しに行くの?")
+        yield* this.talk("ハチノコ", "妹たちを、連れて帰る。")
+        yield* this.talk("ユキムシ", "……ふうん。")
+        yield* this.talk("ユキムシ", "ボクたちが飛びはじめたら、七日で雪が降るんだ。", "蜜蜂は、寒いと飛べないでしょ。")
+        yield* this.talk("ハチノコ", "七日あれば、着く。")
+        yield* this.talk(
+            "ユキムシ",
+            "じゃあ、ボクの雪くらいは抜けられないとね。",
+            "抜けられないなら、山の上の雪で死ぬだけだから。",
+        )
+        this.hideAllFigures()
 
         const boss = new EnemyFrost(this.game)
         const core0 = new EnemyCore(this.game, boss, 0)
@@ -79,20 +90,25 @@ export default class extends Stage {
 
         yield* Array(300)
 
-        this.showFigure("yukimushi", "assets/figure/Yukimushi-defeat.webp", { offsetPercent: 30 })
-        yield* this.game.textBox.say(["あちちっ。暑さには弱いんだボク。"], { name: "ユキムシ" })
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["あらそうなの。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["ということで、君には霜月道場の免状を与えましょう。"], { name: "ユキムシ" })
-        this.hideFigure("hachinoko")
-        this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["次は……そうだな、疾風道場か網掛道場に行ってみるといいでしょう。頑張ってね。"], {
-            name: "ユキムシ",
-        })
-        yield* this.game.textBox.say(["ありがとー。"], { name: "ハチノコ" })
-        this.hideFigure("hachinoko")
-        this.hideFigure("yukimushi")
+        this.showFigure(Figure.yukimushiDefeat)
+        yield* this.talk("ユキムシ", "あちち。")
+        this.showFigure(Figure.hachinoko)
+        yield* this.talk("ユキムシ", "キミ、あったかすぎ。", "ボクら、手のひらの熱でも弱っちゃうんだよ。")
+        yield* this.talk("ハチノコ", "……ごめん。")
+        yield* this.talk("ユキムシ", "いいよ。へばっただけ。")
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk(
+            "ユキムシ",
+            "でも、その熱、いいね。",
+            "蜜蜂って、みんなで熱くなって、スズメバチを蒸し殺すんでしょ。",
+        )
+        yield* this.talk("ハチノコ", "蜂球。……一匹じゃ、できない。")
+        yield* this.talk("ユキムシ", "小さいのなら、できるよ。ボクがへばるくらいのは。")
+        yield* this.narrate("ハチノコは、胸の奥で翅の筋肉をふるわせた。", "小さな熱が生まれた。")
+        yield* this.talk("ユキムシ", "ついてっていい? 雪が降るまで、ひまなんだ。")
+        yield* this.talk("ハチノコ", "近づかないなら。")
+        yield* this.talk("ユキムシ", "そっちこそ。")
+        this.hideAllFigures()
     }
 }
 

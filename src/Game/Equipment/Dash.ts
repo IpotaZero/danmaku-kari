@@ -1,7 +1,7 @@
 import { actionReadyEffect } from "./ActionReadyEffect"
 import type { SubEquipment } from "./types"
 
-// 高速移動は「場所を移る」装備。
+// 羽ばたきは「場所を移る」装備。
 // 短く・頻繁に使え、薄い壁を一瞬で突き抜けるのが得意。
 // 弾は一つも消さないので、抜けた先に居場所がなければ意味がない。
 const 持続フレーム = 18
@@ -9,8 +9,8 @@ const クールダウンフレーム = 960
 const 速度倍率 = 7
 
 export const dash: SubEquipment = {
-    label: "高速移動",
-    description: "一瞬だけ高速移動する。高速移動中は無敵になる。",
+    label: "羽ばたき",
+    description: "一瞬だけ速く飛ぶ。そのあいだは何にも当たらない。",
     *action(player) {
         let cooldown = 0
         let burstFramesRemaining = 0

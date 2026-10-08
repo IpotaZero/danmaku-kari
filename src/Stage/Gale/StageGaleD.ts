@@ -3,14 +3,37 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
+import { Figure } from "../Figure"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { GenUtils } from "@ipota/functions"
 
+// ステージ「アキアカネ」(六日前・風の尾根)
+// 夏を山の上で過ごし、秋に里へ下りて卵を産む赤蜻蛉。みんなが山を下りていく中、上っていくのはハチノコだけ
 export default class extends Stage {
     *G() {
+        yield* this.narrate("六日前。風の尾根。", "赤い蜻蛉の群れが、風に乗って山を下っていく。")
+
+        this.showFigure(Figure.hachinoko)
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk(
+            "ユキムシ",
+            "アキアカネだ。夏は山の上で涼んで、秋になったら里へ下りて卵を産むの。",
+            "みんな、下りていくね。上っていくのは、キミだけ。",
+        )
+        yield* this.talk("アキアカネ", "そこの蜜蜂。", "下りる前に、腹ごしらえしたくてね。")
+        yield* this.talk("ハチノコ", "スズメバチの巣に行く。どいて。")
+        yield* this.talk(
+            "アキアカネ",
+            "てっぺんの? この秋、あいつらは山じゅうの巣を襲って、子どもを肉にして運んでたよ。",
+            "運ばれた子は、もう誰かの腹の中さ。",
+        )
+        yield* this.talk("ハチノコ", "……どいて。")
+        yield* this.talk("アキアカネ", "おまえも、誰かの腹の中に入るんだよ。")
+        this.hideAllFigures()
+
         const boss = new EnemyBoss(this.game)
         const phase1 = new EnemyPhase1(this.game, boss)
         const phase2 = new EnemyPhase2(this.game, boss)
@@ -26,6 +49,17 @@ export default class extends Stage {
         this.scorenizeAllBullets()
         boss.start()
         yield* this.waitAllEnemiesDead()
+        this.scorenizeAllBullets()
+
+        yield* Array(300)
+
+        this.showFigure(Figure.hachinoko)
+        yield* this.talk("アキアカネ", "……逃げもしない、食われもしない。変な蜂。")
+        yield* this.talk("アキアカネ", "腹ぺこのまま、下りるよ。卵、産めるかな。")
+        yield* this.narrate("赤い群れは、尾根の向こうに消えた。")
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk("ユキムシ", "あと六日。")
+        this.hideAllFigures()
     }
 }
 

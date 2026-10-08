@@ -12,6 +12,6 @@ export const DEFAULT_LOADOUT: Loadout = {
     sub: "dash",
 }
 
-// 初期状態で所持している装備
-export const DEFAULT_OWNED_MAIN_EQUIPMENT_IDS: readonly EquipmentId[] = ["standard", "laser"]
-export const DEFAULT_OWNED_SUB_EQUIPMENT_IDS: readonly EquipmentId[] = ["dash", "barrier"]
+// 初期状態で所持している装備。ほかの装備は物語の中で手に入る(地図のノードの main: / sub: を参照)
+export const DEFAULT_OWNED_MAIN_EQUIPMENT_IDS: readonly EquipmentId[] = ["standard"]
+export const DEFAULT_OWNED_SUB_EQUIPMENT_IDS: readonly EquipmentId[] = ["dash"]

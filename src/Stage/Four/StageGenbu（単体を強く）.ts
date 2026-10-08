@@ -4,13 +4,14 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
+import { Figure } from "../Figure"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
 
-// ステージ「玄武」(四天王)
+// ステージ「玄武」(前日・巣の奥)
 // 玄武のまわりに子機が幾何学的に並ぶ。内側の円を六枚の甲羅が回り、外側の円を六つの子機(蛇の頭と五つの節)が等間隔のまま回る。
 // 甲羅: 胴を囲んで回りながら、順に外向きの水弾を放つ。甲羅が胴を囲んでいるので、胴を狙った弾は甲羅に当たる。
 // 蛇の頭: 亀のまわりを速く回りながら、自機へ毒牙(針の三方向)を飛ばす。
@@ -22,8 +23,27 @@ import { Charge } from "../Charge"
 //         胴は津波を起こす。画面の幅いっぱいの波を三列続けて押し寄せる。波には一か所だけ隙間があり、列ごとに少しずつずれる。
 // 三段目: 渦潮。胴に攻撃が効くようになり、津波に加えて、曲がりながら広がる四本腕の渦を巻く。
 
+// 物語では、春に一匹で巣を作ったスズメバチの老女王として出る(前日)。奥の最後の娘たち(新しい女王)を守る
 export default class extends Stage {
     *G() {
+        yield* this.narrate("前日。巣のいちばん奥へ続く通路。", "大きな、古びたスズメバチがうずくまっていた。")
+
+        this.showFigure(Figure.hachinoko)
+        yield* this.talk("老女王", "……蜜蜂か。")
+        yield* this.talk(
+            "老女王",
+            "春に、わたしは一匹で、この巣の最初の部屋を作った。",
+            "娘たちは千を超えた。みんな、秋のうちに死んでいく。",
+        )
+        yield* this.talk("老女王", "おまえも、一匹か。")
+        yield* this.talk("ハチノコ", "……そう。")
+        yield* this.talk(
+            "老女王",
+            "奥には、わたしの最後の娘たちがいる。冬を越すのは、あの子たちだけだ。",
+            "雪が降るまで、ここは通さない。",
+        )
+        this.hideAllFigures()
+
         const boss = new EnemyGenbu(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -31,6 +51,13 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
+
+        this.showFigure(Figure.hachinoko)
+        yield* this.talk("老女王", "……春の、匂いが、した……。")
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk("ユキムシ", "……来るよ。")
+        yield* this.narrate("空が、白くなりはじめた。")
+        this.hideAllFigures()
     }
 }
 

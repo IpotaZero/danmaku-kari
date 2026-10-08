@@ -3,7 +3,7 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 
-// 流星道場の「流れ星」。
+// 星の河原の「流れ星」。
 // 流れ星は、まず通り道に薄い予告線(当たり判定なし)が引かれ、そのあと画面の端から端まで一気に駆け抜ける。
 // 駆け抜けた後には尾(止まった小さな弾)が残り、しばらくしてから消える。尾の弾は詰まっていて抜けられない
 export namespace Meteor {

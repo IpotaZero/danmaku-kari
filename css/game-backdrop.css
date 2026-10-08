@@ -113,45 +113,38 @@
     }
 }
 
-/* ホタル。ふわふわ漂う動き(transform)と明滅(opacity)を別々の周期で重ねる */
-.backdrop-firefly {
+/* 雪虫。淡い綿毛をまとった粒が、ゆっくり揺れながら舞い降りる。キャンバスより目立たないよう薄くする */
+.backdrop-yukimushi {
     position: absolute;
     left: var(--x);
-    top: var(--y);
+    top: -1rem;
     width: 0.2rem;
     height: 0.2rem;
     border-radius: 50%;
 
-    background: var(--gold);
-    box-shadow: 0 0 0.5rem 0.2rem color-mix(in srgb, var(--gold) 30%, transparent);
+    background: color-mix(in srgb, var(--paper) 60%, transparent);
+    box-shadow: 0 0 0.5rem 0.2rem color-mix(in srgb, var(--paper) 15%, transparent);
 
-    animation:
-        backdrop-firefly-drift var(--drift) ease-in-out infinite alternate,
-        backdrop-firefly-glow var(--glow) ease-in-out infinite alternate;
+    animation: backdrop-yukimushi-fall var(--fall) linear infinite;
     animation-delay: var(--delay);
 }
 
-@keyframes backdrop-firefly-drift {
+@keyframes backdrop-yukimushi-fall {
     0% {
         transform: translate(0, 0);
+        opacity: 0;
     }
-    33% {
-        transform: translate(var(--dx), calc(var(--dy) * -1));
-    }
-    66% {
-        transform: translate(calc(var(--dx) * -0.5), var(--dy));
-    }
-    100% {
-        transform: translate(calc(var(--dx) * 0.7), calc(var(--dy) * 0.4));
-    }
-}
-
-@keyframes backdrop-firefly-glow {
-    0%,
-    40% {
-        opacity: 0.05;
-    }
-    100% {
+    10% {
         opacity: 0.5;
+    }
+    50% {
+        transform: translate(calc(var(--drift) * -0.6), 50dvh);
+    }
+    90% {
+        opacity: 0.5;
+    }
+    100% {
+        transform: translate(var(--drift), 100dvh);
+        opacity: 0;
     }
 }

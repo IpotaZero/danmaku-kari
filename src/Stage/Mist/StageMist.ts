@@ -4,13 +4,14 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
+import { Figure } from "../Figure"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 
-// ステージ「カゲロウ」(霧隠道場・道場主)
-// 道場主のまわりに子機が幾何学的に並ぶ。四枚の翅が胴を囲む正方形になってゆっくり回り、胴の下に三本の尾が横一列に並ぶ。
+// ステージ「カゲロウ」(五日前・霧の沢)
+// ボスのまわりに子機が幾何学的に並ぶ。四枚の翅が胴を囲む正方形になってゆっくり回り、胴の下に三本の尾が横一列に並ぶ。
 // それぞれが別々の攻撃をする。翅と尾をすべて落とすまで、胴には攻撃が効かない。
 // 前翅: 外向きに扇を払う。正方形が回るので、扇の向きも少しずつ変わる。
 // 後翅: 鱗粉を撒く。鱗粉はその場に漂ってから、ばらばらに落ちてくる。
@@ -19,6 +20,17 @@ import { Part } from "../Part"
 
 export default class extends Stage {
     *G() {
+        yield* this.narrate("五日前。霧の沢。", "霧の中で、白い翅がいくつも、上へ下へと揺れている。")
+
+        this.showFigure(Figure.hachinoko)
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk("カゲロウ", "いらっしゃい。わたし、今朝生まれたの。", "日が暮れたら死ぬわ。")
+        yield* this.talk("ハチノコ", "……一日だけ?")
+        yield* this.talk("カゲロウ", "そう。口もないの。食べるために生まれてこなかったから。")
+        yield* this.talk("ハチノコ", "じゃあ、何のために。")
+        yield* this.talk("カゲロウ", "踊るため。", "日が暮れるまで、相手をしてくれる?")
+        this.hideAllFigures()
+
         const boss = new EnemyKagerou(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -32,6 +44,19 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
+
+        this.showFigure(Figure.hachinoko)
+        yield* this.talk("カゲロウ", "……もう、日が暮れる。", "たのしかった。")
+        yield* this.narrate("霧が晴れると、沢には白い翅がたくさん落ちていた。")
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk("ハチノコ", "あなたは、雪が降ったらどうするの。")
+        yield* this.talk(
+            "ユキムシ",
+            "卵を産んで、死ぬよ。",
+            "ボクたちは、雪が来るって知らせるために飛んでるんだ。知らせたら、おしまい。",
+        )
+        yield* this.talk("ユキムシ", "あと五日。")
+        this.hideAllFigures()
     }
 }
 

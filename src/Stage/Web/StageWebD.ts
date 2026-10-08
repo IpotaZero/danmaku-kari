@@ -5,6 +5,7 @@ import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { SpiderWeb } from "./SpiderWeb"
 import { Stage } from "../Stage"
+import { Figure } from "../Figure"
 import { T } from "../../T"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
@@ -23,11 +24,29 @@ const WEB: SpiderWeb.Config = {
 // cycle3の1周期の長さ
 const CYCLE3_FRAMES = 660
 
+// ステージ「ジョロウグモ」(六日前・糸の藪)
+// 卵を産み終えた母蜘蛛。妹たちがもう食われていることを、最初に面と向かって言う
 export default class extends Stage {
     *G() {
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["なんか、すごい視線を感じるなあ。"], { name: "ハチノコ" })
-        this.hideFigure("hachinoko")
+        yield* this.narrate("六日前。糸の藪。", "枝から枝へ、黄色い糸が張りめぐらされている。")
+
+        this.showFigure(Figure.hachinoko)
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk("ハチノコ", "……見られてる。")
+        yield* this.talk(
+            "ジョロウグモ",
+            "蜜蜂。ひさしぶり。",
+            "夏のあいだは、あなたの姉さんたちが、よくかかってくれたわ。",
+        )
+        yield* this.talk("ハチノコ", "……。")
+        yield* this.talk(
+            "ジョロウグモ",
+            "スズメバチの巣に行くんですってね。",
+            "肉団子にされた子が、まだ生きてると思うの?",
+        )
+        yield* this.talk("ハチノコ", "……通して。")
+        yield* this.talk("ジョロウグモ", "卵を産んだばかりで、お腹がすいてるの。")
+        this.hideAllFigures()
 
         const boss = new EnemyBoss(this.game)
         const core0 = new EnemyCore(this.game, boss, 0)
@@ -59,6 +78,18 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
+
+        this.showFigure(Figure.hachinoko)
+        yield* this.talk("ジョロウグモ", "……ああ。もう、脚が動かない。")
+        yield* this.talk(
+            "ジョロウグモ",
+            "いいの。卵は産んだ。あとは冬に任せるわ。",
+            "あなたも、任せてしまえば楽なのに。",
+        )
+        yield* this.talk("ハチノコ", "行く。")
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk("ユキムシ", "あと六日。")
+        this.hideAllFigures()
     }
 }
 

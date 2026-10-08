@@ -4,36 +4,124 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
+import { Figure } from "../Figure"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 
-// ステージ「チャンピオン」
-// チャンピオンのまわりに子機が幾何学的に並ぶ。胴を囲む正方形に四枚の翅、胴の前の横一列に大顎の一対と毒針、胴の左右の横一列に六つの脚。
+// ステージ「オオスズメバチ」(初雪・最奥の部屋)
+// オオスズメバチのまわりに子機が幾何学的に並ぶ。胴を囲む正方形に四枚の翅、胴の前の横一列に大顎の一対と毒針、胴の左右の横一列に六つの脚。
 // そのまわりの大きな楕円を、六匹の働き蜂がそろって回る。それぞれが別々の攻撃をする。
 // 大顎: 横へ開いた弾が一度止まり、自機のいた所へ一斉に噛みつく。左右の大顎が交互に噛みつく。
 // 翅: 羽音。くねくねと揺れながら進む弾の列を、斜め下へ流す。
 // 脚: 左の脚から右の脚へ順に、だんだん速くなる爪を落とす。爪が幕のように左から右へ降りていく。
 // 毒針: 自機の方へ扇のように五本の線を薄く見せてから、端から順に線に沿って針を撃ち込む。
 // 働き蜂: 大きな楕円を速く回り、進む向きへ短い弾の列を撃つ。
-// 胴: 四枚の翅をすべて落とすまで攻撃が効かない。翅を落とすと、女王の怒り(向きを変えながら回る六本腕の渦)を撒きはじめる。
+// 胴: 四枚の翅をすべて落とすまで攻撃が効かない。翅を落とすと、怒り(向きを変えながら回る六本腕の渦)を撒きはじめる。
+// 初雪: 胴の体力が半分を切ると、画面の上から初雪が降りはじめ、倒れるまで降り続ける。雪は当たり判定のある、ゆっくり揺れながら落ちる弾。
+//       大顎や毒針を精密に避けている最中に、ばらばらな雪が混ざってくる。
+// 倒したあと、物語の結末で、新しい女王たちを刺すか見送るかを選ぶ。
 
 export default class extends Stage {
     *G() {
+        yield* this.narrate(
+            "初雪の朝。",
+            "最奥の部屋。大きな繭がいくつも並んでいる。",
+            "その前に、一匹のスズメバチが立っていた。",
+        )
+
+        this.showFigure(Figure.hachinoko)
+        yield* this.talk("オオスズメバチ", "来たか。", "あの夜、巣房の奥で震えていた蜂の子は、おまえだな。")
+        yield* this.talk("オオスズメバチ", "おまえの姉に、蜂球で蒸し殺されかけた。……熱かったよ。")
+        yield* this.talk("ハチノコ", "妹たちは。")
+        yield* this.talk("オオスズメバチ", "後ろだ。")
+        yield* this.talk(
+            "オオスズメバチ",
+            "おまえの妹たちは、この子たちになった。",
+            "この子たちが巣を出るまで、わたしは落ちない。",
+        )
+        this.hideAllFigures()
+
         const boss = new EnemyHornet(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
         // 翅が残っている間は、胴に攻撃が効かない
-        while (boss.life > 0) {
-            boss.isInvincible = boss.frame < 120 || boss.wings.some((p) => p.life > 0)
-            yield
-        }
+        while (boss.frame < 120 || boss.wings.some((p) => p.life > 0)) yield
+        boss.isInvincible = false
+
+        // 胴の体力が半分を切ると、初雪が降りはじめる。降りはじめに画面の弾を蜜に変えて、一息つかせる
+        while (boss.life > boss.maxLife / 2) yield
+        this.scorenizeAllBullets()
+        this.flash("#eef6ffc0", 40)
+        boss.snow()
 
         yield* this.waitAllEnemiesDead()
         this.scorenizeAllBullets()
+        this.addScript(() => this.quietSnow(), { loop: Infinity })
 
         yield* Array(300)
+
+        this.showFigure(Figure.hachinoko)
+        yield* this.talk("オオスズメバチ", "……行け。")
+        yield* this.narrate(
+            "繭が、破れた。",
+            "新しい女王たちが這い出してくる。丸く、重たく、まだ翅も乾いていない。",
+            "外では、雪が降りはじめていた。",
+        )
+
+        const answer = yield* this.game.textBox.ask(["刺す", "見送る"] as const, { title: "針は、まだ残っている。" })
+        const stings = answer.index === 0
+        this.hideFigure(Figure.hachinoko)
+
+        if (stings) {
+            yield* this.narrate(
+                "ハチノコは、女王たちを一匹ずつ刺した。",
+                "どの女王も、逃げようとはしなかった。まだ、飛べなかったから。",
+            )
+        } else {
+            yield* this.narrate(
+                "ハチノコは、針をおさめた。",
+                "女王たちは一匹ずつ、雪の中へ這い出していった。冬を越す場所を探しに。",
+            )
+        }
+
+        yield* this.narrate("雪は、音もなく積もっていった。", "翅は、もう動かなかった。", "ハチノコは、歩いた。")
+
+        this.showFigure(Figure.hachinoko)
+        this.showFigure(Figure.yukimushi)
+        yield* this.talk("ユキムシ", "……寒い?")
+        yield* this.talk("ハチノコ", "うん。")
+        yield* this.talk("ユキムシ", "ボク、あったかいのは苦手なんだけど。")
+        yield* this.narrate("ユキムシは、ハチノコの背中にとまった。")
+        this.showFigure(Figure.yukimushiDefeat)
+        this.showFigure(Figure.hachinokoSmile)
+        yield* this.talk("ユキムシ", "あったかいね、キミ。")
+        this.hideAllFigures()
+
+        if (stings) {
+            yield* this.narrate("翌年の秋。", "その山には、スズメバチの巣がひとつもなかった。")
+        } else {
+            yield* this.narrate("翌年の春。", "山のどこかで、一匹の女王が、巣の最初の部屋を作りはじめた。")
+        }
+
+        yield* this.narrate("冬蜂の死にどころなく歩きけり　村上鬼城")
+    }
+
+    // 戦いが終わったあとも降り続ける雪。当たり判定のない飾りなので、戦いの雪よりずっと小さく薄くして、弾と見分けがつくようにする
+    private *quietSnow() {
+        yield* remodel(this.game.player)
+            .type("effect")
+            .appearance("ball")
+            .r(2)
+            .color("#eef6ff")
+            .alpha(0.3)
+            .speed(1)
+            .radian(T / 4)
+            .p(vec(Math.random() * this.game.WIDTH, 0))
+            .fire(this.game.bullets)
+
+        yield* Array(8)
     }
 }
 
@@ -265,7 +353,7 @@ class EnemyHornet extends Enemy {
         yield* Array(70 - i * 8)
     }
 
-    // 女王の怒り。翅があるうちは、ときどき輪を放つ。翅を落とすと、向きを変えながら回る六本腕の渦を撒く
+    // 怒り。翅があるうちは、ときどき輪を放つ。翅を落とすと、向きを変えながら回る六本腕の渦を撒く
     private *fury() {
         if (this.wings.some((p) => p.life > 0)) {
             yield* remodel(this)
@@ -298,5 +386,32 @@ class EnemyHornet extends Enemy {
         }
 
         yield* Array(70)
+    }
+
+    // 初雪。画面の上から、ゆっくり左右に揺れながら雪が降りはじめ、倒れるまで降り続ける
+    snow() {
+        this.addScript(() => this.snowfall(), { loop: Infinity })
+    }
+
+    private *snowfall() {
+        yield* remodel(this)
+            .format("small-ball")
+            .color("#eef6ff")
+            .speed(1.4)
+            .duplicate(2, (b) => {
+                b.p = vec(this.random() * this.game.WIDTH, 0)
+                return b
+            })
+            .appear(20)
+            .g(function* (b) {
+                const phase = this.random() * T
+                for (let f = 0; ; f++) {
+                    b.radian = T / 4 + 0.35 * Math.sin(f / 40 + phase)
+                    yield
+                }
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(18)
     }
 }

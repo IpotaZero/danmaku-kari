@@ -317,6 +317,25 @@
         justify-content: start;
     }
 
+    /* 初雪までの日付は、帳面の日付のように右上へ縦書きで添える。一日進むたびに書き換わる */
+    .map-day {
+        position: absolute;
+        top: 0.8em;
+        right: 5%;
+
+        writing-mode: vertical-rl;
+        padding-top: 0.5em;
+        border-top: 2px solid var(--sage);
+
+        font-size: 1.1em;
+        letter-spacing: 0.3em;
+        white-space: nowrap;
+
+        &:empty {
+            display: none;
+        }
+    }
+
     .map-controls {
         position: absolute;
         bottom: 0.8em;

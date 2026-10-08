@@ -3,6 +3,7 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
+import { Figure } from "../Figure"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
 import { GenUtils } from "@ipota/functions"
@@ -16,24 +17,28 @@ const ENTRANCE_FRAMES = 150
 // お互いを一切参照せずとも常に同じフレームで発射できる
 const REST_FRAMES = 240
 
+// 序章「巣」。八日前の夜、秋の終わりに羽化したばかりのハチノコが、姉のミツに飛び方を教わる。
+// スズメバチの偵察を二度落とすが、巣にはもう仲間を呼ぶ印をつけられていて、その夜、巣は襲われる。
 export default class extends Stage {
     *G() {
-        yield* this.game.textBox.say(["雪の降り積もる道場。"])
-        yield* this.game.textBox.say(["そこに一人の虫人と老人が立っていた。"])
-        yield* this.game.textBox.say(["お前もそろそろ旅立つときじゃ。"], { name: "師匠" })
+        yield* this.narrate("十一月の終わり。山の中腹、古い杉の洞。", "蜜蜂の巣。")
 
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["おっす。"], { name: "ハチノコ" })
-
-        yield* this.game.textBox.say(["じゃがその前に最後の試験といこう。"], { name: "師匠" })
-
-        this.hideFigure("hachinoko")
+        this.showFigure(Figure.hachinokoSmile)
+        yield* this.talk("ミツ", "羽、乾いた?")
+        yield* this.talk("ハチノコ", "うん。")
+        yield* this.talk("ミツ", "じゃあ今夜は、わたしの横で見張りを覚えて。", "秋はね、怖いのが来るから。")
+        this.showFigure(Figure.hachinoko)
 
         if (isSmartPhone) {
-            yield* this.game.textBox.say(["覚えておるな? スワイプで移動じゃ。"], { name: "師匠" })
+            yield* this.talk("ミツ", "指でなぞった方へ飛ぶの。")
         } else {
-            yield* this.game.textBox.say(["覚えておるな? 矢印キーで移動、Shiftキーで低速じゃ。"], { name: "師匠" })
+            yield* this.talk("ミツ", "矢印キーで飛ぶの。Shiftを押してるあいだは、ゆっくり。")
         }
+        yield* this.talk("ミツ", "針は勝手に出る。前にいるやつに当てればいい。")
+
+        yield* this.talk("ハチノコ", "……何か来る。")
+        yield* this.talk("ミツ", "スズメバチの偵察。一匹でも帰したら、だめ。")
+        this.hideFigure(Figure.hachinoko)
 
         const parent = new EnemyBoss(this.game)
         this.game.enemies.push(parent)
@@ -46,39 +51,29 @@ export default class extends Stage {
         yield* this.waitAllEnemiesDead()
         this.scorenizeAllBullets()
 
-        if (isSmartPhone) {
-            if (this.game.player.isEquipped(dash)) {
-                yield* this.game.textBox.say(
-                    ["次に、二本指タップで技を発動じゃ。<br>今は高速移動ができるじゃろう。<br>発動中は無敵じゃ。"],
-                    {
-                        name: "師匠",
-                    },
+        yield* this.talk("ミツ", "……遅かった。入り口に、匂いをつけられてる。")
+        yield* this.talk("ハチノコ", "匂い?")
+        yield* this.talk("ミツ", "仲間を呼ぶ印。今夜、群れで来る。")
+
+        if (this.game.player.isEquipped(dash)) {
+            if (isSmartPhone) {
+                yield* this.talk(
+                    "ミツ",
+                    "危ないときは、二本指でたたいて。<br>一瞬だけ速く飛べる。そのあいだは、何にも当たらない。",
                 )
             } else {
-                yield* this.game.textBox.say(
-                    ["次に、二本指タップで技を発動じゃ。<br>今は……わしの知らん技が出るじゃろう。"],
-                    {
-                        name: "師匠",
-                    },
-                )
+                yield* this.talk("ミツ", "危ないときは、Ctrl。<br>一瞬だけ速く飛べる。そのあいだは、何にも当たらない。")
             }
         } else {
-            if (this.game.player.isEquipped(dash)) {
-                yield* this.game.textBox.say(
-                    ["次に、Ctrlキーで技を発動じゃ。<br>今は高速移動ができるじゃろう。<br>発動中は無敵じゃ。"],
-                    {
-                        name: "師匠",
-                    },
-                )
+            if (isSmartPhone) {
+                yield* this.talk("ミツ", "二本指でたたくと、技が出る。<br>……それ、わたしの知らない飛び方だね。")
             } else {
-                yield* this.game.textBox.say(
-                    ["次に、Ctrlキーで技を発動じゃ。<br>今は……わしの知らん技が出るじゃろう。"],
-                    {
-                        name: "師匠",
-                    },
-                )
+                yield* this.talk("ミツ", "Ctrlで、技が出る。<br>……それ、わたしの知らない飛び方だね。")
             }
         }
+
+        yield* this.talk("ハチノコ", "また来る。")
+        yield* this.talk("ミツ", "先ぶれ。本隊が着く前に、落とす。")
 
         const parent2 = new EnemyBoss(this.game)
         this.game.enemies.push(parent2)
@@ -93,16 +88,25 @@ export default class extends Stage {
 
         yield* Array(60)
 
-        yield* this.game.textBox.say(
-            ["よくやった! もうわしに教えることはない。九つの道場を巡り、弾幕マスターとなるのじゃ!"],
-            {
-                name: "師匠",
-            },
-        )
+        this.showFigure(Figure.hachinoko)
+        yield* this.talk("ミツ", "ハチノコ。巣房に入って。朝まで、出ちゃだめ。")
+        yield* this.talk("ハチノコ", "ねえさんは?")
+        yield* this.talk("ミツ", "蜂球。みんなで、あいつらを包むの。", "熱いのは、得意なんだ。わたしたち。")
+        this.hideFigure(Figure.hachinoko)
 
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["やったるぜっ!"], { name: "ハチノコ" })
-        this.hideFigure("hachinoko")
+        yield* this.narrate("その夜、羽音が巣を埋めつくした。")
+        yield* this.narrate("朝。")
+
+        this.showFigure(Figure.hachinoko)
+        yield* this.talk("ハチノコ", "ねえさん。")
+        yield* this.narrate("返事はなかった。")
+        yield* this.narrate(
+            "巣の入り口に、蜂球の跡があった。<br>スズメバチの死骸がひとつ。そのまわりに、姉たちがたくさん。",
+            "巣房は、どれも空だった。<br>幼虫も、蛹も。",
+        )
+        yield* this.talk("ハチノコ", "……妹たちは。")
+        yield* this.narrate("スズメバチの死骸に、針が一本、刺さったまま残っていた。", "ハチノコは、それを抜いた。")
+        this.hideFigure(Figure.hachinoko)
     }
 }
 
