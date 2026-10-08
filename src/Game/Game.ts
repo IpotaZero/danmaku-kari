@@ -81,7 +81,8 @@ export class Game extends IteratorQueue {
 
     private score = 0
 
-    private bulletDrawer = new BulletDrawer()
+    // WebGLの初期化や弾のスプライト作りをステージに入るたびにやり直さないよう、全ステージで使い回す
+    private static readonly bulletDrawer = new BulletDrawer()
     // スクリプトがupdate中に積む、ワールド座標の描画命令。描画はrAFごとに1回なので、update中に直接ctxへ描かず、ここに溜めてdraw()で再生する
     private readonly worldDrawings: ((ctx: CanvasRenderingContext2D) => void)[] = []
     private bulletCollision = new BulletCollision()
@@ -310,12 +311,12 @@ export class Game extends IteratorQueue {
 
         ctx.save()
         this.camera.apply(ctx, this.WIDTH, this.HEIGHT)
-        this.bullets.forEach((b) => this.bulletDrawer.draw(b, ctx))
+        this.bullets.forEach((b) => Game.bulletDrawer.draw(b, ctx))
         ctx.restore()
 
         // GPUでまとめて描いた弾は、カメラ変換込みの画面座標で焼き込まれているため
         // ctxのtransformを掛けていない状態（Camera.apply()の外）で合成する
-        this.bulletDrawer.flush(ctx, this.camera.getTransform(), this.WIDTH, this.HEIGHT)
+        Game.bulletDrawer.flush(ctx, this.camera.getTransform(), this.WIDTH, this.HEIGHT)
 
         ctx.save()
         this.camera.apply(ctx, this.WIDTH, this.HEIGHT)

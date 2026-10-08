@@ -11,7 +11,8 @@ export type AtlasUv = {
  * 同じキー（appearance, color, r）はテクスチャへの再アップロードをしない。
  */
 export class BulletSpriteAtlas {
-    static readonly SIZE = 1024
+    // ステージをまたいで使い回すので、色違いの弾が増えても溢れにくいよう大きめにとる
+    static readonly SIZE = 2048
 
     private readonly slots = new Map<string, AtlasUv>()
 

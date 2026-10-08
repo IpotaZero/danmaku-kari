@@ -4,12 +4,31 @@ import { CameraTransform } from "../Actor/Camera"
 import { BulletGpuBatchRenderer } from "./BulletGpuBatchRenderer"
 import { Polygon } from "./Polygon"
 
+// スプライトを描くのに要る、弾の見た目だけ
+type Look = Pick<Bullet, "appearance" | "color" | "r">
+
+// 見た目ごとに一度だけ描いておく弾の絵。r は丸めた半径で、描くときに本当の半径まで拡大縮小する
+type Sprite = {
+    key: string
+    canvas: HTMLCanvasElement
+    r: number
+    halfSize: number
+}
+
+// 色相をこの角度ごとに丸めて、スプライトを使い回す。見分けがつかない程度の細かさにする
+const HUE_STEP = 5
+
 export class BulletDrawer {
-    private readonly cache = new Map<string, HTMLCanvasElement>()
+    // スプライトを作ってGPUへ送るのは重く、新しい見た目の弾が出るたびに処理落ちする。
+    // 見た目(appearance) → 丸めた色 → 丸めた半径 の順に引き、同じ絵を使い回す。
+    // キーの文字列を毎フレーム作らないよう、Mapを入れ子にしている
+    private readonly sprites = new Map<Look["appearance"], Map<Color, Map<number, Sprite>>>()
+    // 弾の色 → 色相を丸めた色。弾の色は毎フレーム同じ文字列が来るので、丸めた結果を覚えておく
+    private readonly spriteColors = new Map<Color, Color>()
     private readonly gpu = BulletGpuBatchRenderer.tryCreate()
 
     // シャドーのために余白を設ける
-    private getHalfCanvasSize(bullet: Bullet) {
+    private getHalfCanvasSize(bullet: Look) {
         switch (bullet.appearance) {
             case "player":
                 return bullet.r
@@ -42,23 +61,60 @@ export class BulletDrawer {
             return
         }
 
-        const hash = this.generateCacheKey(bullet)
-        let offscreenCanvas = this.cache.get(hash)
-
-        const halfCanvasSize = this.getHalfCanvasSize(bullet)
-
-        if (!offscreenCanvas) {
-            offscreenCanvas = this.drawToOffscreen(bullet, halfCanvasSize)
-            this.cache.set(hash, offscreenCanvas)
-        }
-
+        const sprite = this.getSprite(bullet)
+        // スプライトは丸めた半径で描いてあるので、本当の半径の大きさまで拡大縮小する(見た目と当たり判定をずらさない)
+        const halfSize = sprite.halfSize * (bullet.r / sprite.r)
         const rotation = this.getEffectiveRotation(bullet)
 
-        if (this.gpu?.queue(hash, offscreenCanvas, bullet.p.x, bullet.p.y, rotation, bullet.alpha, halfCanvasSize)) {
+        if (this.gpu?.queue(sprite.key, sprite.canvas, bullet.p.x, bullet.p.y, rotation, bullet.alpha, halfSize)) {
             return
         }
 
-        this.drawSpriteDirectly(bullet, ctx, offscreenCanvas, halfCanvasSize, rotation)
+        this.drawSpriteDirectly(bullet, ctx, sprite.canvas, halfSize, rotation)
+    }
+
+    private getSprite(bullet: Bullet): Sprite {
+        const color = this.getSpriteColor(bullet.color)
+        const r = Math.round(bullet.r)
+
+        let byColor = this.sprites.get(bullet.appearance)
+        if (!byColor) {
+            byColor = new Map()
+            this.sprites.set(bullet.appearance, byColor)
+        }
+
+        let byR = byColor.get(color)
+        if (!byR) {
+            byR = new Map()
+            byColor.set(color, byR)
+        }
+
+        let sprite = byR.get(r)
+        if (!sprite) {
+            const look: Look = { appearance: bullet.appearance, color, r }
+            const halfSize = this.getHalfCanvasSize(look)
+            sprite = { key: [look.appearance, color, r].join(","), canvas: this.drawToOffscreen(look, halfSize), r, halfSize }
+            byR.set(r, sprite)
+        }
+
+        return sprite
+    }
+
+    // 色相を少しずつ変える弾(Behavior.hue や scatter の hue など)は、色が弾ごと・フレームごとに違う。
+    // そのままでは色の数だけスプライトを作ってしまうので、hsl の色相を HUE_STEP 度ごとに丸める
+    private getSpriteColor(color: Color): Color {
+        const cached = this.spriteColors.get(color)
+        if (cached) return cached
+
+        const rounded = color.replace(/^hsl\(([^,]+),/, (_, hue: string) => {
+            const h = Math.round(Number(hue) / HUE_STEP) * HUE_STEP
+            return `hsl(${((h % 360) + 360) % 360},`
+        }) as Color
+
+        // ランダムな色相の弾が出続けても覚えておく数が増え続けないよう、増えすぎたら忘れる
+        if (this.spriteColors.size > 4096) this.spriteColors.clear()
+        this.spriteColors.set(color, rounded)
+        return rounded
     }
 
     /**
@@ -89,14 +145,14 @@ export class BulletDrawer {
         ctx.globalAlpha = bullet.alpha
         ctx.translate(bullet.p.x, bullet.p.y)
         ctx.rotate(rotation)
-        ctx.drawImage(offscreenCanvas, -halfCanvasSize, -halfCanvasSize)
+        ctx.drawImage(offscreenCanvas, -halfCanvasSize, -halfCanvasSize, halfCanvasSize * 2, halfCanvasSize * 2)
         ctx.restore()
     }
 
     /**
      * 各タイプに応じたオフスクリーンキャンバスの生成
      */
-    private drawToOffscreen(bullet: Bullet, halfCanvasSize: number): HTMLCanvasElement {
+    private drawToOffscreen(bullet: Look, halfCanvasSize: number): HTMLCanvasElement {
         switch (bullet.appearance) {
             case "donut":
                 return this.drawDonut(bullet, halfCanvasSize)
@@ -115,11 +171,6 @@ export class BulletDrawer {
             default:
                 return this.drawPlayer(bullet, halfCanvasSize)
         }
-    }
-
-    // 角度情報をキャッシュキーから完全に除外
-    private generateCacheKey(bullet: Bullet): string {
-        return [bullet.appearance, bullet.color, bullet.r].join(",")
     }
 
     private createOffscreenCanvas(halfCanvasSize: number) {
@@ -237,7 +288,7 @@ export class BulletDrawer {
         ctx.restore()
     }
 
-    private drawDonut(bullet: Bullet, halfCanvasSize: number) {
+    private drawDonut(bullet: Look, halfCanvasSize: number) {
         const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
         ctx.beginPath()
         ctx.arc(center, center, bullet.r, 0, Math.PI * 2)
@@ -256,7 +307,7 @@ export class BulletDrawer {
         return canvas
     }
 
-    private drawBall(bullet: Bullet, halfCanvasSize: number) {
+    private drawBall(bullet: Look, halfCanvasSize: number) {
         const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
         ctx.beginPath()
         ctx.arc(center, center, bullet.r, 0, Math.PI * 2)
@@ -275,7 +326,7 @@ export class BulletDrawer {
     }
 
     // オフスクリーン描画時の回転を削除（メインのdrawで回転させる）
-    private drawScore(bullet: Bullet, halfCanvasSize: number) {
+    private drawScore(bullet: Look, halfCanvasSize: number) {
         const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
         if (!isSmartPhone) {
             ctx.shadowColor = bullet.color
@@ -287,7 +338,7 @@ export class BulletDrawer {
         return canvas
     }
 
-    private drawPlayer(bullet: Bullet, halfCanvasSize: number) {
+    private drawPlayer(bullet: Look, halfCanvasSize: number) {
         const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
         ctx.fillStyle = bullet.color
         ctx.beginPath()
@@ -296,7 +347,7 @@ export class BulletDrawer {
         return canvas
     }
 
-    private drawLine(bullet: Bullet, halfCanvasSize: number) {
+    private drawLine(bullet: Look, halfCanvasSize: number) {
         const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
         if (!isSmartPhone) {
             ctx.shadowColor = bullet.color
@@ -323,7 +374,7 @@ export class BulletDrawer {
     }
 
     // 色付きの光をまとった多角形に、白い芯を重ねる(ballと同じ構成)
-    private drawPolygon(bullet: Bullet, type: Polygon.Type, halfCanvasSize: number) {
+    private drawPolygon(bullet: Look, type: Polygon.Type, halfCanvasSize: number) {
         const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
         ctx.translate(center, center)
 
@@ -353,7 +404,7 @@ export class BulletDrawer {
         return canvas
     }
 
-    private drawArrow(bullet: Bullet, halfCanvasSize: number) {
+    private drawArrow(bullet: Look, halfCanvasSize: number) {
         const { canvas, ctx, center } = this.createOffscreenCanvas(halfCanvasSize)
         if (!isSmartPhone) {
             ctx.shadowColor = bullet.color
