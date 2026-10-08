@@ -1,4 +1,4 @@
-import { vec, Vec } from "@ipota/vec"
+import { vec } from "@ipota/vec"
 import { Ease } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
@@ -11,9 +11,9 @@ import { Part } from "../Part"
 import { Charge } from "../Charge"
 
 // ステージ「青龍」(四天王)
-// 青龍の頭のうしろに十の胴の節が連なり、頭の通った道をそのままたどって、画面の中ほどを大きくうねる。
-// 宝珠: 頭のまわりを回る珠。自機の方へ三本の雷を落とす。雷は落ちる前に細い線で見える。
-// 胴の節: 頭から尾へ順に、体の両脇へ鱗を払う。龍がうねっているので、鱗はあちこちへ向かう。
+// 青龍の頭は画面の中ほどを大きく動きまわる。頭のまわりに子機が幾何学的に並ぶ。内側の円を宝珠が回り、外側の円を十の節が等間隔のまま回る。
+// 宝珠: 自機の方へ三本の雷を落とす。雷は落ちる前に細い線で見える。
+// 節: 輪の順に、外向きの鱗を払う。輪が回るので、鱗はあちこちへ向かう。
 // 段は部位を落とすと進む。頭に攻撃が効くのは最後の段だけ。
 // 一段目: 宝珠を落とすと次の段へ。頭はときどき輪を吐く。
 // 雷雲: 頭は雷の力を集めて、画面の上に三つの雷雲を呼ぶ。雷雲のまわりには雷玉(孫機)が二つずつ回り、雷玉を落とすまで雷雲に攻撃が効かない。
@@ -38,17 +38,14 @@ export default class extends Stage {
 
         this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
         yield* this.game.textBox.say(["……見事。宝珠も、雷雲も、我が身も、砕かれたか。"], { name: "青龍" })
-        yield* this.game.textBox.say(["うねうね動くから、狙うのが大変だったよ。"], { name: "ハチノコ" })
+        yield* this.game.textBox.say(["輪がぐるぐる回るから、狙うのが大変だったよ。"], { name: "ハチノコ" })
         yield* this.game.textBox.say(["南へ進め。朱雀が待っている。"], { name: "青龍" })
         this.hideFigure("hachinoko")
     }
 }
 
 class EnemySeiryu extends Enemy {
-    // 頭がこれまでに通った位置。新しいものほど前にある
-    private readonly trail: Vec[] = []
-
-    // 宝珠。頭のまわりを回る
+    // 宝珠。頭のまわりの内側の円を回る
     private readonly pearl = new Part(
         this.game,
         this,
@@ -59,7 +56,7 @@ class EnemySeiryu extends Enemy {
         150,
     )
 
-    // 胴の節(十)。頭が 9(k+1) フレーム前にいた所にいる
+    // 節(十)。頭のまわりの外側の円を、等間隔のままゆっくり回る
     private readonly segments = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(
         (k) =>
             new Part(
@@ -67,7 +64,7 @@ class EnemySeiryu extends Enemy {
                 this,
                 200,
                 18,
-                () => (this.trail[(k + 1) * 9] ?? this.p).sub(this.p),
+                (me) => vec.arg(me.frame / 150 + (T * k) / 10).scale(115),
                 (me) => this.scales(me, k),
                 170,
             ),
@@ -94,14 +91,12 @@ class EnemySeiryu extends Enemy {
         return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.3)
     }
 
-    // 画面の中ほどを大きくうねる。通った位置を覚えておき、胴の節がそれをたどる
+    // 画面の中ほどを大きく動きまわる
     private *move() {
-        const path = Curves.lissajous(this.game.WIDTH * 0.7, this.game.HEIGHT * 0.3, 3, 2)
+        const path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.3, 3, 2)
 
         for (let f = 0; ; f++) {
             this.p = path(f / 140).add(this.home())
-            this.trail.unshift(this.p.clone())
-            this.trail.length = Math.min(this.trail.length, 100)
             yield
         }
     }
@@ -163,20 +158,16 @@ class EnemySeiryu extends Enemy {
         yield* Array(150)
     }
 
-    // 胴の節の鱗。頭に近い節から順に、進む向きの両脇へ鱗を払う
+    // 節の鱗。輪の順に、頭から見て外向きに鱗を払う
     private *scales(me: Part, k: number) {
         yield* Array(k * 6)
-
-        const before = me.p.clone()
-        yield
 
         yield* remodel(me)
             .format("diamond")
             .color("#a0ffd0")
             .p(me.p.clone())
             .speed(1.5)
-            .radian(me.p.sub(before).radian())
-            .nway(2, T / 2)
+            .radian(me.p.sub(this.p).radian())
             .nway(3, 0.22)
             .g((b) => Behavior.ease(b, "speed", 6, 40, Ease.In))
             .fire(this.game.bullets)
