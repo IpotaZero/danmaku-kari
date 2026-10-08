@@ -10,8 +10,9 @@ import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 
 // ステージ「カゲロウ」(霧隠道場・道場主)
-// 道場主は大きなカゲロウ。四枚の翅と三本の尾を持ち、それぞれが別々の攻撃をする。翅と尾をすべて落とすまで、胴には攻撃が効かない。
-// 前翅: 羽ばたくたびに、外側の斜め下へ扇を払う。
+// 道場主のまわりに子機が幾何学的に並ぶ。四枚の翅が胴を囲む正方形になってゆっくり回り、胴の下に三本の尾が横一列に並ぶ。
+// それぞれが別々の攻撃をする。翅と尾をすべて落とすまで、胴には攻撃が効かない。
+// 前翅: 外向きに扇を払う。正方形が回るので、扇の向きも少しずつ変わる。
 // 後翅: 鱗粉を撒く。鱗粉はその場に漂ってから、ばらばらに落ちてくる。
 // 尾: 細い霧の糸を垂らし、糸は左右に振れる。三本の糸が交差しながら画面を薙ぐ。
 // 胴: 部位が減るほど、輪が濃くなっていく。すべての部位を落とすと、胴に攻撃が効くようになり、輪は止まってから散るようになる。
@@ -54,7 +55,7 @@ export default class extends Stage {
 class EnemyKagerou extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.5, this.game.HEIGHT * 0.08, 2, 3)
 
-    // 前翅(左右)
+    // 前翅(二枚)。胴を囲む正方形の、向かい合う二つの角
     private readonly foreWings = [-1, 1].map(
         (side) =>
             new Part(
@@ -62,13 +63,13 @@ class EnemyKagerou extends Enemy {
                 this,
                 380,
                 26,
-                () => vec(side * 100, -20),
-                (me) => this.gust(me, side),
+                (me) => vec.arg(me.frame / 200 + (side > 0 ? 0 : Math.PI)).scale(100),
+                (me) => this.gust(me),
                 150 + (side > 0 ? 35 : 0),
             ),
     )
 
-    // 後翅(左右)
+    // 後翅(二枚)。正方形の残りの二つの角
     private readonly hindWings = [-1, 1].map(
         (side) =>
             new Part(
@@ -76,13 +77,13 @@ class EnemyKagerou extends Enemy {
                 this,
                 380,
                 22,
-                () => vec(side * 55, 30),
+                (me) => vec.arg(me.frame / 200 + (side > 0 ? T / 4 : -T / 4)).scale(100),
                 (me) => this.scales(me),
                 180 + (side > 0 ? 30 : 0),
             ),
     )
 
-    // 尾(三本)。胴の下に並ぶ。真ん中の尾だけ少し長い
+    // 尾(三本)。胴の下に横一列に並ぶ
     private readonly tails = [-1, 0, 1].map(
         (k) =>
             new Part(
@@ -90,7 +91,7 @@ class EnemyKagerou extends Enemy {
                 this,
                 300,
                 16,
-                () => vec(k * 36, 92 + (k === 0 ? 38 : 0)),
+                () => vec(k * 60, 140),
                 (me) => this.thread(me, k),
                 160 + (k + 1) * 25,
             ),
@@ -122,14 +123,14 @@ class EnemyKagerou extends Enemy {
         yield
     }
 
-    // 前翅の羽風。外側の斜め下へ、ゆっくり出て一気に速くなる扇を払う
-    private *gust(me: Part, side: number) {
+    // 前翅の羽風。胴から見て外向きに、ゆっくり出て一気に速くなる扇を払う
+    private *gust(me: Part) {
         yield* remodel(me)
             .format("diamond")
             .color("#e0e8ff")
             .p(me.p.clone())
             .speed(1.5)
-            .radian(side > 0 ? 0.7 : Math.PI - 0.7)
+            .radian(me.p.sub(this.p).radian())
             .nway(7, T / 30)
             .g((b) => Behavior.ease(b, "speed", 7, 40, Ease.In))
             .fire(this.game.bullets)
