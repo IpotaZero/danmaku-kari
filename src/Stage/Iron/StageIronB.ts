@@ -37,11 +37,7 @@ class EnemyMaster extends Enemy {
                     this,
                     220,
                     16,
-                    (me) =>
-                        vec(
-                            (i - 1.5) * 90 + (rank === 0 ? -22 : 22),
-                            120 - rank * 45 + 4 * Math.sin(me.frame / 12 + i),
-                        ),
+                    () => vec((i - 1.5) * 90 + (rank === 0 ? -22 : 22), 120 - rank * 45),
                     (me) => this.shoot(me),
                     150 + rank * 45,
                 ),
