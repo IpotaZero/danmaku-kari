@@ -26,12 +26,6 @@ import { Charge } from "../Charge"
 
 export default class extends Stage {
     *G() {
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["白い影が、あっちこっちに跳んでる!"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["四天王が三、西の白虎。こやつらは我が子らだ。"], { name: "白虎" })
-        yield* this.game.textBox.say(["我が爪、見切れるものなら見切ってみよ。"], { name: "白虎" })
-        this.hideFigure("hachinoko")
-
         const boss = new EnemyByakko(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -39,12 +33,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["……我が爪を、最後まで見切ったか。"], { name: "白虎" })
-        yield* this.game.textBox.say(["子虎たち、かわいかったなあ。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["ふん。北の玄武は我らの中で最も堅い。覚悟して行け。"], { name: "白虎" })
-        this.hideFigure("hachinoko")
     }
 }
 
@@ -200,6 +188,7 @@ class EnemyByakko extends Enemy {
         const start = me.p.clone()
         const aim = this.game.player.p.sub(start).radian()
 
+        // 予告
         yield* remodel(me)
             .appearance("laser")
             .collision("rect")
@@ -214,7 +203,7 @@ class EnemyByakko extends Enemy {
             .alpha(0)
             .shift(3, 24)
             .g(function* (b) {
-                yield* Behavior.ease(b, "alpha", 0.2, 8)
+                yield* Behavior.ease(b, "alpha", 0.1, 8)
                 yield* Array(20)
                 yield* Behavior.fadeout(b, 8)
             })
@@ -222,12 +211,13 @@ class EnemyByakko extends Enemy {
 
         yield* Array(28)
 
+        // 攻撃
         yield* remodel(me)
             .format("line")
             .color("#ffffff")
             .p(start)
             .radian(aim)
-            .speed(10)
+            .speed(24)
             .duplicate(6)
             .delayByIndex(3)
             .shift(3, 24)

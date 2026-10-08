@@ -24,12 +24,6 @@ import { Charge } from "../Charge"
 
 export default class extends Stage {
     *G() {
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["足もとが水びたし……つめたい。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["四天王が四、北の玄武。水の底より来る者。"], { name: "玄武" })
-        yield* this.game.textBox.say(["我が甲羅、割れるものなら割ってみよ。"], { name: "玄武" })
-        this.hideFigure("hachinoko")
-
         const boss = new EnemyGenbu(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -37,12 +31,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["見事なり。四天王、すべて破れたか。"], { name: "玄武" })
-        yield* this.game.textBox.say(["蛇がぐるぐる回ってて、目が回ったよ。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["この先に、すべての道場の頂がいる。最後の試練だ。"], { name: "玄武" })
-        this.hideFigure("hachinoko")
     }
 }
 
@@ -273,6 +261,7 @@ class EnemyGenbu extends Enemy {
                     return b
                 })
                 .filter((b) => Math.abs(b.p.x - (gap + k * drift)) > 45)
+                .g((me) => Behavior.appear(me, 30))
                 .g((b) => Behavior.ease(b, "speed", 5.5, 60, Ease.In))
                 .fire(this.game.bullets)
             yield* Array(24)

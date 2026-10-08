@@ -22,12 +22,6 @@ import { Charge } from "../Charge"
 
 export default class extends Stage {
     *G() {
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["空が……ごろごろ鳴ってる。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["よくぞ全ての道場を巡った。我は四天王が一、東の青龍。"], { name: "青龍" })
-        yield* this.game.textBox.say(["この宝珠、奪えるものなら奪ってみよ。"], { name: "青龍" })
-        this.hideFigure("hachinoko")
-
         const boss = new EnemySeiryu(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -35,12 +29,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["……見事。宝珠も、雷雲も、我が身も、砕かれたか。"], { name: "青龍" })
-        yield* this.game.textBox.say(["輪がぐるぐる回るから、狙うのが大変だったよ。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["南へ進め。朱雀が待っている。"], { name: "青龍" })
-        this.hideFigure("hachinoko")
     }
 }
 

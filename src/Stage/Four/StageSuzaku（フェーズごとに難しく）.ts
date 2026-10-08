@@ -24,12 +24,6 @@ import { Charge } from "../Charge"
 
 export default class extends Stage {
     *G() {
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["あったかい……というか、熱い!"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["四天王が二、南の朱雀。灰より蘇る者。"], { name: "朱雀" })
-        yield* this.game.textBox.say(["我を討つなら、三度討て。"], { name: "朱雀" })
-        this.hideFigure("hachinoko")
-
         // 朱雀が現れる場所。一代目は画面の外から、二代目からは卵の孵った所から
         let from = vec(-200, -200)
 
@@ -54,12 +48,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["三度も討たれるとは。灰に還るとしよう。"], { name: "朱雀" })
-        yield* this.game.textBox.say(["もう生き返らないよね……?"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["さてな。西へ行け。白虎の爪は鋭いぞ。"], { name: "朱雀" })
-        this.hideFigure("hachinoko")
     }
 }
 

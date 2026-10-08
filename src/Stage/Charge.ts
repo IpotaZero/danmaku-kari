@@ -28,8 +28,10 @@ export namespace Charge {
         yield* burst(e, color)
     }
 
-    // 光の粒を一つ、まわりから渦を巻いて e へ吸い込ませる(30フレームかかる)
+    // 光の粒を一つ、まわりから渦を巻いて e へ吸い込ませる(60フレームかかる)
     export function* particle(e: Enemy, color: Color) {
+        const frames = 60
+
         yield* remodel(e)
             .format(e.random() < 0.3 ? "big-ball" : "small-ball")
             .type("effect")
@@ -38,12 +40,13 @@ export namespace Charge {
             .alpha(0.8)
             .speed(0)
             .unbounded()
+            .g((me) => Behavior.appear(me, frames / 2))
             .g(function* (b) {
                 const angle = this.random() * T
                 const radius = 120 + this.random() * 180
 
-                for (let k = 0; k < 30; k++) {
-                    b.p = e.p.add(vec.arg(angle + k * 0.05).scale(radius * (1 - Ease.In(k / 30))))
+                for (let k = 0; k < frames; k++) {
+                    b.p = e.p.add(vec.arg(angle + k * 0.05).scale(radius * (1 - Ease.In(k / frames))))
                     yield
                 }
 
@@ -52,8 +55,10 @@ export namespace Charge {
             .fire(e.game.bullets)
     }
 
-    // 光の輪が、回りながら e へ縮んでいく(30フレームかかる)
+    // 光の輪が、回りながら e へ縮んでいく(60フレームかかる)
     export function* ring(e: Enemy, color: Color) {
+        const frames = 60
+
         yield* remodel(e)
             .format("small-ball")
             .type("effect")
@@ -66,11 +71,12 @@ export namespace Charge {
                 b.radian = (T * i) / 32
                 return b
             })
+            .g((me) => Behavior.appear(me, frames / 2))
             .g(function* (b) {
                 const angle = b.radian
 
-                for (let k = 0; k < 30; k++) {
-                    b.p = e.p.add(vec.arg(angle - k * 0.06).scale(260 * (1 - Ease.In(k / 30))))
+                for (let k = 0; k < frames; k++) {
+                    b.p = e.p.add(vec.arg(angle - k * 0.06).scale(260 * (1 - Ease.In(k / frames))))
                     yield
                 }
 
