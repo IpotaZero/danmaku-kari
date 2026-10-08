@@ -53,6 +53,24 @@ body {
     display: none !important;
 }
 
+/* 設定でONにしたときだけ出す実測fps(FpsMeter.ts)。どの画面でも一番手前に、操作の邪魔をしないよう出す */
+.fps-meter {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000;
+    pointer-events: none;
+
+    padding: 0.2rem 0.4rem;
+    background: #000a;
+    color: #fff;
+
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.3;
+    white-space: pre;
+}
+
 /* タイトル・マップなど、ゲーム外の画面で使う色はこの4色だけ。濃淡は透明度で作る */
 :root {
     --paper: #f2ecdc;

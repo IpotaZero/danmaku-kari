@@ -4,6 +4,7 @@ import { Dom } from "./Dom"
 import { SceneChanger } from "./utils/Scene/SceneChanger"
 import { Looper } from "@ipota/my-utils"
 import { FrameLimiter } from "./utils/FrameLimiter"
+import { FpsMeter } from "./utils/FpsMeter"
 import { DigitalInput } from "@ipota/input"
 import { DEFAULT_KEY_CONFIG, InputAction, Settings } from "./Data/Settings"
 
@@ -65,8 +66,12 @@ export namespace App {
     // 描画だけを間引く。fpsは設定(settings)で決まる
     export const drawLimiter = new FrameLimiter(60)
 
+    // 実測fpsの表示。シーンをまたいで出し続けるので、#containerではなくbodyに置く
+    export const fpsMeter = new FpsMeter()
+    document.body.append(fpsMeter.element)
+
     export const input = new DigitalInput<InputAction>(DEFAULT_KEY_CONFIG)
 
-    // 保存されている音量・キーコンフィグ・描画fpsを読み込んで、bm/se/input/drawLimiterへ反映する
-    export const settings = new Settings({ bgm: bm, se, input, drawLimiter })
+    // 保存されている音量・キーコンフィグ・描画fps・fps表示を読み込んで、bm/se/input/drawLimiter/fpsMeterへ反映する
+    export const settings = new Settings({ bgm: bm, se, input, drawLimiter, fpsMeter })
 }

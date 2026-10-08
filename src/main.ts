@@ -6,12 +6,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 })
 
 App.looper.addHandler((timeScale) => {
+    App.fpsMeter.countUpdate()
     App.sc.update()
     App.input.update()
 })
 
 App.looper.addRenderHandler(() => {
-    if (App.drawLimiter.shouldDraw()) App.sc.draw()
+    App.fpsMeter.countFrame()
+    if (!App.drawLimiter.shouldDraw()) return
+
+    App.sc.draw()
+    App.fpsMeter.countDraw()
 })
 
 window.addEventListener("keydown", (e) => {

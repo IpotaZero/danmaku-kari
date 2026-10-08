@@ -32,16 +32,18 @@ type SerializedSettings = {
     volumeLevels?: Partial<Record<VolumeKind, number>>
     keyConfig?: Partial<KeyConfigMap>
     drawFps?: DrawFps
+    showFps?: boolean
 }
 
-// 設定の反映先。音量はBgmManager/SEのマスター、キーコンフィグはDigitalInput、描画fpsはFrameLimiterへ渡す
+// 設定の反映先。音量はBgmManager/SEのマスター、キーコンフィグはDigitalInput、描画fpsはFrameLimiter、fps表示はFpsMeterへ渡す
 type SettingsTarget = Record<VolumeKind, { setVolume(volume: number): void }> & {
     input: { updateConfig(config: KeyConfigMap): void; clear(): void }
     drawLimiter: { setFPS(fps: number): void }
+    fpsMeter: { show(visible: boolean): void }
 }
 
 /**
- * 音量・キーコンフィグ・描画fpsなど、セーブデータ(PlayerData)とは別に持つ環境設定。
+ * 音量・キーコンフィグ・描画fps・fps表示など、セーブデータ(PlayerData)とは別に持つ環境設定。
  * 生成時に読み込んで反映し、変更のたびに反映してlocalStorageへ保存する。
  */
 export class Settings {
@@ -53,12 +55,21 @@ export class Settings {
     // スマホは描画が重くてカクつきやすいので、初期値を30fpsにする
     drawFps: DrawFps = isSmartPhone ? 30 : 60
 
+    showFps = false
+
     constructor(private readonly target: SettingsTarget) {
         this.load()
         this.applyVolume("bgm")
         this.applyVolume("se")
         this.target.input.updateConfig(this.keyConfig)
         this.target.drawLimiter.setFPS(this.drawFps)
+        this.target.fpsMeter.show(this.showFps)
+    }
+
+    toggleShowFps() {
+        this.showFps = !this.showFps
+        this.target.fpsMeter.show(this.showFps)
+        this.save()
     }
 
     changeDrawFps(fps: DrawFps) {
@@ -122,6 +133,7 @@ export class Settings {
             }
 
             if (data.drawFps === 60 || data.drawFps === 30) this.drawFps = data.drawFps
+            if (typeof data.showFps === "boolean") this.showFps = data.showFps
 
             // 保存後にアクションが増えても、欠けているアクションはデフォルトで補う
             this.keyConfig = { ...DEFAULT_KEY_CONFIG, ...data.keyConfig }
@@ -135,6 +147,7 @@ export class Settings {
             volumeLevels: this.volumeLevels,
             keyConfig: this.keyConfig,
             drawFps: this.drawFps,
+            showFps: this.showFps,
         }
 
         try {
