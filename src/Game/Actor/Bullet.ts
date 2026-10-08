@@ -169,8 +169,8 @@ export class Bullet extends Actor {
     }
 
     init() {
-        this.addScript(() => this.move(this), { loop: Infinity, id: "move" })
-        this.addScript(() => this.boundary(this), { loop: Infinity, id: "boundary" })
+        this.addScript(() => this.move(this), { id: "move" })
+        this.addScript(() => this.boundary(this), { id: "boundary" })
 
         this.scriptReservations.forEach((g) => {
             this.addScript(...g)
@@ -197,30 +197,37 @@ export class Bullet extends Actor {
 
         this.clearScripts()
 
-        this.addScript(() => this.homing(this), { loop: Infinity, id: "score-homing" })
-        this.addScript(() => this.move(this), { loop: Infinity, id: "move" })
+        this.addScript(() => this.homing(this), { id: "score-homing" })
+        this.addScript(() => this.move(this), { id: "move" })
     }
 
+    // move/boundary/homingは全弾が毎フレーム回すので、loop: Infinityで毎フレームジェネレータを作り直すと
+    // スマホでGCによるカクつきが出る。一つのジェネレータの中で回し続ける
     private *homing(me: Bullet) {
-        const target = me.game.player.p.clone()
-        const diff = target.sub(me.p)
+        while (true) {
+            const diff = me.game.player.p.sub(me.p)
 
-        me.radian = diff.radian()
-        me.speed = Math.max(diff.magnitude() / 12, 16)
+            me.radian = diff.radian()
+            me.speed = Math.max(diff.magnitude() / 12, 16)
 
-        yield
+            yield
+        }
     }
 
     private *move(me: Bullet) {
-        me.p.x += Math.cos(me.radian) * me.speed
-        me.p.y += Math.sin(me.radian) * me.speed
-        yield
+        while (true) {
+            me.p.x += Math.cos(me.radian) * me.speed
+            me.p.y += Math.sin(me.radian) * me.speed
+            yield
+        }
     }
 
     private *boundary(me: Bullet) {
-        if (me.p.x < -me.r || me.game.WIDTH + me.r < me.p.x || me.p.y < -me.r || me.game.HEIGHT + me.r < me.p.y) {
-            me.life = 0
+        while (true) {
+            if (me.p.x < -me.r || me.game.WIDTH + me.r < me.p.x || me.p.y < -me.r || me.game.HEIGHT + me.r < me.p.y) {
+                me.life = 0
+            }
+            yield
         }
-        yield
     }
 }

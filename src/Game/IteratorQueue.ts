@@ -11,14 +11,11 @@ export abstract class IteratorQueue {
             return
         }
 
-        const finished = this.scripts
-            .entries()
-            .filter(([id, g]) => g.next().done)
-            .map(([id, _]) => id)
-
-        finished.forEach((id) => {
-            this.scripts.delete(id)
-        })
+        // 全弾が毎フレーム通るので、イテレータヘルパーや配列を作らずに回す(スマホでのGC対策)。
+        // Mapは走査中に消しても、走査中に足されたものも含めて正しく回れる
+        for (const [id, g] of this.scripts) {
+            if (g.next().done) this.scripts.delete(id)
+        }
     }
 
     sleep(frame: number) {

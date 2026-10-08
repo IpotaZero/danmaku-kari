@@ -19,6 +19,11 @@
     );
 }
 
+/* スマホではキャンバスにほぼ隠れて見えないので、動きを止めて合成の負荷をなくす(GameBackdrop.ts) */
+.game-backdrop.smartphone * {
+    animation-play-state: paused;
+}
+
 /* 右上の月明かり。枝のシルエットをこの明るみに重ねて見せる。
    ぼんやり広がる光ではなく、月暈(つきがさ)のような3重の輪にし、輪の縁だけを少しぼかす */
 .backdrop-moon {

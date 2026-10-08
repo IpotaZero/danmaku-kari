@@ -227,19 +227,20 @@ export class Game extends IteratorQueue {
             const grazeCircle = { p: this.player.p, r: this.player.GRAZE_R }
             let grazeCount = 0
 
-            this.bullets
-                .filter((b) => b.type === "enemy")
-                .forEach((b) => {
-                    if (this.bulletCollision.isColliding(b, this.player)) {
-                        this.player.hit(b.damage)
+            // 弾は毎フレーム数百発を回すので、filterで配列を作らずに型で振り分ける(スマホでのGC対策)
+            this.bullets.forEach((b) => {
+                if (b.type !== "enemy") return
 
-                        if (b.isScorable) {
-                            b.life = 0
-                        }
-                    } else if (this.bulletCollision.isColliding(b, grazeCircle)) {
-                        grazeCount++
+                if (this.bulletCollision.isColliding(b, this.player)) {
+                    this.player.hit(b.damage)
+
+                    if (b.isScorable) {
+                        b.life = 0
                     }
-                })
+                } else if (this.bulletCollision.isColliding(b, grazeCircle)) {
+                    grazeCount++
+                }
+            })
 
             if (grazeCount > 0 && !this.player.isInvincible()) {
                 this.score += grazeCount
@@ -247,37 +248,40 @@ export class Game extends IteratorQueue {
             }
         }
 
-        this.bullets
-            .filter((b) => b.type === "score")
-            .forEach((b) => {
-                if (this.bulletCollision.isColliding(b, this.player)) {
-                    this.se.graze.play()
-                    this.score++
-                    b.life = 0
+        this.bullets.forEach((b) => {
+            if (b.type !== "score") return
+
+            if (this.bulletCollision.isColliding(b, this.player)) {
+                this.se.graze.play()
+                this.score++
+                b.life = 0
+            }
+        })
+
+        this.bullets.forEach((b) => {
+            if (b.type !== "friend") return
+
+            this.enemies.forEach((e) => {
+                if (e.isInvincible) return
+
+                if (this.bulletCollision.isColliding(b, e)) {
+                    // レーザーは貫通させ、当たった敵ごとに消えず触れている間ずっと削り続ける
+                    if (b.collision !== "rect") b.life = 0
+
+                    e.hit(b.damage)
                 }
             })
-
-        this.bullets
-            .filter((b) => b.type === "friend")
-            .forEach((b) => {
-                this.enemies.forEach((e) => {
-                    if (e.isInvincible) return
-
-                    if (this.bulletCollision.isColliding(b, e)) {
-                        // レーザーは貫通させ、当たった敵ごとに消えず触れている間ずっと削り続ける
-                        if (b.collision !== "rect") b.life = 0
-
-                        e.hit(b.damage)
-                    }
-                })
-            })
+        })
 
         this.bullets.forEach((b) => b.update())
         this.enemies.forEach((e) => e.update())
 
-        const aliveBullets = this.bullets.filter((b) => b.life > 0)
-        this.bullets.length = 0
-        this.bullets.push(...aliveBullets)
+        // 生きている弾を前に詰めて、配列を作り直さずに死んだ弾を除く
+        let aliveCount = 0
+        this.bullets.forEach((b) => {
+            if (b.life > 0) this.bullets[aliveCount++] = b
+        })
+        this.bullets.length = aliveCount
 
         const aliveEnemies = this.enemies.filter((e) => {
             if (e.life <= 0) {

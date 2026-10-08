@@ -1,4 +1,5 @@
 import { Silhouette } from "../utils/Silhouette"
+import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 
 /**
  * 戦闘画面の、キャンバスの外側(左右の余白)に敷く夜の草むら。
@@ -10,6 +11,8 @@ export class GameBackdrop {
 
     constructor() {
         this.element.className = "game-backdrop"
+        // スマホは縦長でキャンバスにほぼ隠れるのに、アニメーションの合成だけは毎フレーム走ってカクつきの元になるので止める
+        if (isSmartPhone) this.element.classList.add("smartphone")
         this.element.innerHTML = `
             <div class="backdrop-moon"></div>
             <svg class="backdrop-branch backdrop-branch-right" viewBox="0 0 400 260">
