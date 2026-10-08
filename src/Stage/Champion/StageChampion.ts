@@ -14,7 +14,7 @@ import { Part } from "../Part"
 // 大顎: 横へ開いた弾が一度止まり、自機のいた所へ一斉に噛みつく。左右の大顎が交互に噛みつく。
 // 翅: 羽音。くねくねと揺れながら進む弾の列を、斜め下へ流す。
 // 脚: 左の脚から右の脚へ順に、だんだん速くなる爪を落とす。爪が幕のように左から右へ降りていく。
-// 毒針: 腹を前へ丸めて針を突き出している。自機の方へ扇のように五本の線を薄く見せてから、端から順に線に沿って針を撃ち込む。
+// 毒針: 胴の下に突き出している。自機の方へ扇のように五本の線を薄く見せてから、端から順に線に沿って針を撃ち込む。
 // 働き蜂: 大きな楕円を描いて速く飛びまわり、進む向きへ短い弾の列を撃つ。
 // 胴: 四枚の翅をすべて落とすまで攻撃が効かない。翅を落とすと、女王の怒り(向きを変えながら回る六本腕の渦)を撒きはじめる。
 
@@ -58,7 +58,7 @@ export default class extends Stage {
 class EnemyHornet extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.07, 2, 3)
 
-    // 大顎(左右)。開いたり閉じたりする
+    // 大顎(左右)。胴の前に並ぶ
     private readonly mandibles = [-1, 1].map(
         (side) =>
             new Part(
@@ -66,13 +66,13 @@ class EnemyHornet extends Enemy {
                 this,
                 500,
                 18,
-                (me) => vec(side * (16 + 6 * Math.sin(me.frame / 10)), 64),
+                () => vec(side * 20, 64),
                 (me) => this.bite(me, side),
                 140 + (side > 0 ? 60 : 0),
             ),
     )
 
-    // 翅(四枚)。上の二枚と下の二枚が、細かく震える
+    // 翅(四枚)。胴の両脇に、上下二段に並ぶ
     readonly wings = [
         [-1, 0],
         [1, 0],
@@ -85,13 +85,13 @@ class EnemyHornet extends Enemy {
                 this,
                 300,
                 24,
-                (me) => vec(side * (86 - row * 22 + 3 * Math.sin(me.frame * 1.7)), -54 + row * 30),
+                () => vec(side * (86 - row * 22), -54 + row * 30),
                 (me) => this.buzz(me, side),
                 150 + row * 40 + (side > 0 ? 20 : 0),
             ),
     )
 
-    // 脚(六本)。左から順に並んでいる
+    // 脚(六本)。胴の前に、左右三つずつ斜め一直線に並ぶ
     private readonly legs = [-3, -2, -1, 1, 2, 3].map(
         (x, order) =>
             new Part(
@@ -99,28 +99,24 @@ class EnemyHornet extends Enemy {
                 this,
                 150,
                 13,
-                (me) =>
-                    vec(
-                        Math.sign(x) * (6 + 22 * Math.abs(x)),
-                        38 - 8 * Math.abs(x) + 5 * Math.sin(me.frame / 8 + order),
-                    ),
+                () => vec(Math.sign(x) * (6 + 22 * Math.abs(x)), 38 - 8 * Math.abs(x)),
                 (me) => this.claws(me, order),
                 170,
             ),
     )
 
-    // 毒針。腹を前へ丸めて、胴の下に突き出している
+    // 毒針。胴の下に突き出している
     private readonly stinger = new Part(
         this.game,
         this,
         600,
         16,
-        (me) => vec(10 * Math.sin(me.frame / 20), 100),
+        () => vec(0, 100),
         (me) => this.sting(me),
         200,
     )
 
-    // 働き蜂(六匹)。大きな楕円を描いて速く飛びまわる
+    // 働き蜂(六匹)。等間隔のまま、胴のまわりの大きな楕円をそろって回る
     private readonly workers = [0, 1, 2, 3, 4, 5].map(
         (i) =>
             new Part(
