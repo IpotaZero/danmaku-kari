@@ -11,7 +11,7 @@ import { Part } from "../Part"
 import { Charge } from "../Charge"
 
 // ステージ「ウスバ」(砂塵道場・道場主)
-// 道場主は、蟻地獄が羽化しかけたウスバ。二本の大顎・四本の脚・砂の詰まった腹を持ち、腹には三つの砂袋(孫機)がぶら下がっている。
+// 道場主のまわりに子機が幾何学的に並ぶ。胴の前に大顎の一対、胴の上に腹、胴の左右に脚の横一列。腹のまわりを三つの砂袋(孫機)が回る。
 // どの部位も一巡(330フレーム)の頭にまとめて攻撃し、残りの時間は静かになる。攻撃と休憩をはっきり分ける。
 // 大顎: 外へ向けて吐いた砂の流れが、内側へ巻き込むように曲がる。左右の流れは自機の前で交差する。
 // 脚: 砂をかき出す。速さのばらばらな砂粒が、散弾のように飛ぶ。
@@ -19,7 +19,7 @@ import { Charge } from "../Charge"
 // 砂袋: 砂をこぼす。こぼれた砂は、だんだん速く真下へ落ちる。
 // 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ。
 // 一段目: 大顎と腹を落とすと次の段へ。胴はときどき輪を放つ。
-// 羽化: 胴はまわりの砂を吸い込んで力を溜め、四枚の翅を生やす。
+// 羽化: 胴はまわりの砂を吸い込んで力を溜め、胴を囲む正方形に四枚の翅を出す。
 // 二段目: 翅を落とすと次の段へ。翅は砂の塊を落とし、塊は少し落ちてから扇に割れる。
 //         胴は砂の帳を下ろす。左右に大きく広がった砂が止まり、そろって真下へ落ちる。二度目の砂は一度目の筋の間に落ちる。
 // 三段目: 砂嵐。胴に攻撃が効くようになり、六本腕の渦と砂の帳を同時に使う。
@@ -68,7 +68,7 @@ class EnemyUsuba extends Enemy {
             ),
     )
 
-    // 腹。胴のうしろ(上)に伸びる
+    // 腹。胴の上にある
     private readonly abdomen = new Part(
         this.game,
         this,
@@ -79,7 +79,7 @@ class EnemyUsuba extends Enemy {
         150,
     )
 
-    // 砂袋(三つ)。腹にぶら下がる孫機
+    // 砂袋(三つ)。腹のまわりの円を、等間隔のままゆっくり回る孫機
     private readonly sandbags = [-1, 0, 1].map(
         (k) =>
             new Part(
@@ -87,13 +87,13 @@ class EnemyUsuba extends Enemy {
                 this.abdomen,
                 150,
                 13,
-                () => vec.arg(-T / 4 + k * 0.8).scale(46),
+                (me) => vec.arg(me.frame / 120 + (T * (k + 1)) / 3).scale(46),
                 (me) => this.spill(me, k),
                 150,
             ),
     )
 
-    // 脚(四本)。胴の両脇から斜め前へ、一直線に並ぶ
+    // 脚(四つ)。胴の左右に、横一列に並ぶ
     private readonly legs = [
         [-1, 0],
         [1, 0],
@@ -106,7 +106,7 @@ class EnemyUsuba extends Enemy {
                 this,
                 260,
                 16,
-                () => vec(side * (112 + 44 * row), 4 + 44 * row),
+                () => vec(side * (110 + 45 * row), 20),
                 (me) => this.kick(me, side, row),
                 150,
             ),
@@ -157,7 +157,7 @@ class EnemyUsuba extends Enemy {
         this.addScript(() => this.ring(), { loop: Infinity, margin: 150, id: "body" })
         while (this.guards.some((p) => p.life > 0)) yield
 
-        // 羽化。砂を吸い込んで力を溜めてから、四枚の翅を生やす
+        // 羽化。砂を吸い込んで力を溜めてから、胴を囲む正方形に四枚の翅を出す
         this.removeScript("body")
         yield* Charge.gather(this, 150, "#ffd890")
 
@@ -173,7 +173,7 @@ class EnemyUsuba extends Enemy {
                     this,
                     250,
                     24,
-                    () => vec(side * (80 + 50 * row), -10 - 4 * row),
+                    () => vec(side * 78, row === 0 ? -78 : 78),
                     (me) => this.clods(me, side, row),
                     this.untilNextCycle(),
                 ),
