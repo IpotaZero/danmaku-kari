@@ -13,7 +13,7 @@ import { Part } from "../Part"
 // 道場主は大きなカブトムシ。角・左右の鞘翅・六本の脚を持ち、それぞれが別々の攻撃をする。
 // 角: 自機へ向けて予告の線を引き、少しして線に沿って速い針の列を突き出す。
 // 鞘翅: 胴の下を覆う大きな甲羅。胴を狙った弾をその身で受け止める。ゆっくりした大玉の輪を放つ。
-// 脚: 前から順に、外寄りの下へ速くなる扇を撃つ。歩くように、波が前から後ろへ伝わる。
+// 脚: 前から順に、外寄りの下へ速くなる扇を撃つ。扇の波が前から後ろへ伝わる。
 // 鞘翅を両方割ると、カブトは後翅を広げて飛び立つ。後翅は羽ばたくたびに速い扇を払い、胴に攻撃が効くようになって、胴は渦を撃ちはじめる。
 
 export default class extends Stage {
@@ -74,7 +74,7 @@ class EnemyKabuto extends Enemy {
             ),
     )
 
-    // 脚(六本)。前脚・中脚・後脚が左右に一本ずつ、胴の横から前へ斜めに並ぶ。歩くように上下する。
+    // 脚(六本)。胴の横から前へ、左右三つずつ斜め一直線に並ぶ。動かない。
     // 胴より後ろ(上)に置くと、胴や前の脚にさえぎられて撃てなくなるので、どの脚も別々の列に置く
     private readonly legs = [0, 1, 2].flatMap((row) =>
         [-1, 1].map(
@@ -84,7 +84,7 @@ class EnemyKabuto extends Enemy {
                     this,
                     220,
                     13,
-                    (me) => vec(side * (80 + 28 * row), 52 - 22 * row + 6 * Math.sin(me.frame / 9 + row)),
+                    () => vec(side * (80 + 28 * row), 52 - 22 * row),
                     (me) => this.step(me, side, row),
                     150,
                 ),
@@ -151,7 +151,7 @@ class EnemyKabuto extends Enemy {
                     this,
                     450,
                     28,
-                    (me) => vec(side * (52 + 8 * Math.sin(me.frame / 6)), 96 + 12 * Math.sin(me.frame / 6)),
+                    () => vec(side * 56, 100),
                     (me) => this.flap(me, side),
                     70 + (side > 0 ? 30 : 0),
                 ),
