@@ -11,7 +11,7 @@ import { Part } from "../Part"
 import { Charge } from "../Charge"
 
 // ステージ「玄武」(四天王)
-// 玄武は、蛇の巻きついた大亀。胴のまわりを六枚の甲羅が回り、そのまわりを蛇がとぐろを巻いて這いまわる。
+// 玄武は、蛇を連れた大亀。胴のまわりを六枚の甲羅が回り、そのまわりの円を蛇(頭と五節の胴)が一列になって回る。
 // 甲羅: 胴を囲んで回りながら、順に外向きの水弾を放つ。甲羅が胴を囲んでいるので、胴を狙った弾は甲羅に当たる。
 // 蛇の頭: 亀のまわりを速く回りながら、自機へ毒牙(針の三方向)を飛ばす。
 // 蛇の胴: 頭のあとに続いて回りながら、順に水滴を垂らす。水滴はだんだん速く真下へ落ちる。
@@ -63,18 +63,18 @@ class EnemyGenbu extends Enemy {
             ),
     )
 
-    // 蛇の頭。亀のまわりを速く這いまわる
+    // 蛇の頭。亀のまわりの円を速く回る
     private readonly snakeHead = new Part(
         this.game,
         this,
         600,
         20,
-        (me) => vec.arg(me.frame / 35).scale(125 + 15 * Math.sin(me.frame / 10)),
+        (me) => vec.arg(me.frame / 35).scale(130),
         (me) => this.fang(me),
         170,
     )
 
-    // 蛇の胴(五節)。頭のあとに続いて、波打ちながら回る
+    // 蛇の胴(五節)。頭のあとに等間隔で続いて、同じ円を回る
     private readonly snakeBody = [0, 1, 2, 3, 4].map(
         (j) =>
             new Part(
@@ -82,8 +82,7 @@ class EnemyGenbu extends Enemy {
                 this,
                 160,
                 14,
-                (me) =>
-                    vec.arg(me.frame / 35 - (j + 1) * 0.28).scale(125 + 15 * Math.sin(me.frame / 10 - (j + 1) * 0.8)),
+                (me) => vec.arg(me.frame / 35 - (j + 1) * 0.28).scale(130),
                 (me) => this.drip(me, j),
                 160,
             ),
@@ -131,7 +130,7 @@ class EnemyGenbu extends Enemy {
                 this,
                 300,
                 20,
-                (me) => vec(side * (120 + 10 * Math.sin(me.frame / 40)), 130 + 8 * Math.sin(me.frame / 25)),
+                () => vec(side * 120, 130),
                 (me) => this.bubbles(me),
                 60 + (side > 0 ? 50 : 0),
             )
