@@ -54,7 +54,7 @@ export default class extends Stage {
 class EnemyUsuba extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.06, 2, 3)
 
-    // 大顎(左右)。胴の前で、開いたり閉じたりする
+    // 大顎(左右)。胴の前に並ぶ
     private readonly jaws = [-1, 1].map(
         (side) =>
             new Part(
@@ -62,7 +62,7 @@ class EnemyUsuba extends Enemy {
                 this,
                 500,
                 24,
-                (me) => vec(side * (60 + 14 * Math.sin(me.frame / 14)), 88),
+                () => vec(side * 64, 88),
                 (me) => this.pincer(me, side),
                 150,
             ),
@@ -74,7 +74,7 @@ class EnemyUsuba extends Enemy {
         this,
         600,
         30,
-        (me) => vec(8 * Math.sin(me.frame / 30), -95),
+        () => vec(0, -95),
         (me) => this.fountain(me),
         150,
     )
@@ -87,13 +87,13 @@ class EnemyUsuba extends Enemy {
                 this.abdomen,
                 150,
                 13,
-                (me) => vec.arg(-T / 4 + k * 0.8 + 0.1 * Math.sin(me.frame / 20)).scale(46),
+                () => vec.arg(-T / 4 + k * 0.8).scale(46),
                 (me) => this.spill(me, k),
                 150,
             ),
     )
 
-    // 脚(四本)。胴の両脇から斜め前へ並び、砂をかくように上下する
+    // 脚(四本)。胴の両脇から斜め前へ、一直線に並ぶ
     private readonly legs = [
         [-1, 0],
         [1, 0],
@@ -106,7 +106,7 @@ class EnemyUsuba extends Enemy {
                 this,
                 260,
                 16,
-                (me) => vec(side * (112 + 44 * row), 4 + 44 * row + 6 * Math.sin(me.frame / 10 + row * 2)),
+                () => vec(side * (112 + 44 * row), 4 + 44 * row),
                 (me) => this.kick(me, side, row),
                 150,
             ),
@@ -174,7 +174,7 @@ class EnemyUsuba extends Enemy {
                     this,
                     250,
                     24,
-                    (me) => vec(side * (80 + 50 * row), -10 - 4 * row + 10 * Math.sin(me.frame / 7 + row)),
+                    () => vec(side * (80 + 50 * row), -10 - 4 * row),
                     (me) => this.clods(me, side, row),
                     this.untilNextCycle(),
                 ),
