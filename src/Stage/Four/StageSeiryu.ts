@@ -124,7 +124,7 @@ class EnemySeiryu extends Enemy {
                 30,
                 (me) => vec(this.game.WIDTH * (0.2 + 0.3 * i) + 24 * Math.sin(me.frame / 40 + i), 70).sub(this.p),
                 (me) => this.rain(me),
-                30 + i * 20,
+                60 + i * 20,
             )
             const orbs = [0, 1].map(
                 (k) =>

@@ -146,6 +146,12 @@ class EnemyUsuba extends Enemy {
         yield* Array((330 - ((this.frame - 150) % 330)) % 330)
     }
 
+    // 次の一巡の頭までのフレーム数。子機が広がり終わる(60フレーム)前には撃たないよう、近すぎるときはさらに次の巡の頭まで
+    private untilNextCycle() {
+        const rest = (330 - ((this.frame - 150) % 330)) % 330
+        return rest < 60 ? rest + 330 : rest
+    }
+
     private *phases() {
         // 一段目: 大顎と腹を落とすと次の段へ
         this.addScript(() => this.ring(), { loop: Infinity, margin: 150, id: "body" })
@@ -170,7 +176,7 @@ class EnemyUsuba extends Enemy {
                     24,
                     (me) => vec(side * (80 + 50 * row), -10 - 4 * row + 10 * Math.sin(me.frame / 7 + row)),
                     (me) => this.clods(me, side, row),
-                    (330 - ((this.frame - 150) % 330)) % 330,
+                    this.untilNextCycle(),
                 ),
         )
         this.game.enemies.push(...wings)

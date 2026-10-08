@@ -137,7 +137,7 @@ class EnemyHotaru extends Enemy {
                 18,
                 (me) => slot.add(vec(40 * Math.sin(me.frame / 40 + i), 0)),
                 (me) => this.trail(me),
-                40 + i * 20,
+                60 + i * 20,
             )
             const grandchildren = [0, 1].map(
                 (k) =>

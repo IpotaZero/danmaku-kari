@@ -132,7 +132,8 @@ export abstract class Enemy extends Actor {
         }
     }
 
-    // 親敵に追従する子敵として振る舞わせる。親が死んだら自分も死ぬ
+    // 親敵に追従する子敵として振る舞わせる。親が死んだら自分も死ぬ。
+    // 登場の演出として、現れてから60フレームかけて、親の中心から position の位置まで広がり出る
     protected setParent(parent: Enemy, position: () => Vec) {
         this.addScript(() => this.followParent(parent, position), { id: "parent", loop: Infinity })
     }
@@ -146,7 +147,7 @@ export abstract class Enemy extends Actor {
             return
         }
 
-        this.p = parent.p.add(position())
+        this.p = parent.p.add(position().scale(Ease.Out(Math.min(1, this.frame / 60))))
         yield
     }
 

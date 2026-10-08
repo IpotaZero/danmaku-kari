@@ -157,7 +157,7 @@ class EnemyByakko extends Enemy {
                     )
                 },
                 (me) => this.youngRoar(me),
-                50 + (side > 0 ? 50 : 0),
+                60 + (side > 0 ? 50 : 0),
             )
             const claw = new Part(
                 this.game,

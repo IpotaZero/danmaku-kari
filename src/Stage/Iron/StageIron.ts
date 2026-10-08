@@ -153,7 +153,7 @@ class EnemyKabuto extends Enemy {
                     28,
                     (me) => vec(side * (52 + 8 * Math.sin(me.frame / 6)), 96 + 12 * Math.sin(me.frame / 6)),
                     (me) => this.flap(me, side),
-                    40 + (side > 0 ? 30 : 0),
+                    70 + (side > 0 ? 30 : 0),
                 ),
         )
         this.game.enemies.push(...wings)
