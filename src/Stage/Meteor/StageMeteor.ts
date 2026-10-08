@@ -19,7 +19,7 @@ import { Charge } from "../Charge"
 // 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ。
 // 一段目: 発光器を落とすと次の段へ。胴はときどき輪を放つ。
 // 蛍集め: 胴はまわりから光を集めて、四匹の大蛍を呼ぶ。大蛍のまわりには二匹ずつ孫蛍(孫機)が回り、孫蛍を落とすまで大蛍に攻撃が効かない。
-// 二段目: 大蛍をすべて落とすと次の段へ。大蛍はゆっくり左右に揺れながら光の帯を残し、帯は少しして雨のように降る。孫蛍は小さな輪を放つ。
+// 二段目: 大蛍をすべて落とすと次の段へ。大蛍は横一列に光を灯して帯を作り、帯は少しして雨のように降る。孫蛍は小さな輪を放つ。
 //         胴そのものが光りだし、胴を通る四本の流れ星を扇のように流す。
 // 三段目: 最後の灯。胴に攻撃が効くようになり、自機を狙った三本の流れ星と、止まってから散る輪を交互に放つ。
 
@@ -53,13 +53,13 @@ export default class extends Stage {
 class EnemyHotaru extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.25, this.game.HEIGHT * 0.08, 2, 3)
 
-    // 発光器。胴の下でゆらゆら光る
+    // 発光器。胴の下で光る
     private readonly lantern = new Part(
         this.game,
         this,
         900,
         32,
-        (me) => vec(0, 70 + 5 * Math.sin(me.frame / 30)),
+        () => vec(0, 70),
         (me) => this.glow(me),
         150,
     )
@@ -72,7 +72,7 @@ class EnemyHotaru extends Enemy {
                 this,
                 350,
                 16,
-                (me) => vec(side * 64 + 4 * Math.sin(me.frame / 30), -46),
+                () => vec(side * 64, -46),
                 (me) => this.needles(me),
                 130 + (side > 0 ? 30 : 0),
             ),
@@ -135,7 +135,7 @@ class EnemyHotaru extends Enemy {
                 this,
                 280,
                 18,
-                (me) => slot.add(vec(40 * Math.sin(me.frame / 40 + i), 0)),
+                () => slot,
                 (me) => this.trail(me),
                 60 + i * 20,
             )
@@ -229,14 +229,14 @@ class EnemyHotaru extends Enemy {
         yield* Array(240 - i * 10)
     }
 
-    // 大蛍の光の帯。揺れながら通った跡に光を残し、残った光は少しして、そろって雨のように降る
+    // 大蛍の光の帯。左から右へ、横一列に一つずつ光を灯す。灯った光は少しして、そろって雨のように降る
     private *trail(me: Part) {
         for (let f = 0; f < 60; f += 4) {
             yield* remodel(me)
                 .format("small-ball")
                 .r(5)
                 .color("#e8ffb0")
-                .p(me.p.clone())
+                .p(me.p.add(vec(-42 + f * 1.4, 0)))
                 .speed(0)
                 .radian(T / 4)
                 .appear(10)
