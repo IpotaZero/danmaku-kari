@@ -24,12 +24,6 @@ import { Charge } from "../Charge"
 
 export default class extends Stage {
     *G() {
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["月が明るい……どこからか、鈴の音が。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["リーン……。月影道場へ、ようこそ。"], { name: "スズムシ" })
-        yield* this.game.textBox.say(["音の波の隙間を、くぐり抜けてごらんなさい。"], { name: "スズムシ" })
-        this.hideFigure("hachinoko")
-
         const boss = new EnemySuzumushi(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -37,15 +31,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["……もう、鳴らせませんね。"], { name: "スズムシ" })
-        yield* this.game.textBox.say(["耳の奥でまだリンリン言ってる……。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["月影道場の免状です。お持ちなさい。"], { name: "スズムシ" })
-        this.hideFigure("hachinoko")
-        this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
-        this.hideFigure("hachinoko")
     }
 }
 

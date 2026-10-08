@@ -21,16 +21,6 @@ import { Part } from "../Part"
 
 export default class extends Stage {
     *G() {
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["ここが、てっぺん……。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["よく来た、小さな蜂の子。わたしがチャンピオンのスズメバチだ。"], {
-            name: "スズメバチ",
-        })
-        yield* this.game.textBox.say(["一匹でここまで来たのは見事。だが、群れの力を知っているか?"], {
-            name: "スズメバチ",
-        })
-        this.hideFigure("hachinoko")
-
         const boss = new EnemyHornet(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -44,15 +34,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["……見事。群れごと落とされるとは。"], { name: "スズメバチ" })
-        yield* this.game.textBox.say(["一匹でも、ちゃんと飛べるんだよ。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["それが強さだ。今日からお前がチャンピオンだよ。"], { name: "スズメバチ" })
-        this.hideFigure("hachinoko")
-        this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
-        this.hideFigure("hachinoko")
     }
 }
 

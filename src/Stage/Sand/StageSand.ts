@@ -26,12 +26,6 @@ import { Charge } from "../Charge"
 
 export default class extends Stage {
     *G() {
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["のどがからから……。砂ばっかりだ。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["ようこそ、砂塵道場へ。私はウスバ。"], { name: "ウスバ" })
-        yield* this.game.textBox.say(["大顎と、この砂袋。まずはそこから崩してごらんなさい。"], { name: "ウスバ" })
-        this.hideFigure("hachinoko")
-
         const boss = new EnemyUsuba(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -39,15 +33,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["ふふ、羽化しても敵わなかったわね。"], { name: "ウスバ" })
-        yield* this.game.textBox.say(["もう口の中までじゃりじゃりだよ。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["砂塵道場の免状よ。持っていって。"], { name: "ウスバ" })
-        this.hideFigure("hachinoko")
-        this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
-        this.hideFigure("hachinoko")
     }
 }
 

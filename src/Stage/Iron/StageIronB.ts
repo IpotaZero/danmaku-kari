@@ -70,8 +70,6 @@ class EnemyMaster extends Enemy {
 
     // 鉄砲兵の射撃。弾を込めてから、自機のいる所へ狙いの線を引き、線に沿って五発撃ち込む
     private *shoot(me: Part) {
-        yield* me.battery.charge(150)
-
         const start = me.p.clone()
         const aim = this.game.player.p.sub(start).radian()
 
@@ -88,7 +86,7 @@ class EnemyMaster extends Enemy {
             .length(this.game.WIDTH + this.game.HEIGHT)
             .alpha(0)
             .g(function* (b) {
-                yield* Behavior.ease(b, "alpha", 0.25, 8)
+                yield* Behavior.ease(b, "alpha", 0.1, 8)
                 yield* Array(20)
                 yield* Behavior.fadeout(b, 8)
             })

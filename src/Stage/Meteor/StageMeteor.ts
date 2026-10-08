@@ -25,12 +25,6 @@ import { Charge } from "../Charge"
 
 export default class extends Stage {
     *G() {
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["流れ星……じゃない、光る虫がいっぱいいる!"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["流星道場へようこそ。わたしはホタル。"], { name: "ホタル" })
-        yield* this.game.textBox.say(["わたしの光を消せたら、あなたの勝ち。"], { name: "ホタル" })
-        this.hideFigure("hachinoko")
-
         const boss = new EnemyHotaru(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -38,15 +32,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        this.showFigure("hachinoko", "assets/figure/Hachinoko.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["あらら、真っ暗。"], { name: "ホタル" })
-        yield* this.game.textBox.say(["目がちかちかするよ……。"], { name: "ハチノコ" })
-        yield* this.game.textBox.say(["流星道場の免状、持っていって。"], { name: "ホタル" })
-        this.hideFigure("hachinoko")
-        this.showFigure("hachinoko", "assets/figure/Hachinoko-smile.webp", { offsetPercent: -30 })
-        yield* this.game.textBox.say(["やったずぇ!"], { name: "ハチノコ" })
-        this.hideFigure("hachinoko")
     }
 }
 

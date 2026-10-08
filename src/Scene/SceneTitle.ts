@@ -38,6 +38,7 @@ export class SceneTitle extends Scene {
                             type: "select",
                             label: "Start",
                             onSelect: () => {
+                                App.se.start.play()
                                 App.sc.goto(async () => import("./SceneMap").then(({ SceneMap }) => SceneMap.create()))
                             },
                         },

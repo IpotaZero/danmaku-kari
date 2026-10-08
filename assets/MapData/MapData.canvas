@@ -5,13 +5,8 @@
 		{"id":"31f7d87e5e5e2323","type":"text","text":"霜月道場・高弟\nStageRikka","x":660,"y":0,"width":160,"height":160},
 		{"id":"3b69dc58c8ff5df6","type":"text","text":"霜月道場・師範代\nStageTriangle","x":920,"y":0,"width":160,"height":160},
 		{"id":"751ab8850da9b699","type":"text","text":"霜月道場・道場主\nStageFrost\nbadge:霜月","x":1180,"y":-70,"width":320,"height":300},
-		{"id":"7f2a99c197bc75b2","type":"text","text":"当たり判定\nStageHitbox","x":0,"y":280,"width":160,"height":160},
-		{"id":"e5bf38412c26e531","type":"text","text":"修行場・万華鏡\nStageKaleidoscope","x":0,"y":560,"width":160,"height":160},
-		{"id":"7ffad9e825c3ee4d","type":"text","text":"修行場・振り子\nStagePendulum","x":0,"y":840,"width":160,"height":160},
-		{"id":"db446724e01017d8","type":"text","text":"修行場・波紋\nStageRipple","x":0,"y":1120,"width":160,"height":160},
-		{"id":"6f7d531dbb3567f7","type":"text","text":"修行場・花火\nStageFirework","x":0,"y":1400,"width":160,"height":160},
 		{"id":"46e539f50437a678","type":"text","text":"四天王・百足\nStageSeiryu","x":8640,"y":420,"width":160,"height":160},
-		{"id":"534a94c5e210d65c","type":"text","text":"四天王・揺蚊\nStageSuzaku","x":8900,"y":420,"width":160,"height":160},
+		{"id":"534a94c5e210d65c","type":"text","text":"四天王・揺蚊 \nStageSuzaku","x":8900,"y":420,"width":160,"height":160},
 		{"id":"98c07e56e131e418","type":"text","text":"四天王・蠍\nStageByakko","x":9160,"y":420,"width":160,"height":160},
 		{"id":"3bceb29a6b35762f","type":"text","text":"四天王・蚕\nStageGenbu","x":9420,"y":420,"width":160,"height":160},
 		{"id":"ca68c9295dde0dbf","type":"text","text":"チャンピオン・大雀蜂\nStageChampion","x":9820,"y":380,"width":240,"height":240},
@@ -93,11 +88,6 @@
 		{"id":"bcaeeff0907faa6e","fromNode":"2a0f289b578f41f4","fromSide":"right","toNode":"94be0c796c5a45c2","toSide":"left"},
 		{"id":"930c44ba62266bbc","fromNode":"70041c417988cd82","fromSide":"right","toNode":"ed45c0b7fab66007","toSide":"left","label":"standard"},
 		{"id":"b6f7b13917ca7faa","fromNode":"5fbe65792de30064","fromSide":"right","toNode":"46e539f50437a678","toSide":"left","label":"badges"},
-		{"id":"4679701d62d5bf4e","fromNode":"5675d716c5761d80","fromSide":"right","toNode":"573084b0c44d937c","toSide":"left","label":"laser"},
-		{"id":"b85c83c22b56ce0a","fromNode":"35c5577f1a6c4709","fromSide":"bottom","toNode":"7f2a99c197bc75b2","toSide":"top"},
-		{"id":"a72ce8de0a9addd6","fromNode":"7f2a99c197bc75b2","fromSide":"bottom","toNode":"e5bf38412c26e531","toSide":"top"},
-		{"id":"fa532db0c1161937","fromNode":"e5bf38412c26e531","fromSide":"bottom","toNode":"7ffad9e825c3ee4d","toSide":"top"},
-		{"id":"3f5c7f38190ba7d9","fromNode":"7ffad9e825c3ee4d","fromSide":"bottom","toNode":"db446724e01017d8","toSide":"top"},
-		{"id":"0392f16b083aa41a","fromNode":"db446724e01017d8","fromSide":"bottom","toNode":"6f7d531dbb3567f7","toSide":"top"}
+		{"id":"4679701d62d5bf4e","fromNode":"5675d716c5761d80","fromSide":"right","toNode":"573084b0c44d937c","toSide":"left","label":"laser"}
 	]
 }

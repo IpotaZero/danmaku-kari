@@ -176,7 +176,7 @@ class EnemyKabuto extends Enemy {
             .length(this.game.WIDTH + this.game.HEIGHT)
             .alpha(0)
             .g(function* (b) {
-                yield* Behavior.ease(b, "alpha", 0.25, 10)
+                yield* Behavior.ease(b, "alpha", 0.1, 10)
                 yield* Array(25)
                 yield* Behavior.fadeout(b, 8)
             })
@@ -257,6 +257,7 @@ class EnemyKabuto extends Enemy {
                 .speed(5)
                 .radian(base + turn * f * 0.05)
                 .ex(4)
+                .ex(3)
                 .fire(this.game.bullets)
             yield* Array(5)
         }
