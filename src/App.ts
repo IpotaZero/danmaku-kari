@@ -3,6 +3,7 @@ import { Sound } from "./utils/Sound"
 import { Dom } from "./Dom"
 import { SceneChanger } from "./utils/Scene/SceneChanger"
 import { Looper } from "@ipota/my-utils"
+import { FrameLimiter } from "./utils/FrameLimiter"
 import { DigitalInput } from "@ipota/input"
 import { DEFAULT_KEY_CONFIG, InputAction, Settings } from "./Data/Settings"
 
@@ -61,8 +62,11 @@ export namespace App {
 
     export const looper = new Looper(60)
 
+    // 描画だけを間引く。fpsは設定(settings)で決まる
+    export const drawLimiter = new FrameLimiter(60)
+
     export const input = new DigitalInput<InputAction>(DEFAULT_KEY_CONFIG)
 
-    // 保存されている音量・キーコンフィグを読み込んで、bm/se/inputへ反映する
-    export const settings = new Settings({ bgm: bm, se, input })
+    // 保存されている音量・キーコンフィグ・描画fpsを読み込んで、bm/se/input/drawLimiterへ反映する
+    export const settings = new Settings({ bgm: bm, se, input, drawLimiter })
 }

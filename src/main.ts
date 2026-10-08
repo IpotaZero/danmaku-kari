@@ -11,7 +11,7 @@ App.looper.addHandler((timeScale) => {
 })
 
 App.looper.addRenderHandler(() => {
-    App.sc.draw()
+    if (App.drawLimiter.shouldDraw()) App.sc.draw()
 })
 
 window.addEventListener("keydown", (e) => {

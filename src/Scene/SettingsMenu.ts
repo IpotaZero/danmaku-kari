@@ -25,7 +25,7 @@ const ACTION_LABELS: Record<InputAction, string> = {
 }
 
 /**
- * 音量・キーコンフィグ・デバッグ用の全ステージ解放・セーブデータの削除をまとめた設定メニュー。
+ * 音量・描画fps・キーコンフィグ・デバッグ用の全ステージ解放・セーブデータの削除をまとめた設定メニュー。
  * 呼び出し側のMenuのサブメニューとして開く。MenuのbaseHtmlには SettingsMenu.HTML を含めておくこと。
  */
 export class SettingsMenu {
@@ -48,6 +48,17 @@ export class SettingsMenu {
             options: () => [
                 this.volumeRow("bgm"),
                 this.volumeRow("se"),
+                [
+                    {
+                        type: "select",
+                        label: this.drawFpsLabel(),
+                        // 選ぶたびに60と30を切り替える
+                        onSelect: () => {
+                            App.settings.changeDrawFps(App.settings.drawFps === 60 ? 30 : 60)
+                            this.menu.render()
+                        },
+                    },
+                ],
                 [
                     {
                         type: "submenu",
@@ -122,6 +133,16 @@ export class SettingsMenu {
                 this.menu.render()
             },
         }
+    }
+
+    private drawFpsLabel(): HTMLElement {
+        const el = document.createElement("span")
+        el.className = "settings-row"
+        el.innerHTML = `
+            <span>描画fps</span>
+            <span>${App.settings.drawFps}</span>
+        `
+        return el
     }
 
     private debugUnlockAllLabel(): HTMLElement {
