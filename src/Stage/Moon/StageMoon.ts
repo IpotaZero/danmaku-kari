@@ -10,14 +10,14 @@ import { Part } from "../Part"
 import { Charge } from "../Charge"
 
 // ステージ「スズムシ」(月影道場・道場主)
-// 道場主は大きなスズムシ。鳴らす二枚の翅・二本の長い触角・胴の下に吊るした六つの鈴を持ち、それぞれが別々の攻撃をする。
+// 道場主のまわりに子機が幾何学的に並ぶ。胴のすぐ左右に翅の一対、その外側に触角の一対、胴の下に六つの鈴の横一列。
 // 翅: 擦り合わせて音を鳴らす。左右の翅から同時に半円の波が広がり、二つの波が重なって格子のような隙間ができる。
 // 触角: 探るように弾を撒き、少しして自機の方へ向きを変えて飛ばす。
-// 鈴: 胴の下に弧を描いて並び、順に鈴玉を落とす。鈴玉は少し落ちてから、輪になって鳴り響く。
-// 鈴は胴の下にぶら下がっているので、胴を撃とうとすると鈴に当たる。鈴を落とすと胴の下が開ける。
+// 鈴: 順に鈴玉を落とす。鈴玉は少し落ちてから、輪になって鳴り響く。
+// 鈴は胴の下に並んでいるので、胴を撃とうとすると鈴に当たる。鈴を落とすと胴の下が開ける。
 // 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ。
 // 一段目: 翅を両方落とすと次の段へ。胴はときどき輪を放つ。
-// 合奏: 胴は大きく息を吸い込んで、三匹の子スズムシを呼ぶ。子スズムシは小鈴(孫機)を二つずつ吊るしていて、小鈴を落とすまで子スズムシに攻撃が効かない。
+// 合奏: 胴は大きく息を吸い込んで、胴の下に横一列に三匹の子スズムシを呼ぶ。子スズムシのまわりを小鈴(孫機)が二つずつ回り、小鈴を落とすまで子スズムシに攻撃が効かない。
 // 二段目: 子スズムシをすべて落とすと次の段へ。子スズムシも半円の波を鳴らすので、三つの波が重なって、隙間がもっと細かくなる。
 //         胴は月の輪(一度広がって止まり、くるりと回ってから散る輪)を放つ。
 // 三段目: 満月。胴に攻撃が効くようになり、胴は自分でも半円の波を鳴らしながら、月の輪を放つ。
@@ -52,7 +52,7 @@ export default class extends Stage {
 class EnemySuzumushi extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.35, this.game.HEIGHT * 0.07, 2, 3)
 
-    // 翅(左右)。胴の両脇に並ぶ
+    // 翅(左右一対)。胴のすぐ左右にある
     private readonly wings = [-1, 1].map(
         (side) =>
             new Part(
@@ -60,13 +60,13 @@ class EnemySuzumushi extends Enemy {
                 this,
                 700,
                 34,
-                () => vec(side * 54, -14),
+                () => vec(side * 60, 0),
                 (me) => this.chirp(me, side, 17),
                 150,
             ),
     )
 
-    // 触角(左右)。胴の斜め上に並ぶ
+    // 触角(左右一対)。翅のさらに外側にある
     private readonly antennae = [-1, 1].map(
         (side) =>
             new Part(
@@ -74,13 +74,13 @@ class EnemySuzumushi extends Enemy {
                 this,
                 300,
                 14,
-                () => vec(side * 95, -90),
+                () => vec(side * 135, 0),
                 (me) => this.probe(me, side),
                 130 + (side > 0 ? 35 : 0),
             ),
     )
 
-    // 鈴(六つ)。胴の下に、外側ほど低くなる弧を描いて並ぶ
+    // 鈴(六つ)。胴の下に横一列に並ぶ
     private readonly bells = [0, 1, 2, 3, 4, 5].map(
         (k) =>
             new Part(
@@ -88,7 +88,7 @@ class EnemySuzumushi extends Enemy {
                 this,
                 180,
                 14,
-                () => vec((k - 2.5) * 40, 90 + 12 * Math.abs(k - 2.5)),
+                () => vec((k - 2.5) * 44, 100),
                 (me) => this.bell(me, k),
                 170,
             ),
@@ -125,7 +125,7 @@ class EnemySuzumushi extends Enemy {
         this.addScript(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
         while (this.wings.some((p) => p.life > 0)) yield
 
-        // 合奏。大きく息を吸い込んでから、小鈴(孫機)を吊るした子スズムシを呼ぶ
+        // 合奏。大きく息を吸い込んでから、小鈴(孫機)に守られた子スズムシを呼ぶ
         this.removeScript("body")
         yield* Charge.gather(this, 150, "#fff0b0")
 
@@ -135,7 +135,7 @@ class EnemySuzumushi extends Enemy {
                 this,
                 320,
                 20,
-                () => vec(k * 115, 210 - Math.abs(k) * 30),
+                () => vec(k * 115, 210),
                 (me) => this.chirp(me, k, 13),
                 60 + (k + 1) * 8,
             )
@@ -146,7 +146,7 @@ class EnemySuzumushi extends Enemy {
                         cricket,
                         90,
                         10,
-                        () => vec(side * 18, 34),
+                        (me) => vec.arg(me.frame / 60 + (side > 0 ? 0 : Math.PI)).scale(34),
                         (me) => this.smallBell(me),
                         100 + (side > 0 ? 60 : 0),
                     ),
