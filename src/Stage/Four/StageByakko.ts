@@ -1,4 +1,4 @@
-import { vec, Vec } from "@ipota/vec"
+import { vec } from "@ipota/vec"
 import { Ease } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
@@ -10,15 +10,16 @@ import { Part } from "../Part"
 import { Charge } from "../Charge"
 
 // ステージ「白虎」(四天王)
-// 白虎は、少し構えては素早く跳んで、画面の上の方を跳びまわる。三匹の子虎が、少し遅れて親のあとを追いかけてくる。
+// 白虎は、少し構えては素早く跳んで、画面の上の方を跳びまわる。
+// 白虎のまわりに子機が幾何学的に並ぶ。胴を囲む正五角形に前脚の一対・後脚の一対・尾、胴の下の横一列に三匹の子虎。
 // 前脚: 自機へ向けて、三本の爪痕を薄く見せてから、爪痕に沿って速い爪を走らせる。
 // 後脚: 横へ風を蹴り出す。風は大きく弧を描いて、画面の両脇から下へ回り込む。
 // 尾: 縞模様の帯を、何本も続けて振り下ろす。帯の弾の間は狭く、帯の端を回り込んでかわす。
-// 子虎: 親の下にじゃれついて、小さな輪を放つ。親の下にいるので、親を狙った弾をさえぎる。
+// 子虎: 小さな輪を放つ。親の下に並んでいるので、親を狙った弾をさえぎる。
 // 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ(胴に攻撃が効かない間は、弾が胴を素通りしてうしろの尾にも届く)。
 // 一段目: 前脚と尾を落とすと次の段へ。胴はときどき輪を放つ。
-// 遠吠え: 白虎は立ち止まって遠吠えし、二匹の若虎を呼ぶ。若虎は親の両脇を少し遅れて追いかける。
-//         若虎は前脚に爪(孫機)を一本ずつ持ち、爪を落とすまで若虎に攻撃が効かない。
+// 遠吠え: 白虎は立ち止まって遠吠えし、親の左右に一対の若虎を呼ぶ。
+//         若虎のまわりを爪(孫機)が一つずつ回り、爪を落とすまで若虎に攻撃が効かない。
 // 二段目: 若虎をすべて落とすと次の段へ。若虎は止まってから散る輪を放ち、爪は真下へ三本の爪痕を落とす。
 //         胴は吠えるたびに、速さの違う三重の輪を放つ。
 // 三段目: 疾風。胴に攻撃が効くようになる。白虎は構える時間が短くなり、跳んで着地するたびに衝撃の輪を放つ。
@@ -48,10 +49,7 @@ export default class extends Stage {
 }
 
 class EnemyByakko extends Enemy {
-    // 親がこれまでにいた位置。新しいものほど前にある。子虎と若虎はこれをたどって追いかける
-    private readonly trail: Vec[] = []
-
-    // 前脚(左右)
+    // 前脚(左右一対)。胴を囲む正五角形の、下の二つの角
     private readonly paws = [-1, 1].map(
         (side) =>
             new Part(
@@ -59,13 +57,13 @@ class EnemyByakko extends Enemy {
                 this,
                 500,
                 24,
-                () => vec(side * 46, 46),
+                () => vec.arg(T / 4 - (side * T) / 10).scale(100),
                 (me) => this.claw(me),
                 140 + (side > 0 ? 55 : 0),
             ),
     )
 
-    // 後脚(左右)。胴の真後ろに隠れないよう、胴の幅より外に出す
+    // 後脚(左右一対)。正五角形の、横の二つの角
     private readonly hindLegs = [-1, 1].map(
         (side) =>
             new Part(
@@ -73,24 +71,24 @@ class EnemyByakko extends Enemy {
                 this,
                 350,
                 20,
-                () => vec(side * 72, -24),
+                () => vec.arg(-T / 4 + (side * T) / 5).scale(100),
                 (me) => this.wind(me, side),
                 170 + (side > 0 ? 45 : 0),
             ),
     )
 
-    // 尾。胴のうしろで、ゆらりと揺れる
+    // 尾。正五角形の、上の角
     private readonly tail = new Part(
         this.game,
         this,
         600,
         18,
-        (me) => vec(30 * Math.sin(me.frame / 18), -82),
+        () => vec(0, -100),
         (me) => this.stripes(me),
         200,
     )
 
-    // 子虎(三匹)。親が 12(k+1) フレーム前にいた所の、少し下を追いかける
+    // 子虎(三匹)。胴の下に横一列に並ぶ
     private readonly cubs = [0, 1, 2].map(
         (k) =>
             new Part(
@@ -98,7 +96,7 @@ class EnemyByakko extends Enemy {
                 this,
                 180,
                 14,
-                () => (this.trail[(k + 1) * 12] ?? this.p).add(vec((k - 1) * 52, 92)).sub(this.p),
+                () => vec((k - 1) * 60, 160),
                 (me) => this.play(me),
                 150 + k * 30,
             ),
@@ -113,7 +111,6 @@ class EnemyByakko extends Enemy {
         this.isInvincible = true
 
         this.addScript(() => this.enter())
-        this.addScript(() => this.remember(), { loop: Infinity })
         this.addScript(() => this.phases())
     }
 
@@ -122,13 +119,6 @@ class EnemyByakko extends Enemy {
         yield* this.moveTo(vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.16), 120)
 
         this.addScript(() => this.pounce(), { loop: Infinity, id: "move" })
-    }
-
-    // いた位置を覚えておく
-    private *remember() {
-        this.trail.unshift(this.p.clone())
-        this.trail.length = Math.min(this.trail.length, 40)
-        yield
     }
 
     private *phases() {
@@ -148,13 +138,7 @@ class EnemyByakko extends Enemy {
                 this,
                 350,
                 22,
-                // 親の両脇の少しうしろを追いかける。画面の外へは出ない
-                () => {
-                    const anchor = this.trail[side > 0 ? 20 : 32] ?? this.p
-                    return vec(Math.min(Math.max(anchor.x + side * 125, 40), this.game.WIDTH - 40), anchor.y + 40).sub(
-                        this.p,
-                    )
-                },
+                () => vec(side * 115, 60),
                 (me) => this.youngRoar(me),
                 60 + (side > 0 ? 50 : 0),
             )
@@ -163,7 +147,7 @@ class EnemyByakko extends Enemy {
                 young,
                 100,
                 11,
-                () => vec(-side * 20, 30),
+                (me) => vec.arg(me.frame / 50 + (side > 0 ? 0 : Math.PI)).scale(28),
                 (me) => this.scratch(me),
                 80,
             )
@@ -187,7 +171,7 @@ class EnemyByakko extends Enemy {
     private *pounce() {
         yield* Array(70)
         yield* this.moveTo(
-            vec(this.game.WIDTH * (0.2 + 0.6 * this.random()), this.game.HEIGHT * (0.1 + 0.12 * this.random())),
+            vec(this.game.WIDTH * (0.32 + 0.36 * this.random()), this.game.HEIGHT * (0.1 + 0.12 * this.random())),
             22,
         )
     }
@@ -196,7 +180,7 @@ class EnemyByakko extends Enemy {
     private *gale() {
         yield* Array(40)
         yield* this.moveTo(
-            vec(this.game.WIDTH * (0.2 + 0.6 * this.random()), this.game.HEIGHT * (0.1 + 0.14 * this.random())),
+            vec(this.game.WIDTH * (0.32 + 0.36 * this.random()), this.game.HEIGHT * (0.1 + 0.14 * this.random())),
             16,
         )
 
@@ -296,7 +280,7 @@ class EnemyByakko extends Enemy {
         yield* Array(170)
     }
 
-    // 子虎のじゃれ玉。小さな輪がだんだん速くなる
+    // 子虎の小さな輪。だんだん速くなる
     private *play(me: Part) {
         yield* remodel(me)
             .format("small-ball")
