@@ -10,11 +10,11 @@ import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 
 // ステージ「カブト」(鉄壁道場・道場主)
-// 道場主は大きなカブトムシ。角・左右の鞘翅・六本の脚を持ち、それぞれが別々の攻撃をする。
+// 道場主のまわりに子機が幾何学的に並ぶ。胴の前に角と左右一対の鞘翅、胴のまわりに正六角形の輪(脚)。
 // 角: 自機へ向けて予告の線を引き、少しして線に沿って速い針の列を突き出す。
-// 鞘翅: 胴の下を覆う大きな甲羅。胴を狙った弾をその身で受け止める。ゆっくりした大玉の輪を放つ。
-// 脚: 前から順に、外寄りの下へ速くなる扇を撃つ。扇の波が前から後ろへ伝わる。
-// 鞘翅を両方割ると、カブトは後翅を広げて飛び立つ。後翅は羽ばたくたびに速い扇を払い、胴に攻撃が効くようになって、胴は渦を撃ちはじめる。
+// 鞘翅: 胴の前の大きな一対。胴を狙った弾をその身で受け止める。ゆっくりした大玉の輪を放つ。
+// 脚: 正六角形に並んでゆっくり回り、順に外向きの扇を撃つ。扇の波が輪をひと回りする。
+// 鞘翅を両方割ると、胴の前に後翅の一対が現れて飛び立つ。後翅は速い扇を払い、胴に攻撃が効くようになって、胴は渦を撃ちはじめる。
 
 export default class extends Stage {
     *G() {
@@ -49,18 +49,18 @@ export default class extends Stage {
 }
 
 class EnemyKabuto extends Enemy {
-    // 角。胴の真下に突き出している
+    // 角。胴の真下にある
     private readonly horn = new Part(
         this.game,
         this,
         700,
         22,
-        () => vec(0, 78),
+        () => vec(0, 100),
         (me) => this.thrust(me),
         160,
     )
 
-    // 鞘翅(左右)。胴の下を覆う
+    // 鞘翅(左右一対)。胴の前にある
     readonly elytra = [-1, 1].map(
         (side) =>
             new Part(
@@ -68,27 +68,24 @@ class EnemyKabuto extends Enemy {
                 this,
                 700,
                 40,
-                () => vec(side * 40, 36),
+                () => vec(side * 48, 40),
                 (me) => this.boulders(me),
                 200 + (side > 0 ? 75 : 0),
             ),
     )
 
-    // 脚(六本)。胴の横から前へ、左右三つずつ斜め一直線に並ぶ。動かない。
-    // 胴より後ろ(上)に置くと、胴や前の脚にさえぎられて撃てなくなるので、どの脚も別々の列に置く
-    private readonly legs = [0, 1, 2].flatMap((row) =>
-        [-1, 1].map(
-            (side) =>
-                new Part(
-                    this.game,
-                    this,
-                    220,
-                    13,
-                    () => vec(side * (80 + 28 * row), 52 - 22 * row),
-                    (me) => this.step(me, side, row),
-                    150,
-                ),
-        ),
+    // 脚(六つ)。胴のまわりに正六角形に並び、形を保ったままゆっくり回る
+    private readonly legs = [0, 1, 2, 3, 4, 5].map(
+        (i) =>
+            new Part(
+                this.game,
+                this,
+                220,
+                12,
+                (me) => vec.arg(me.frame / 240 + (T * i) / 6).scale(140),
+                (me) => this.step(me, i),
+                150,
+            ),
     )
 
     readonly parts = [this.horn, ...this.elytra, ...this.legs]
@@ -143,7 +140,7 @@ class EnemyKabuto extends Enemy {
         yield* this.moveTo(this.home().add(vec(0, this.game.HEIGHT * 0.06)), 40)
         this.addScript(() => this.fly(), { id: "move" })
 
-        // 後翅は胴の前へ大きく広げる(胴の後ろだと、胴にさえぎられて撃てない)
+        // 後翅は胴の前の左右一対(胴の後ろだと、胴にさえぎられて撃てない)
         const wings = [-1, 1].map(
             (side) =>
                 new Part(
@@ -151,7 +148,7 @@ class EnemyKabuto extends Enemy {
                     this,
                     450,
                     28,
-                    () => vec(side * 56, 100),
+                    () => vec(side * 62, 112),
                     (me) => this.flap(me, side),
                     70 + (side > 0 ? 30 : 0),
                 ),
@@ -215,24 +212,24 @@ class EnemyKabuto extends Enemy {
         yield* Array(150)
     }
 
-    // 脚の扇。前脚から順に撃つので、波が前から後ろへ伝わる。一巡(220フレーム)ごとに休む
-    private *step(me: Part, side: number, row: number) {
-        yield* Array(row * 18)
+    // 脚の扇。輪の順に外向きの扇を撃つので、波が輪をひと回りする。一巡(220フレーム)ごとに休む
+    private *step(me: Part, i: number) {
+        yield* Array(i * 15)
 
         yield* remodel(me)
             .format("diamond")
             .color("#9ab8ff")
             .p(me.p.clone())
             .speed(2)
-            .radian(T / 4 + side * 0.45)
+            .radian(me.p.sub(this.p).radian())
             .nway(3, T / 20)
             .g((b) => Behavior.ease(b, "speed", 6.5, 35, Ease.In))
             .fire(this.game.bullets)
 
-        yield* Array(220 - row * 18)
+        yield* Array(220 - i * 15)
     }
 
-    // 後翅の羽ばたき。外寄りの下へ、速い扇を払う
+    // 後翅の扇。外寄りの下へ、速い扇を払う
     private *flap(me: Part, side: number) {
         yield* remodel(me)
             .format("diamond")
