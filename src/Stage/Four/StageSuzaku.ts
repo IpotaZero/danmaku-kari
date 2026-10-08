@@ -111,7 +111,7 @@ class EnemySuzaku extends Enemy {
                     this,
                     500,
                     36,
-                    (me) => vec(side * 92, -10 - 22 * Math.sin(me.frame / 9)),
+                    () => vec(side * 92, -10),
                     (me) =>
                         generation === 0
                             ? this.feathers(me, side)
@@ -122,7 +122,7 @@ class EnemySuzaku extends Enemy {
                 ),
         )
 
-        // 尾羽(五枚)。胴の下に扇のように広がって揺れる
+        // 尾羽(五枚)。胴の下に扇のように広がる
         const tails = [0, 1, 2, 3, 4].map(
             (k) =>
                 new Part(
@@ -130,7 +130,7 @@ class EnemySuzaku extends Enemy {
                     this,
                     200,
                     15,
-                    (me) => vec.arg(T / 4 + (k - 2) * 0.32 + 0.08 * Math.sin(me.frame / 15 + k)).scale(78),
+                    () => vec.arg(T / 4 + (k - 2) * 0.32).scale(78),
                     (me) => this.embers(me, k),
                     160,
                 ),
