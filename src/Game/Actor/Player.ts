@@ -15,9 +15,10 @@ const AFTER_IMAGE_DECAY = 0.05
 
 const WING_FLAP_INTERVAL = 2
 
-// 蜂の体の大きさの倍率と、そのまわりの多角形・円の大きさの倍率(当たり判定・かすり判定の大きさは変えない)
-const BODY_SCALE = 2.8
-const EFFECT_SCALE = 1.8
+// 蜂の体・そのまわりの多角形と円・翅の大きさの倍率(当たり判定・かすり判定の大きさは変えない)
+const BODY_SCALE = 2.24
+const EFFECT_SCALE = 1.44
+const WING_SCALE = 0.8
 
 const HIT_SHAKE_INTENSITY = 12
 const HIT_SHAKE_FRAME = 60
@@ -513,12 +514,12 @@ export class Player extends Actor {
     private drawWings(ctx: CanvasRenderingContext2D) {
         const isUpperFrame = Math.floor(this.frame / WING_FLAP_INTERVAL) % 2 === 0
         const phase = isUpperFrame ? 1 : -1
-        const offsetY = phase * 3
+        const offsetY = phase * 3 * WING_SCALE
         const scaleY = 1 + phase * 0.08
 
         ctx.save()
         ctx.translate(this.p.x, this.p.y + offsetY)
-        ctx.scale(1, scaleY)
+        ctx.scale(WING_SCALE, WING_SCALE * scaleY)
         ctx.globalAlpha = 0.6
         ctx.rotate((this.v.x / 20) * T * 0.02)
         ctx.translate(-256, -40)
