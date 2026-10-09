@@ -109,6 +109,7 @@ export default class extends Stage {
         yield* this.talk("ハチノコ", "近づかないなら。")
         yield* this.talk("ユキムシ", "そっちこそ。")
         this.hideAllFigures()
+        yield* this.narrate('技<span style="color: red">「蜂球」</span>を身に付けた。')
     }
 }
 

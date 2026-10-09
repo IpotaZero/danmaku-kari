@@ -47,7 +47,7 @@ class EnemyMaster extends Enemy {
     constructor(game: Game) {
         // 鉄砲兵が前に並んで攻撃を受け止めるので、高弟を撃てるのは鉄砲兵が減ってから。
         // 高弟だけが残る時間を短くするため、体力は鉄砲兵の総和よりずっと少なくする
-        super(game, 900, 44, { renderer: new EnemyRendererCore() })
+        super(game, 800, 44, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

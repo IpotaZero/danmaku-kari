@@ -114,7 +114,7 @@ function* リング弾を撃ち続ける(player: Player): Generator<void, void, 
                 .type("friend")
                 .color("white")
                 .alpha(0.4)
-                .appearance("arrow")
+                .appearance("wedge")
                 .r(16)
                 .damage(リング弾威力)
                 .speed(0)

@@ -17,6 +17,7 @@ export class ScenePreTitle extends Scene {
             "beforeend",
             `
             <div class="pre-title-epigraph">
+                <span>&nbsp;</span>
                 <span class="pre-title-haiku">冬蜂の死にどころなく歩きけり</span>
                 <span class="pre-title-poet">村上鬼城</span>
             </div>

@@ -69,7 +69,7 @@ function* homingShotLoop(player: Player): Generator<void, void, void> {
             yield* remodel(player)
                 .p(player.p.clone())
                 .radian(-T / 4)
-                .appearance("arrow")
+                .appearance("wedge")
                 .type("friend")
                 .color("white")
                 .alpha(0.2)
