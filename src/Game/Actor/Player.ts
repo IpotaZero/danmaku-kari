@@ -15,6 +15,10 @@ const AFTER_IMAGE_DECAY = 0.05
 
 const WING_FLAP_INTERVAL = 2
 
+// 蜂の体の大きさの倍率と、そのまわりの多角形・円の大きさの倍率(当たり判定・かすり判定の大きさは変えない)
+const BODY_SCALE = 2.8
+const EFFECT_SCALE = 1.8
+
 const HIT_SHAKE_INTENSITY = 12
 const HIT_SHAKE_FRAME = 60
 
@@ -128,6 +132,7 @@ export class Player extends Actor {
         this.drawActionCooldown(ctx)
         this.drawLife(ctx)
         this.drawGrazeBoundary(ctx)
+        this.drawBody(ctx)
         this.drawCore(ctx)
         this.drawWings(ctx)
 
@@ -243,13 +248,11 @@ export class Player extends Actor {
             this.v =
                 dir.magnitude() === 0
                     ? vec(0, 0)
-                    : dir
-                          .normalize()
-                          .scale(
-                              // ブースト中は低速入力を無視し、通常速度を基準に加速する
-                              (input.isPressed("slow") && !this.isBoosted() ? this.slowSpeed : this.speed) *
-                                  this.speedMultiplier,
-                          )
+                    : dir.normalize().scale(
+                          // ブースト中は低速入力を無視し、通常速度を基準に加速する
+                          (input.isPressed("slow") && !this.isBoosted() ? this.slowSpeed : this.speed) *
+                              this.speedMultiplier,
+                      )
         }
 
         if (this.v.magnitude() === 0) return
@@ -350,13 +353,13 @@ export class Player extends Actor {
         const ratio = this.sneakProgress
         if (ratio < 0.001) return
 
-        Ctx.arc(ctx, this.p, this.GRAZE_R * 3 * ratio, "#ffffff80", { lineWidth: 1 })
-        Ctx.arc(ctx, this.p, this.GRAZE_R * 2.8 * ratio, "#ffffff80", { lineWidth: 1 })
-        Ctx.polygon(ctx, 13, 2, this.p, this.GRAZE_R * 2.7 * ratio, "#ffffff80", {
+        Ctx.arc(ctx, this.p, this.GRAZE_R * EFFECT_SCALE * 3 * ratio, "#ffffff80", { lineWidth: 1 })
+        Ctx.arc(ctx, this.p, this.GRAZE_R * EFFECT_SCALE * 2.8 * ratio, "#ffffff80", { lineWidth: 1 })
+        Ctx.polygon(ctx, 13, 2, this.p, this.GRAZE_R * EFFECT_SCALE * 2.7 * ratio, "#ffffff80", {
             theta: this.drawRadian / 72,
             lineWidth: 1,
         })
-        Ctx.polygon(ctx, 11, 2, this.p, this.GRAZE_R * 2 * ratio, "#ffffff80", {
+        Ctx.polygon(ctx, 11, 2, this.p, this.GRAZE_R * EFFECT_SCALE * 2 * ratio, "#ffffff80", {
             theta: this.drawRadian / 144,
             lineWidth: 1,
         })
@@ -367,7 +370,7 @@ export class Player extends Actor {
         const ratio = Math.max(0, 1 - this.sneakProgress - this.dashProgress)
         if (ratio < 0.001) return
 
-        Ctx.polygon(ctx, 8, 2, this.p, this.GRAZE_R * 2.2 * ratio, "#ffffff40", {
+        Ctx.polygon(ctx, 8, 2, this.p, this.GRAZE_R * EFFECT_SCALE * 2.2 * ratio, "#ffffff40", {
             theta: this.drawRadian / 100,
             lineWidth: 1,
         })
@@ -382,10 +385,16 @@ export class Player extends Actor {
         const cyan = `rgba(80, 220, 255, ${ratio.toFixed(3)})`
         const white = `rgba(255, 255, 255, ${ratio.toFixed(3)})`
 
-        Ctx.polygon(ctx, 3, 2, this.p, this.GRAZE_R * 2.8 * ratio, cyan, { theta: r / 8, lineWidth: 2 })
-        Ctx.polygon(ctx, 4, 2, this.p, this.GRAZE_R * 2.2 * ratio, cyan, { theta: -r / 12, lineWidth: 2 })
-        Ctx.polygon(ctx, 3, 2, this.p, this.GRAZE_R * 1.6 * ratio, white, { theta: -r / 6, lineWidth: 1 })
-        Ctx.polygon(ctx, 4, 2, this.p, this.GRAZE_R * 0.9 * ratio, cyan, { theta: r / 4, lineWidth: 1 })
+        Ctx.polygon(ctx, 3, 2, this.p, this.GRAZE_R * EFFECT_SCALE * 2.8 * ratio, cyan, { theta: r / 8, lineWidth: 2 })
+        Ctx.polygon(ctx, 4, 2, this.p, this.GRAZE_R * EFFECT_SCALE * 2.2 * ratio, cyan, {
+            theta: -r / 12,
+            lineWidth: 2,
+        })
+        Ctx.polygon(ctx, 3, 2, this.p, this.GRAZE_R * EFFECT_SCALE * 1.6 * ratio, white, {
+            theta: -r / 6,
+            lineWidth: 1,
+        })
+        Ctx.polygon(ctx, 4, 2, this.p, this.GRAZE_R * EFFECT_SCALE * 0.9 * ratio, cyan, { theta: r / 4, lineWidth: 1 })
     }
 
     // actionのクールタイム表示: 明けるまでの残り割合ぶん円弧を伸ばしていく
@@ -393,7 +402,11 @@ export class Player extends Actor {
         if (this.actionCooldownRemaining <= 0) return
 
         const progress = T - T * this.actionCooldownRemaining
-        Ctx.arc(ctx, this.p, this.GRAZE_R / 2, "rgb(255, 255, 127)", { lineWidth: 2, start: 0, end: progress })
+        Ctx.arc(ctx, this.p, this.GRAZE_R * EFFECT_SCALE, "rgb(255, 255, 127)", {
+            lineWidth: 2,
+            start: 0,
+            end: progress,
+        })
     }
 
     private drawAfterImages(ctx: CanvasRenderingContext2D) {
@@ -404,10 +417,75 @@ export class Player extends Actor {
             const cyan = `rgba(80, 220, 255, ${(alpha * 0.8).toFixed(3)})`
             const white = `rgba(255, 255, 255, ${(alpha * 0.6).toFixed(3)})`
 
-            Ctx.arc(ctx, img.p, this.r * 3, cyan, { lineWidth: 1 })
-            Ctx.polygon(ctx, 3, 2, img.p, this.GRAZE_R * 2.2, cyan, { theta: this.drawRadian / 8, lineWidth: 1 })
-            Ctx.polygon(ctx, 4, 2, img.p, this.GRAZE_R * 1.4, white, { theta: -this.drawRadian / 12, lineWidth: 2 })
+            Ctx.arc(ctx, img.p, this.r * 3 * EFFECT_SCALE, cyan, { lineWidth: 1 })
+            Ctx.polygon(ctx, 3, 2, img.p, this.GRAZE_R * EFFECT_SCALE * 2.2, cyan, {
+                theta: this.drawRadian / 8,
+                lineWidth: 1,
+            })
+            Ctx.polygon(ctx, 4, 2, img.p, this.GRAZE_R * EFFECT_SCALE * 1.4, white, {
+                theta: -this.drawRadian / 12,
+                lineWidth: 2,
+            })
         })
+    }
+
+    // 上から見た蜂の体。頭を進む向き(上)へ向け、胸の真ん中に当たり判定(赤い点)が来るように描く。
+    // 色は使わず、白と黒の濃淡だけで描く。地の色はほぼ黒なので、黒い部分は淡い縁取りで形を見せる。体ごしに弾が見えるよう透かす
+    private drawBody(ctx: CanvasRenderingContext2D) {
+        const outline = "rgba(255, 255, 255, 0.6)"
+
+        ctx.save()
+        ctx.globalAlpha *= 0.7
+        ctx.translate(this.p.x, this.p.y)
+        // 横へ動くと、その向きへ少し体を傾ける
+        ctx.rotate(this.v.x * 0.02)
+        // 形は小さな座標で描いて、まとめて大きくする。線の太さは拡大後に1pxになるようにする
+        ctx.scale(BODY_SCALE, BODY_SCALE)
+        ctx.lineWidth = 1 / BODY_SCALE
+
+        // 腹。動きと逆へ少し遅れて振れ、呼吸するようにわずかに伸び縮みする
+        ctx.save()
+        ctx.translate(0, 5)
+        ctx.rotate(Math.sin(this.frame / 10) * 0.05 - this.v.x * 0.02)
+        ctx.scale(1, 1 + Math.sin(this.frame / 7) * 0.03)
+
+        ctx.beginPath()
+        ctx.moveTo(-1.8, 18)
+        ctx.lineTo(0, 24)
+        ctx.lineTo(1.8, 18)
+        ctx.strokeStyle = outline
+        ctx.stroke()
+
+        ctx.beginPath()
+        ctx.ellipse(0, 8, 7.5, 11, 0, 0, T)
+
+        ctx.save()
+        ctx.clip()
+        ctx.fillStyle = "#202020"
+        for (const y of [4, 9.5, 15]) ctx.fillRect(-8, y, 16, 2.8)
+        ctx.restore()
+        ctx.strokeStyle = outline
+        ctx.stroke()
+        ctx.restore()
+
+        // 触角。ときどき小さくぴくりと動かす
+        ctx.beginPath()
+        for (const side of [-1, 1]) {
+            const twitch = Math.sin(this.frame / 13 + side) * 1.2
+            ctx.moveTo(side * 1.5, -11)
+            ctx.lineTo(side * 3.5, -16)
+            ctx.lineTo(side * (7 + twitch), -19 + twitch)
+        }
+        ctx.strokeStyle = outline
+        ctx.stroke()
+
+        // 頭と複眼
+        ctx.beginPath()
+        ctx.ellipse(0, -9, 5, 3.8, 0, 0, T)
+        ctx.strokeStyle = outline
+        ctx.stroke()
+
+        ctx.restore()
     }
 
     private drawCore(ctx: CanvasRenderingContext2D) {
@@ -418,10 +496,16 @@ export class Player extends Actor {
         Ctx.arc(ctx, this.p, this.GRAZE_R, "#ffffff60", { lineWidth: 2 })
     }
 
+    // 残機は、まわりを回る蜜の部屋(六角形)の数で見せる
     private drawLife(ctx: CanvasRenderingContext2D) {
         for (let i = 0; i < this.life; i++) {
-            const center = this.p.add(vec(this.GRAZE_R * 3.5, 0).rotate(T * (i / this.maxLife) + this.frame / 60))
-            Ctx.polygon(ctx, 4, 1, center, this.GRAZE_R, "#ffffff80", { theta: this.frame / 60, lineWidth: 1 })
+            const center = this.p.add(
+                vec(this.GRAZE_R * EFFECT_SCALE * 3.5, 0).rotate(T * (i / this.maxLife) + this.frame / 60),
+            )
+            Ctx.polygon(ctx, 6, 1, center, this.GRAZE_R * EFFECT_SCALE, "rgba(229, 180, 80, 0.5)", {
+                theta: this.frame / 60,
+                lineWidth: 1,
+            })
         }
     }
 
