@@ -7,6 +7,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { GenUtils } from "@ipota/functions"
+import { Size } from "../Size"
 
 export default class extends Stage {
     *G() {
@@ -20,7 +21,7 @@ class EnemyCore extends Enemy {
     private side: boolean = true
 
     constructor(game: Game) {
-        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
+        super(game, 1800, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

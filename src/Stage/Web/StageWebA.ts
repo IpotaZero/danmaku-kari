@@ -6,6 +6,7 @@ import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
+import { Size } from "../Size"
 
 export default class extends Stage {
     *G() {
@@ -18,7 +19,7 @@ class EnemyCore extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.8, this.game.HEIGHT * 0.4, 5, 6)
 
     constructor(game: Game) {
-        super(game, 2400, 48, { renderer: new EnemyRendererCore() })
+        super(game, 2400, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

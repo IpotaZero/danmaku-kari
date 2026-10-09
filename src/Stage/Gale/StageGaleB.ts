@@ -7,6 +7,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { GenUtils } from "@ipota/functions"
+import { Size } from "../Size"
 
 export default class extends Stage {
     *G() {
@@ -18,7 +19,7 @@ export default class extends Stage {
 
 class EnemyAim extends Enemy {
     constructor(game: Game, parent: Enemy, radian: number) {
-        super(game, 750, 30)
+        super(game, 750, Size.S)
         this.setParent(parent, () => vec.arg(radian).scale(parent.r + this.r))
         this.addScript(() => this.attack(), { loop: Infinity, margin: 120 })
     }
@@ -58,7 +59,7 @@ class EnemyCore extends Enemy {
     private count: number = 0
 
     constructor(game: Game) {
-        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
+        super(game, 1800, Size.MASTER, { renderer: new EnemyRendererCore() })
         this.addScript(() => this.enter())
     }
 

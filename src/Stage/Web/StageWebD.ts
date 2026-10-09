@@ -8,6 +8,7 @@ import { Stage } from "../Stage"
 import { T } from "../../T"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
+import { Size } from "../Size"
 
 // cycle3の巣。画面全体を覆う大きさにする(はみ出した糸は置かれない)。
 // 糸を構成する弾の間隔は自機の当たり判定の8倍より狭いので、糸は抜けられない。網目の中で輪を避けることになる
@@ -60,7 +61,7 @@ export default class extends Stage {
 
 class EnemyBoss extends Enemy {
     constructor(game: Game) {
-        super(game, 2400, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 2400, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -332,7 +333,7 @@ class EnemyBoss extends Enemy {
 
 class EnemyCore extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
-        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
+        super(game, 1800, Size.MASTER, { renderer: new EnemyRendererCore() })
         this.setParent(parent, () => vec.arg(this.frame / 360 + (T / 3) * index).scale(100))
         this.isInvincible = true
     }

@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Meteor } from "./Meteor"
+import { Size } from "../Size"
 
 // ステージ「流れ星」(流星道場・門下生)
 // 画面を斜めに横切る平行な予告線が、少しずつ時間をずらして何本も引かれ、引かれた線に沿って流れ星が駆け抜ける。
@@ -29,7 +30,7 @@ class EnemyPupil extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は子機の総和くらい
-        super(game, 2000, 48, { renderer: new EnemyRendererCore() })
+        super(game, 2000, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -96,7 +97,7 @@ class EnemyPupil extends Enemy {
 // 門下生のまわりを回る星屑。偶数番は自機へ扇を、奇数番は輪を撃つ
 class EnemyStardust extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
-        super(game, 500, 22)
+        super(game, 500, Size.S)
 
         this.setParent(parent, () => vec.arg(this.frame / 60 + (T * index) / 4).scale(110))
 

@@ -7,6 +7,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Part } from "../Part"
+import { Size } from "../Size"
 
 // ステージ「鉄壁陣」(鉄壁道場・師範代)
 // 師範代の前(下)に、五人の盾持ち(子機)が弧を描いて並ぶ。盾持ちは大きく頑丈で、師範代を狙った弾をその身で受け止めてしまう。
@@ -32,7 +33,7 @@ class EnemyMaster extends Enemy {
                 this.game,
                 this,
                 500,
-                30,
+                Size.S,
                 (me) => vec.arg(T / 4 + (i - 2) * 0.42 + 0.35 * Math.sin(me.frame / 70)).scale(120),
                 (me) => this.bash(me),
                 150 + i * 18,
@@ -42,7 +43,7 @@ class EnemyMaster extends Enemy {
     constructor(game: Game) {
         // 盾持ちが先に攻撃をすべて受け止めるので、師範代を撃てるのは盾持ちが減ってから。
         // 師範代だけが残るつまらない時間を短くするため、体力は盾持ちの総和よりずっと少なくする
-        super(game, 800, 40, { renderer: new EnemyRendererCore() })
+        super(game, 800, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

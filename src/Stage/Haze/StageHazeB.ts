@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Mirage } from "./Mirage"
+import { Size } from "../Size"
 
 // ステージ「合わせ鏡」(陽炎道場・高弟)
 // 画面を縦と横に二枚の鏡が仕切り、高弟(ボス)は左上に、その幻は右上・左下・右下に映っている。
@@ -42,7 +43,7 @@ class EnemyMaster extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は衛星の総和くらい
-        super(game, FLAME_LIFE, 48, { renderer: new EnemyRendererCore() })
+        super(game, FLAME_LIFE, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -105,7 +106,7 @@ class EnemyFlame extends Enemy {
         game: Game,
         private readonly parent: EnemyMaster,
     ) {
-        super(game, FLAME_LIFE, 24)
+        super(game, FLAME_LIFE, Size.S)
 
         this.setParent(parent, () => vec.arg(this.frame / 90).scale(70))
         // 幻は、高弟が登場して鏡を引き終わってから映る

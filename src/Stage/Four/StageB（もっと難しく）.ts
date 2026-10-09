@@ -8,6 +8,7 @@ import { T } from "../../T"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
+import { Size } from "../Size"
 
 export default class extends Stage {
     *G() {
@@ -29,7 +30,7 @@ class EnemyByakko extends Enemy {
                 this.game,
                 this,
                 500,
-                24,
+                Size.L,
                 () => vec.arg(T / 4 - (side * T) / 10).scale(100),
                 (me) => this.claw(me),
                 140 + (side > 0 ? 55 : 0),
@@ -43,7 +44,7 @@ class EnemyByakko extends Enemy {
                 this.game,
                 this,
                 350,
-                20,
+                Size.M,
                 () => vec.arg(-T / 4 + (side * T) / 5).scale(100),
                 (me) => this.wind(me, side),
                 170 + (side > 0 ? 45 : 0),
@@ -55,7 +56,7 @@ class EnemyByakko extends Enemy {
         this.game,
         this,
         600,
-        18,
+        Size.L,
         () => vec(0, -100),
         (me) => this.stripes(me),
         200,
@@ -68,7 +69,7 @@ class EnemyByakko extends Enemy {
                 this.game,
                 this,
                 180,
-                14,
+                Size.S,
                 () => vec((k - 1) * 60, 160),
                 (me) => this.play(me),
                 150 + k * 30,
@@ -80,7 +81,7 @@ class EnemyByakko extends Enemy {
     readonly parts = [...this.paws, ...this.hindLegs, this.tail, ...this.cubs]
 
     constructor(game: Game) {
-        super(game, 1600, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -110,7 +111,7 @@ class EnemyByakko extends Enemy {
                 this.game,
                 this,
                 350,
-                22,
+                Size.M,
                 () => vec(side * 115, 60),
                 (me) => this.youngRoar(me),
                 60 + (side > 0 ? 50 : 0),
@@ -119,8 +120,8 @@ class EnemyByakko extends Enemy {
                 this.game,
                 young,
                 100,
-                11,
-                (me) => vec.arg(me.frame / 50 + (side > 0 ? 0 : Math.PI)).scale(28),
+                Size.S,
+                (me) => vec.arg(me.frame / 50 + (side > 0 ? 0 : Math.PI)).scale(60),
                 (me) => this.scratch(me),
                 80,
             )

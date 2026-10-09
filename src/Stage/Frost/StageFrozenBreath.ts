@@ -7,6 +7,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
 import { GenUtils } from "@ipota/functions"
 import { Curves } from "../../utils/Functions/Curves"
+import { Size } from "../Size"
 
 // ステージ「凍てつく息」(霜月道場・門下生)
 // 門下生が吐いた息(小さな氷の粒)が放射状に広がり、数重の輪を描いたところで凍りついて止まる。
@@ -45,7 +46,7 @@ class EnemyPupil extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.25, this.game.HEIGHT * 0.05, 1, 2)
 
     constructor(game: Game) {
-        super(game, 3000, 48, { renderer: new EnemyRendererCore() })
+        super(game, 3000, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

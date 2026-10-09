@@ -7,6 +7,7 @@ import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
+import { Size } from "../Size"
 
 // ステージ「彗星」(流星道場・高弟)
 // 高弟(太陽)のすぐそばから、尾を引く彗星が次々に飛び出す。彗星は細長い楕円を描いて画面の下の方まで振れていき、
@@ -28,7 +29,7 @@ class EnemySun extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は子機の総和くらい
-        super(game, 2400, 48, { renderer: new EnemyRendererCore() })
+        super(game, 2400, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -127,7 +128,7 @@ class EnemySun extends Enemy {
 // 太陽のまわりを回る惑星。偶数番は自機へ扇を、奇数番は輪を撃つ
 class EnemyPlanet extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
-        super(game, 600, 22)
+        super(game, 600, Size.S)
 
         const radius = 90 + 35 * index
         const turn = index % 2 === 0 ? 1 : -1

@@ -10,6 +10,7 @@ import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Mirage } from "./Mirage"
 import { Heat } from "./Heat"
+import { Size } from "../Size"
 
 // ステージ「陽炎」(陽炎道場・道場主)
 // 一段目: 逃げ水。画面の真ん中を通る鏡に、道場主の揺らめく輪と矢が映る。鏡は周期ごとに傾きを変えて引き直される。
@@ -71,7 +72,7 @@ class EnemyHaze extends Enemy {
     private mirrors: readonly Mirage.Mirror[] = []
 
     constructor(game: Game) {
-        super(game, 3600, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 3600, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -265,7 +266,7 @@ class EnemyHaze extends Enemy {
 
 class EnemyCore extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
-        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
+        super(game, 1800, Size.MASTER, { renderer: new EnemyRendererCore() })
         this.setParent(parent, () => vec.arg(this.frame / 300 + (T / 3) * index).scale(150))
         this.isInvincible = true
     }

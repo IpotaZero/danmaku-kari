@@ -7,6 +7,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Part } from "../Part"
+import { Size } from "../Size"
 
 // ステージ「鉄砲隊」(鉄壁道場・高弟)
 // 高弟の前に、八人の鉄砲兵(子機)が前列と後列に四人ずつ、互い違いに並ぶ。
@@ -36,7 +37,7 @@ class EnemyMaster extends Enemy {
                     this.game,
                     this,
                     220,
-                    16,
+                    Size.S,
                     () => vec((i - 1.5) * 90 + (rank === 0 ? -22 : 22), 120 - rank * 45),
                     (me) => this.shoot(me),
                     150 + rank * 45,
@@ -47,7 +48,7 @@ class EnemyMaster extends Enemy {
     constructor(game: Game) {
         // 鉄砲兵が前に並んで攻撃を受け止めるので、高弟を撃てるのは鉄砲兵が減ってから。
         // 高弟だけが残る時間を短くするため、体力は鉄砲兵の総和よりずっと少なくする
-        super(game, 800, 44, { renderer: new EnemyRendererCore() })
+        super(game, 800, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

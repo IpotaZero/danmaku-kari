@@ -8,6 +8,7 @@ import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
+import { Size } from "../Size"
 
 // 試作「蜘蛛の巣」
 // 親蜘蛛(ボス)の周りを回る3匹の子蜘蛛(衛星)が、順番に自機のそばへ巣を投げる。
@@ -70,7 +71,7 @@ class EnemyMother extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は衛星の総和くらい
-        super(game, SPIDER_LIFE * SPIDER_COUNT + DANGLER_LIFE * 2, 48, { renderer: new EnemyRendererCore() })
+        super(game, SPIDER_LIFE * SPIDER_COUNT + DANGLER_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -121,7 +122,7 @@ class EnemyMother extends Enemy {
 
 class EnemySpider extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
-        super(game, SPIDER_LIFE, 24)
+        super(game, SPIDER_LIFE, Size.S)
 
         this.setParent(parent, () => vec.arg(this.frame / 600 + (T * index) / SPIDER_COUNT).scale(160))
 
@@ -152,7 +153,7 @@ class EnemySpider extends Enemy {
 class EnemyDangler extends Enemy {
     // side: -1で左、1で右
     constructor(game: Game, side: number) {
-        super(game, DANGLER_LIFE, 24)
+        super(game, DANGLER_LIFE, Size.S)
 
         this.addScript(() => this.enter(side))
     }

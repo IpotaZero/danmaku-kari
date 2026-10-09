@@ -7,6 +7,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Phase } from "./Phase"
+import { Size } from "../Size"
 
 // ステージ「満ち欠け」(月影道場・高弟)
 // 高弟(月)が輪を次々に広げる。輪は月のように一部だけが照らされていて、照らされた弧だけが実体、影の側は薄く当たり判定がない。
@@ -38,7 +39,7 @@ class EnemyMoon extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は衛星の総和くらい
-        super(game, STAR_LIFE * 2, 48, { renderer: new EnemyRendererCore() })
+        super(game, STAR_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -78,7 +79,7 @@ class EnemyMoon extends Enemy {
 class EnemyStar extends Enemy {
     // side: -1で左、1で右
     constructor(game: Game, parent: Enemy, side: number) {
-        super(game, STAR_LIFE, 24)
+        super(game, STAR_LIFE, Size.S)
 
         this.setParent(parent, () => vec(side * game.WIDTH * 0.32, game.HEIGHT * 0.05 * Math.sin(this.frame / 110)))
 

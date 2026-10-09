@@ -8,6 +8,7 @@ import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
+import { Size } from "../Size"
 
 // ステージ「カブト」(鉄壁道場・道場主)
 // 道場主のまわりに子機が幾何学的に並ぶ。胴の前に角と左右一対の鞘翅、胴のまわりに正六角形の輪(脚)。
@@ -40,7 +41,7 @@ class EnemyKabuto extends Enemy {
         this.game,
         this,
         700,
-        22,
+        Size.L,
         () => vec(0, 100),
         (me) => this.thrust(me),
         160,
@@ -53,8 +54,8 @@ class EnemyKabuto extends Enemy {
                 this.game,
                 this,
                 700,
-                40,
-                () => vec(side * 48, 40),
+                Size.L,
+                () => vec(side * 54, 38),
                 (me) => this.boulders(me),
                 200 + (side > 0 ? 75 : 0),
             ),
@@ -67,8 +68,8 @@ class EnemyKabuto extends Enemy {
                 this.game,
                 this,
                 220,
-                12,
-                (me) => vec.arg(me.frame / 240 + (T * i) / 6).scale(140),
+                Size.S,
+                (me) => vec.arg(me.frame / 240 + (T * i) / 6).scale(165),
                 (me) => this.step(me, i),
                 150,
             ),
@@ -77,7 +78,7 @@ class EnemyKabuto extends Enemy {
     readonly parts = [this.horn, ...this.elytra, ...this.legs]
 
     constructor(game: Game) {
-        super(game, 2800, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 2800, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -133,8 +134,8 @@ class EnemyKabuto extends Enemy {
                     this.game,
                     this,
                     450,
-                    28,
-                    () => vec(side * 62, 112),
+                    Size.M,
+                    () => vec(side * 80, 112),
                     (me) => this.flap(me, side),
                     70 + (side > 0 ? 30 : 0),
                 ),

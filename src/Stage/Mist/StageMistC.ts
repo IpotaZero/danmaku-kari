@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Mist } from "./Mist"
+import { Size } from "../Size"
 
 // ステージ「霞隠れ」(霧隠道場・師範代)
 // 師範代のまわりに4体の分身(衛星)が並ぶ。分身は自機のまわりへ、霧の手裏剣(薄く、当たり判定なし)を投げる。
@@ -48,7 +49,7 @@ class EnemyMaster extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は衛星の総和くらい
-        super(game, CLONE_LIFE * CLONE_COUNT, 48, { renderer: new EnemyRendererCore() })
+        super(game, CLONE_LIFE * CLONE_COUNT, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -107,7 +108,7 @@ class EnemyMaster extends Enemy {
 
 class EnemyClone extends Enemy {
     constructor(game: Game, parent: Enemy, offset: Vec, index: number) {
-        super(game, CLONE_LIFE, 24)
+        super(game, CLONE_LIFE, Size.S)
 
         this.setParent(parent, () =>
             vec(offset.x * game.WIDTH, (offset.y + 0.02 * Math.sin(this.frame / 90 + index)) * game.HEIGHT),

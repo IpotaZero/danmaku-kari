@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Sand } from "./Sand"
+import { Size } from "../Size"
 
 // ステージ「蟻地獄」(砂塵道場・高弟)
 // 高弟(ボス)は蟻地獄の巣の底にいて、ときどき自機を巣の底へ吸い寄せる。
@@ -46,7 +47,7 @@ class EnemyAntlion extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は衛星の総和くらい
-        super(game, ANT_LIFE * 2, 48, { renderer: new EnemyRendererCore() })
+        super(game, ANT_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -100,7 +101,7 @@ class EnemyAntlion extends Enemy {
 
 class EnemyAnt extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
-        super(game, ANT_LIFE, 24)
+        super(game, ANT_LIFE, Size.S)
 
         this.setParent(parent, () => vec.arg(this.frame / 160 + (T / 2) * index).scale(RIM))
 

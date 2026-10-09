@@ -7,6 +7,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
 import { GenUtils } from "@ipota/functions"
 import { Curves } from "../../utils/Functions/Curves"
+import { Size } from "../Size"
 
 // ステージ「六花」(霜月道場・門下生その2) 難易度 2/4
 // 左右の雪ん子(衛星)が氷の種を投げる。種は画面の下の方で止まり、そこから六本の腕を持つ雪の結晶が育つ。
@@ -75,7 +76,7 @@ class EnemyMaster extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は衛星の総和くらい
-        super(game, FLAKE_LIFE * 2, 48, { renderer: new EnemyRendererCore() })
+        super(game, FLAKE_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -126,7 +127,7 @@ class EnemyMaster extends Enemy {
 class EnemyFlake extends Enemy {
     // side: -1で左、1で右。自分の側の半分に結晶を育てる
     constructor(game: Game, parent: Enemy, side: number) {
-        super(game, FLAKE_LIFE, 20)
+        super(game, FLAKE_LIFE, Size.S)
 
         this.setParent(parent, () => vec(side * game.WIDTH * 0.3, game.HEIGHT * 0.03 * Math.sin(this.frame / 200)))
 

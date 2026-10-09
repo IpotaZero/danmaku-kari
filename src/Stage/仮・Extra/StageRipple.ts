@@ -7,6 +7,7 @@ import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
+import { Size } from "../Size"
 
 // ステージ「波紋」(修行場)
 // 修行相手が水面へしずくを投げる。しずくは薄く(当たり判定なし)飛んでいき、落ちた場所から三重の波紋が広がる。
@@ -45,7 +46,7 @@ class EnemyMaster extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.05, 1, 2)
 
     constructor(game: Game) {
-        super(game, 3000, 48, { renderer: new EnemyRendererCore() })
+        super(game, 3000, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

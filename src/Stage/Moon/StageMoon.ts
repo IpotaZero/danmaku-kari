@@ -8,6 +8,7 @@ import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
+import { Size } from "../Size"
 
 // ステージ「スズムシ」(月影道場・道場主)
 // 道場主のまわりに子機が幾何学的に並ぶ。胴のすぐ左右に翅の一対、その外側に触角の一対、胴の下に六つの鈴の横一列。
@@ -44,7 +45,7 @@ class EnemySuzumushi extends Enemy {
                 this.game,
                 this,
                 700,
-                34,
+                Size.L,
                 () => vec(side * 60, 0),
                 (me) => this.chirp(me, side, 17),
                 150,
@@ -58,7 +59,7 @@ class EnemySuzumushi extends Enemy {
                 this.game,
                 this,
                 300,
-                14,
+                Size.M,
                 () => vec(side * 135, 0),
                 (me) => this.probe(me, side),
                 130 + (side > 0 ? 35 : 0),
@@ -72,8 +73,8 @@ class EnemySuzumushi extends Enemy {
                 this.game,
                 this,
                 180,
-                14,
-                () => vec((k - 2.5) * 44, 100),
+                Size.S,
+                () => vec((k - 2.5) * 50, 100),
                 (me) => this.bell(me, k),
                 170,
             ),
@@ -82,7 +83,7 @@ class EnemySuzumushi extends Enemy {
     readonly parts = [...this.wings, ...this.antennae, ...this.bells]
 
     constructor(game: Game) {
-        super(game, 1600, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -119,7 +120,7 @@ class EnemySuzumushi extends Enemy {
                 this.game,
                 this,
                 320,
-                20,
+                Size.M,
                 () => vec(k * 115, 210),
                 (me) => this.chirp(me, k, 13),
                 60 + (k + 1) * 8,
@@ -130,8 +131,8 @@ class EnemySuzumushi extends Enemy {
                         this.game,
                         cricket,
                         90,
-                        10,
-                        (me) => vec.arg(me.frame / 60 + (side > 0 ? 0 : Math.PI)).scale(34),
+                        Size.S,
+                        (me) => vec.arg(me.frame / 60 + (side > 0 ? 0 : Math.PI)).scale(56),
                         (me) => this.smallBell(me),
                         100 + (side > 0 ? 60 : 0),
                     ),

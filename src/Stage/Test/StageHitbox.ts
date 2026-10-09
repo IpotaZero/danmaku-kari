@@ -6,6 +6,7 @@ import { BulletCollision } from "../../Game/BulletCollision"
 import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
+import { Size } from "../Size"
 
 // 確認用「当たり判定」
 // すべての種類の弾を画面に並べて止めておく。弾はゆっくり回るので、向きのある弾もあらゆる角度で確かめられる。
@@ -39,7 +40,7 @@ export default class extends Stage {
 
 class EnemyTarget extends Enemy {
     constructor(game: Game) {
-        super(game, 3000, 48, { renderer: new EnemyRendererCore() })
+        super(game, 3000, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.p = vec(game.WIDTH / 2, game.HEIGHT * 0.12)
         this.addScript(() => this.lineUp())

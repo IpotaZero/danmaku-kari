@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
 import { GenUtils } from "@ipota/functions"
 import { Curves } from "../../utils/Functions/Curves"
+import { Size } from "../Size"
 
 // ボスの登場演出にかかるフレーム数。衛星もこれだけ待ってから合わせて動き出す
 const ENTRANCE_FRAMES = 150
@@ -33,7 +34,7 @@ class EnemyBoss extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.8, this.game.HEIGHT * 0.4, 3, 4)
 
     constructor(game: Game) {
-        super(game, 1500, 48, { renderer: new EnemyRendererCore() })
+        super(game, 1500, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -91,7 +92,7 @@ class EnemySatellite extends Enemy {
         index: number,
         count: number,
     ) {
-        super(game, 500, 20)
+        super(game, 500, Size.S)
 
         // 公転半径を大きくすることで、異なる方向からの攻撃を見せることができる。
         // 異なる方向からの攻撃を実現するためには横幅が必要である。

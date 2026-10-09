@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Mirage } from "./Mirage"
+import { Size } from "../Size"
 
 // ステージ「逃げ水」(陽炎道場・門下生)
 // 画面の真ん中に鏡の線があり、門下生の姿が画面の下の方に幻として映っている。
@@ -44,7 +45,7 @@ class EnemyPupil extends Enemy {
     private readonly mirror = Mirage.horizontal(this.game)
 
     constructor(game: Game) {
-        super(game, 3000, 48, { renderer: new EnemyRendererCore() })
+        super(game, 3000, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

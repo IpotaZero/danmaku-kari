@@ -9,6 +9,7 @@ import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
+import { Size } from "../Size"
 
 // ステージ「霜」
 // 空から小さな雪(ball 4)が降り、画面のあちこちで止まって大きな雪玉(ball 24)に育つ。
@@ -74,7 +75,7 @@ class EnemyFrost extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.1, 2, 3)
 
     constructor(game: Game) {
-        super(game, 2400, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 2400, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -333,7 +334,7 @@ class EnemyFrost extends Enemy {
 
 class EnemyCore extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
-        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
+        super(game, 1800, Size.MASTER, { renderer: new EnemyRendererCore() })
         this.setParent(parent, () =>
             vec.arg(this.frame / 360 + (T / 3) * index).scale(200 + 50 * Math.sin(this.frame / 720)),
         )

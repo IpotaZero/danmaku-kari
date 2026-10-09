@@ -10,6 +10,7 @@ import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Meteor } from "./Meteor"
 import { Charge } from "../Charge"
+import { Size } from "../Size"
 
 // ステージ「ホタル」(流星道場・道場主)
 // 道場主のまわりに子機が幾何学的に並ぶ。胴の下に発光器、胴の左右に触角の一対、胴のまわりの円に八匹の子蛍。
@@ -43,7 +44,7 @@ class EnemyHotaru extends Enemy {
         this.game,
         this,
         900,
-        32,
+        Size.L,
         () => vec(0, 80),
         (me) => this.glow(me),
         150,
@@ -56,8 +57,8 @@ class EnemyHotaru extends Enemy {
                 this.game,
                 this,
                 350,
-                16,
-                () => vec(side * 80, 0),
+                Size.M,
+                () => vec(side * 100, 0),
                 (me) => this.needles(me),
                 130 + (side > 0 ? 30 : 0),
             ),
@@ -70,8 +71,8 @@ class EnemyHotaru extends Enemy {
                 this.game,
                 this,
                 200,
-                14,
-                (me) => vec.arg(me.frame / 120 + (T * i) / 8).scale(140),
+                Size.S,
+                (me) => vec.arg(me.frame / 120 + (T * i) / 8).scale(160),
                 (me) => this.blink(me, i),
                 160,
             ),
@@ -80,7 +81,7 @@ class EnemyHotaru extends Enemy {
     readonly parts = [this.lantern, ...this.antennae, ...this.fireflies]
 
     constructor(game: Game) {
-        super(game, 1600, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -113,12 +114,12 @@ class EnemyHotaru extends Enemy {
         yield* Charge.gather(this, 150, "#d8ff90")
 
         // 大蛍は胴の下に、横一列に並ぶ
-        const bigs = [-135, -45, 45, 135].map((x, i) => {
+        const bigs = [-165, -55, 55, 165].map((x, i) => {
             const big = new Part(
                 this.game,
                 this,
                 280,
-                18,
+                Size.M,
                 () => vec(x, 200),
                 (me) => this.trail(me),
                 60 + i * 20,
@@ -129,8 +130,8 @@ class EnemyHotaru extends Enemy {
                         this.game,
                         big,
                         90,
-                        9,
-                        (me) => vec.arg(me.frame / 30 + k * Math.PI).scale(28),
+                        Size.S,
+                        (me) => vec.arg(me.frame / 30 + k * Math.PI).scale(56),
                         (me) => this.spark(me),
                         70 + k * 50,
                     ),

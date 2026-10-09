@@ -7,6 +7,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { GenUtils } from "@ipota/functions"
+import { Size } from "../Size"
 
 export default class extends Stage {
     *G() {
@@ -22,7 +23,7 @@ class EnemyCore extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.8, this.game.HEIGHT * 0.4, 5, 6)
 
     constructor(game: Game) {
-        super(game, 2400, 48, { renderer: new EnemyRendererCore() })
+        super(game, 2400, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -88,7 +89,7 @@ class EnemyCore extends Enemy {
 
 class EnemyMob extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
-        super(game, 1200, 24)
+        super(game, 1200, Size.S)
         this.setParent(parent, () => vec.arg(this.frame / 360 + T * (index / 3)).scale(120))
 
         this.addScript(() => this.attack(), { loop: Infinity })

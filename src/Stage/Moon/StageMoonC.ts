@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Mochi } from "./Mochi"
+import { Size } from "../Size"
 
 // ステージ「月の兎」(月影道場・師範代)
 // 左右の兎(衛星)が、大きな餅を高く放り投げる。餅は放物線を描いて画面の底で弾み、弾むたびに底から半円の衝撃波が広がる。
@@ -45,7 +46,7 @@ class EnemyMortar extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は衛星の総和くらい
-        super(game, RABBIT_LIFE * 2, 48, { renderer: new EnemyRendererCore() })
+        super(game, RABBIT_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -89,7 +90,7 @@ class EnemyMortar extends Enemy {
 class EnemyRabbit extends Enemy {
     // side: -1で左、1で右
     constructor(game: Game, parent: Enemy, side: number) {
-        super(game, RABBIT_LIFE, 24)
+        super(game, RABBIT_LIFE, Size.S)
 
         this.setParent(parent, () => vec(side * game.WIDTH * 0.32, game.HEIGHT * 0.05 * Math.sin(this.frame / 80)))
 

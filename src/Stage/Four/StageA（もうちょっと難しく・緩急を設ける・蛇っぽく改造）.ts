@@ -9,6 +9,7 @@ import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
+import { Size } from "../Size"
 
 export default class extends Stage {
     *G() {
@@ -28,7 +29,7 @@ class EnemySeiryu extends Enemy {
         this.game,
         this,
         1500,
-        24,
+        Size.L,
         (me) => vec.arg(me.frame / 25).scale(60),
         (me) => this.thunder(me),
         150,
@@ -41,8 +42,8 @@ class EnemySeiryu extends Enemy {
                 this.game,
                 this,
                 200,
-                18,
-                (me) => vec.arg(me.frame / 150 + (T * k) / 10).scale(115),
+                Size.S,
+                (me) => vec.arg(me.frame / 150 + (T * k) / 10).scale(130),
                 (me) => this.scales(me, k),
                 170,
             ),
@@ -51,7 +52,7 @@ class EnemySeiryu extends Enemy {
     readonly parts = [this.pearl, ...this.segments]
 
     constructor(game: Game) {
-        super(game, 1600, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -93,7 +94,7 @@ class EnemySeiryu extends Enemy {
                 this.game,
                 this,
                 400,
-                30,
+                Size.M,
                 (me) => vec(this.game.WIDTH * (0.2 + 0.3 * i) + 24 * Math.sin(me.frame / 40 + i), 70).sub(this.p),
                 (me) => this.rain(me),
                 60 + i * 20,
@@ -104,8 +105,8 @@ class EnemySeiryu extends Enemy {
                         this.game,
                         cloud,
                         100,
-                        10,
-                        (me) => vec.arg(me.frame / 25 + k * Math.PI).scale(44),
+                        Size.S,
+                        (me) => vec.arg(me.frame / 25 + k * Math.PI).scale(60),
                         (me) => this.bolt(me),
                         60 + i * 40 + k * 90,
                     ),

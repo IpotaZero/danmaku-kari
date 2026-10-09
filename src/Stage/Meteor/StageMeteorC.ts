@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Part } from "../Part"
+import { Size } from "../Size"
 
 // ステージ「北斗七星」(流星道場・師範代)
 // 師範代(北極星)のまわりを、北斗七星の形に並んだ七つの星(子機)が、形を保ったまま回る。
@@ -27,7 +28,7 @@ export default class extends Stage {
 class EnemyPolaris extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.15, this.game.HEIGHT * 0.03, 1, 2)
 
-    // 北斗七星。柄の先(破軍星)から枡の先(貪狼星)まで。星の並びの重心が北極星から150px離れたところで、形ごと回る
+    // 北斗七星。柄の先(破軍星)から枡の先(貪狼星)まで。星の並びの重心が北極星から175px離れたところで、形ごと回る
     readonly stars = [
         vec(2.4, 0.05),
         vec(1.85, -0.15),
@@ -38,16 +39,16 @@ class EnemyPolaris extends Enemy {
         vec(0, 0),
     ].map((p, i, all) => {
         const center = all.reduce((sum, q) => sum.add(q), vec(0, 0)).scale(1 / all.length)
-        const offset = p.sub(center).scale(85)
+        const offset = p.sub(center).scale(100)
 
         return new Part(
             this.game,
             this,
             260,
-            20,
+            Size.S,
             (me) => {
                 const angle = me.frame / 95
-                return vec.arg(angle).scale(150).add(offset.rotate(angle))
+                return vec.arg(angle).scale(175).add(offset.rotate(angle))
             },
             (me) => this.twinkle(me, i),
             150,
@@ -56,7 +57,7 @@ class EnemyPolaris extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は子機の総和くらい
-        super(game, 1800, 44, { renderer: new EnemyRendererCore() })
+        super(game, 1800, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

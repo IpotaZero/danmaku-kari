@@ -7,6 +7,7 @@ import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
+import { Size } from "../Size"
 
 // ステージ「花火」(修行場)
 // 画面の下から花火が打ち上がる。打ち上がる前には、打ち上がる筋に薄い線(当たり判定なし)が引かれる。
@@ -41,7 +42,7 @@ class EnemyMaster extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.04, 1, 2)
 
     constructor(game: Game) {
-        super(game, 3000, 48, { renderer: new EnemyRendererCore() })
+        super(game, 3000, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

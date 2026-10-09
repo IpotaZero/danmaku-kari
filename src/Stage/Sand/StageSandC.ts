@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Part } from "../Part"
+import { Size } from "../Size"
 
 // ステージ「蟻の行進」(砂塵道場・師範代)
 // 画面の中ほどの高さに横長の楕円の道があり、六匹の蟻(子機)が等間隔の一列になって、その道をぐるぐる行進する。
@@ -34,7 +35,7 @@ class EnemyMaster extends Enemy {
                 this.game,
                 this,
                 300,
-                18,
+                Size.S,
                 (me) =>
                     vec(
                         this.game.WIDTH / 2 + this.game.WIDTH * 0.4 * Math.cos(me.frame / 110 + (T * i) / 6),
@@ -47,7 +48,7 @@ class EnemyMaster extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は子機の総和くらい
-        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
+        super(game, 1800, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
         this.addScript(() => this.watchAnts(), { margin: 120 })

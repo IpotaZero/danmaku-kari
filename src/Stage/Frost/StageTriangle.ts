@@ -7,6 +7,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
 import { GenUtils } from "@ipota/functions"
 import { Curves } from "../../utils/Functions/Curves"
+import { Size } from "../Size"
 
 // 試作「三角」
 // 画面の上に弾を並べた正三角形が描かれ、回りながらゆっくり落ちてくる。
@@ -56,7 +57,7 @@ function hexagon(radius: number): Vec[] {
 
 class EnemyLine extends Enemy {
     constructor(game: Game, parent: Enemy) {
-        super(game, 750, 30)
+        super(game, 750, Size.S)
         this.setParent(parent, () => vec.arg(T / 2 + (T / 180) * this.frame).scale(parent.r))
         this.addScript(() => this.line(), { loop: Infinity, margin: 240 })
     }
@@ -81,7 +82,7 @@ class EnemyLine extends Enemy {
 
 class EnemySnow extends Enemy {
     constructor(game: Game, parent: Enemy) {
-        super(game, 750, 30)
+        super(game, 750, Size.S)
         this.setParent(parent, () => vec.arg((T / 180) * this.frame).scale(parent.r))
         this.addScript(() => this.snow(), { loop: Infinity, margin: 120 })
     }
@@ -109,7 +110,7 @@ class EnemyHexagon extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.04, 1, 2)
 
     constructor(game: Game) {
-        super(game, 1500, 48, { renderer: new EnemyRendererCore() })
+        super(game, 1500, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

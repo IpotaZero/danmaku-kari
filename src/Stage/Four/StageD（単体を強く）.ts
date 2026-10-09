@@ -9,6 +9,7 @@ import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
+import { Size } from "../Size"
 
 export default class extends Stage {
     *G() {
@@ -32,8 +33,8 @@ class EnemyGenbu extends Enemy {
                 this.game,
                 this,
                 300,
-                22,
-                (me) => vec.arg(me.frame / 50 + (T * k) / 6).scale(58),
+                Size.M,
+                (me) => vec.arg(me.frame / 50 + (T * k) / 6).scale(66),
                 (me) => this.splash(me, k),
                 150,
             ),
@@ -44,8 +45,8 @@ class EnemyGenbu extends Enemy {
         this.game,
         this,
         600,
-        20,
-        (me) => vec.arg(me.frame / 35).scale(130),
+        Size.L,
+        (me) => vec.arg(me.frame / 35).scale(140),
         (me) => this.fang(me),
         170,
     )
@@ -57,8 +58,8 @@ class EnemyGenbu extends Enemy {
                 this.game,
                 this,
                 160,
-                14,
-                (me) => vec.arg(me.frame / 35 + ((j + 1) * T) / 6).scale(130),
+                Size.S,
+                (me) => vec.arg(me.frame / 35 + ((j + 1) * T) / 6).scale(140),
                 (me) => this.drip(me, j),
                 160,
             ),
@@ -67,7 +68,7 @@ class EnemyGenbu extends Enemy {
     readonly parts = [...this.shells, this.snakeHead, ...this.snakeBody]
 
     constructor(game: Game) {
-        super(game, 1600, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -104,7 +105,7 @@ class EnemyGenbu extends Enemy {
                 this.game,
                 this,
                 300,
-                20,
+                Size.M,
                 () => vec(side * 120, 130),
                 (me) => this.bubbles(me),
                 60 + (side > 0 ? 50 : 0),
@@ -115,8 +116,8 @@ class EnemyGenbu extends Enemy {
                         this.game,
                         baby,
                         80,
-                        10,
-                        (me) => vec.arg(me.frame / 30 + (T * k) / 3).scale(34),
+                        Size.S,
+                        (me) => vec.arg(me.frame / 30 + (T * k) / 3).scale(60),
                         (me) => this.droplet(me, baby),
                         60 + k * 30,
                     ),

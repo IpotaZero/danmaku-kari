@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Mist } from "./Mist"
+import { Size } from "../Size"
 
 // ステージ「朧」(霧隠道場・門下生)
 // 左右の灯籠(衛星)が、それぞれ桃色と青色の輪を広げる。二色の輪は時計に合わせて交互に霧になる。
@@ -44,7 +45,7 @@ class EnemyPupil extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は衛星の総和くらい
-        super(game, LANTERN_LIFE * 2, 48, { renderer: new EnemyRendererCore() })
+        super(game, LANTERN_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -93,7 +94,7 @@ class EnemyPupil extends Enemy {
 class EnemyLantern extends Enemy {
     // phase: 0なら左で桃色、1なら右で青色
     constructor(game: Game, parent: Enemy, phase: number) {
-        super(game, LANTERN_LIFE, 24)
+        super(game, LANTERN_LIFE, Size.S)
 
         const side = phase === 0 ? -1 : 1
         this.setParent(parent, () =>

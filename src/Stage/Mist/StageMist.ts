@@ -8,6 +8,7 @@ import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
+import { Size } from "../Size"
 
 // ステージ「カゲロウ」(霧隠道場・道場主)
 // 道場主のまわりに子機が幾何学的に並ぶ。四枚の翅が胴を囲む正方形になってゆっくり回り、胴の下に三本の尾が横一列に並ぶ。
@@ -45,7 +46,7 @@ class EnemyKagerou extends Enemy {
                 this.game,
                 this,
                 380,
-                26,
+                Size.M,
                 (me) => vec.arg(me.frame / 200 + (side > 0 ? 0 : Math.PI)).scale(100),
                 (me) => this.gust(me),
                 150 + (side > 0 ? 35 : 0),
@@ -59,7 +60,7 @@ class EnemyKagerou extends Enemy {
                 this.game,
                 this,
                 380,
-                22,
+                Size.M,
                 (me) => vec.arg(me.frame / 200 + (side > 0 ? T / 4 : -T / 4)).scale(100),
                 (me) => this.scales(me),
                 180 + (side > 0 ? 30 : 0),
@@ -73,8 +74,8 @@ class EnemyKagerou extends Enemy {
                 this.game,
                 this,
                 300,
-                16,
-                () => vec(k * 60, 140),
+                Size.M,
+                () => vec(k * 70, 150),
                 (me) => this.thread(me, k),
                 160 + (k + 1) * 25,
             ),
@@ -83,7 +84,7 @@ class EnemyKagerou extends Enemy {
     readonly parts = [...this.foreWings, ...this.hindWings, ...this.tails]
 
     constructor(game: Game) {
-        super(game, 2400, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 2400, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())

@@ -8,6 +8,7 @@ import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
+import { Size } from "../Size"
 
 // ステージ「チャンピオン」
 // チャンピオンのまわりに子機が幾何学的に並ぶ。胴を囲む正方形に四枚の翅、胴の前の横一列に大顎の一対と毒針、胴の左右の横一列に六つの脚。
@@ -70,8 +71,8 @@ class EnemyHornet extends Enemy {
                 this.game,
                 this,
                 500,
-                18,
-                () => vec(side * 55, 130),
+                Size.L,
+                () => vec(side * 85, 150),
                 (me) => this.bite(me, side),
                 140 + (side > 0 ? 60 : 0),
             ),
@@ -89,7 +90,7 @@ class EnemyHornet extends Enemy {
                 this.game,
                 this,
                 300,
-                24,
+                Size.M,
                 () => vec(side * 71, row === 0 ? -71 : 71),
                 (me) => this.buzz(me, side),
                 150 + row * 40 + (side > 0 ? 20 : 0),
@@ -103,8 +104,8 @@ class EnemyHornet extends Enemy {
                 this.game,
                 this,
                 150,
-                13,
-                () => vec(Math.sign(x) * (70 + 30 * Math.abs(x)), 20),
+                Size.S,
+                () => vec(Math.sign(x) * (60 + 50 * Math.abs(x)), 20),
                 (me) => this.claws(me, order),
                 170,
             ),
@@ -115,8 +116,8 @@ class EnemyHornet extends Enemy {
         this.game,
         this,
         600,
-        16,
-        () => vec(0, 130),
+        Size.L,
+        () => vec(0, 150),
         (me) => this.sting(me),
         200,
     )
@@ -128,10 +129,10 @@ class EnemyHornet extends Enemy {
                 this.game,
                 this,
                 180,
-                14,
+                Size.S,
                 (me) => {
                     const angle = me.frame / 40 + (T * i) / 6
-                    return vec(Math.cos(angle) * 160, Math.sin(angle) * 95)
+                    return vec(Math.cos(angle) * 180, Math.sin(angle) * 110)
                 },
                 (me) => this.patrol(me, i),
                 130,
@@ -141,7 +142,7 @@ class EnemyHornet extends Enemy {
     readonly parts = [...this.mandibles, ...this.wings, ...this.legs, this.stinger, ...this.workers]
 
     constructor(game: Game) {
-        super(game, 4000, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 4000, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())

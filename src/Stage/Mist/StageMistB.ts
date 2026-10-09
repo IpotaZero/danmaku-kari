@@ -7,6 +7,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Part } from "../Part"
+import { Size } from "../Size"
 
 // ステージ「霧吹き」(霧隠道場・高弟)
 // 画面の左右の端に、四つの霧吹き(子機)が据えられている。霧吹きは首を振りながら、速い霧の筋を撒き散らす。
@@ -38,7 +39,7 @@ class EnemyMaster extends Enemy {
                 this.game,
                 this,
                 450,
-                20,
+                Size.S,
                 // 画面の端の決まった高さで、少し上下に揺れる
                 (me) =>
                     vec(this.game.WIDTH / 2 + side * this.game.WIDTH * 0.44, this.game.HEIGHT * (0.26 + 0.22 * row))
@@ -51,7 +52,7 @@ class EnemyMaster extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は子機の総和くらい
-        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
+        super(game, 1800, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

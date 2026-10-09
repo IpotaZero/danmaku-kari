@@ -7,6 +7,7 @@ import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
 import { Mirage } from "../Haze/Mirage"
+import { Size } from "../Size"
 
 // ステージ「万華鏡」(修行場)
 // 画面の上の方に万華鏡の中心があり、修行相手はそのまわりをゆっくり回っている。まわりには六つに映った幻が並ぶ。
@@ -36,7 +37,7 @@ class EnemyKaleidoscope extends Enemy {
     private readonly center = vec(this.game.WIDTH / 2, this.game.HEIGHT * CENTER_Y)
 
     constructor(game: Game) {
-        super(game, 3200, 40, { renderer: new EnemyRendererCore() })
+        super(game, 3200, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

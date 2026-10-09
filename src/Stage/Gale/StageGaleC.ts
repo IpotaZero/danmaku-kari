@@ -7,6 +7,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { GenUtils } from "@ipota/functions"
+import { Size } from "../Size"
 
 export default class extends Stage {
     *G() {
@@ -26,7 +27,7 @@ const loopTime = 680
 
 class EnemyAim extends Enemy {
     constructor(game: Game, parent: Enemy, radian: number) {
-        super(game, 1000, 30)
+        super(game, 1000, Size.S)
         this.setParent(parent, () => vec.arg(radian + this.frame / 300).scale(parent.r + this.r))
         this.addScript(() => this.attack(), { loop: Infinity, margin: 120 })
     }
@@ -104,7 +105,7 @@ class EnemyCore extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.2, this.game.HEIGHT * 0.3, 3, 3)
 
     constructor(game: Game) {
-        super(game, 1800, 48, { renderer: new EnemyRendererCore() })
+        super(game, 1800, Size.MASTER, { renderer: new EnemyRendererCore() })
         this.addScript(() => this.enter())
     }
 

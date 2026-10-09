@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Sand } from "./Sand"
+import { Size } from "../Size"
 
 // ステージ「砂嵐」(砂塵道場・門下生)
 // 横に吹き流れる砂の筋が何段も重なった帯が、画面の上から下へゆっくり降りてくる。
@@ -42,7 +43,7 @@ class EnemyPupil extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.8, this.game.HEIGHT * 0.1, 8, 13)
 
     constructor(game: Game) {
-        super(game, 3000, 48, { renderer: new EnemyRendererCore() })
+        super(game, 3000, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

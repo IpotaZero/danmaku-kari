@@ -9,10 +9,10 @@ import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
+import { Size } from "../Size"
 
 export default class extends Stage {
     *G() {
-        // 朱雀が現れる場所。一代目は画面の外から、二代目からは卵の孵った所から
         let from = vec(-200, -200)
 
         for (let generation = 0; generation < 3; generation++) {
@@ -27,7 +27,6 @@ export default class extends Stage {
             yield* this.waitAllEnemiesDead()
             if (generation === 2) break
 
-            // 灰の中から炎の卵が現れ、温まりきると孵る
             yield* Array(40)
             this.game.enemies.push(new EnemyEgg(this.game, from))
             yield* this.waitAllEnemiesDead()
@@ -39,13 +38,10 @@ export default class extends Stage {
     }
 }
 
-// 灰の中から現れる炎の卵。温まりきる(充電が満ちる)まで何もせず、撃っても割れない。撃つほど早く温まる。
-// 温まっている間、まわりから炎の粒と炎の輪が卵へ吸い込まれていく
 class EnemyEgg extends Enemy {
     constructor(game: Game, p: Vec) {
         super(game, 1, 26)
         this.p = p.clone()
-        // 温まり始めるまでに撃たれて割れないよう、最初は攻撃を効かなくしておく
         this.isInvincible = true
 
         this.addScript(() => this.warm())
@@ -74,7 +70,7 @@ class EnemySuzaku extends Enemy {
     readonly parts: Part[]
 
     constructor(game: Game, generation: number, from: Vec) {
-        super(game, 1400, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 1400, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
         this.p = from.clone()
 
@@ -84,8 +80,8 @@ class EnemySuzaku extends Enemy {
                     this.game,
                     this,
                     500,
-                    36,
-                    () => vec(side * 92, -10),
+                    Size.L,
+                    () => vec(side * 104, -10),
                     (me) =>
                         generation === 0
                             ? this.feathers(me, side)
@@ -103,8 +99,8 @@ class EnemySuzaku extends Enemy {
                     this.game,
                     this,
                     200,
-                    15,
-                    () => vec((k - 2) * 40, 90),
+                    Size.S,
+                    () => vec((k - 2) * 50, 90),
                     (me) => this.embers(me, k),
                     160,
                 ),
@@ -116,7 +112,6 @@ class EnemySuzaku extends Enemy {
         this.addScript(() => this.phases(generation))
     }
 
-    // 一代目は画面の外から飛んでくる。二代目からは、卵の孵った所で炎の輪を放ちながら舞い上がる
     private *enter(generation: number) {
         if (generation > 0) {
             yield* Charge.burst(this, "#ff8040")
@@ -147,17 +142,14 @@ class EnemySuzaku extends Enemy {
     }
 
     private *phases(generation: number) {
-        // 翼を両方落とすまで、胴に攻撃が効かない。胴はときどき輪を放つ
         this.addScript(() => this.ring(generation), { loop: Infinity, margin: 180, id: "body" })
         while (this.wings.some((p) => p.life > 0)) yield
 
-        // 翼を落とされると、胴に攻撃が効くようになり、炎の渦を撒く
         this.isInvincible = false
         this.game.camera.shake(6, 20)
         this.addScript(() => this.spiral(generation), { loop: Infinity, id: "body" })
     }
 
-    // 一代目の翼。外側の斜め下へ、ゆっくり出て一気に速くなる炎の羽の扇を二度払う
     private *feathers(me: Part, side: number) {
         for (let k = 0; k < 2; k++) {
             yield* remodel(me)
@@ -175,7 +167,6 @@ class EnemySuzaku extends Enemy {
         yield* Array(80)
     }
 
-    // 二代目の翼。外から内へ、炎の帯を薙ぎ払う
     private *flameBand(me: Part, side: number) {
         for (let f = 0; f < 60; f += 3) {
             yield* remodel(me)
@@ -192,7 +183,6 @@ class EnemySuzaku extends Enemy {
         yield* Array(90)
     }
 
-    // 三代目の翼。火の鳥を三羽放つ。外へ飛び出して止まり、自機のいた所へ急降下する
     private *firebirds(me: Part, side: number) {
         yield* remodel(me)
             .format("arrow")
@@ -212,7 +202,6 @@ class EnemySuzaku extends Enemy {
         yield* Array(110)
     }
 
-    // 尾羽の火の粉。高く舞い上がり、放物線を描いて落ち、落ちたところで小さく弾ける
     private *embers(me: Part, k: number) {
         yield* Array(k * 15)
 
@@ -251,7 +240,6 @@ class EnemySuzaku extends Enemy {
         yield* Array(210 - k * 15)
     }
 
-    // 翼があるうちの胴の輪。代を重ねるほど濃くなり、二代目からは一度止まってから散る
     private *ring(generation: number) {
         yield* remodel(this)
             .format("small-ball")
@@ -267,7 +255,6 @@ class EnemySuzaku extends Enemy {
         yield* Array(160)
     }
 
-    // 翼を落とされた胴の炎の渦。逆回りの二つの渦。代を重ねるほど腕が多くなる
     private *spiral(generation: number) {
         const base = this.random() * T
 

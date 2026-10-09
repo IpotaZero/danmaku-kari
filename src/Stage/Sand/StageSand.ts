@@ -9,6 +9,7 @@ import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
+import { Size } from "../Size"
 
 // ステージ「ウスバ」(砂塵道場・道場主)
 // 道場主のまわりに子機が幾何学的に並ぶ。胴の前に大顎の一対、胴の上に腹、胴の左右に脚の横一列。腹のまわりを三つの砂袋(孫機)が回る。
@@ -46,7 +47,7 @@ class EnemyUsuba extends Enemy {
                 this.game,
                 this,
                 500,
-                24,
+                Size.L,
                 () => vec(side * 64, 88),
                 (me) => this.pincer(me, side),
                 150,
@@ -58,8 +59,8 @@ class EnemyUsuba extends Enemy {
         this.game,
         this,
         600,
-        30,
-        () => vec(0, -95),
+        Size.L,
+        () => vec(0, -105),
         (me) => this.fountain(me),
         150,
     )
@@ -71,8 +72,8 @@ class EnemyUsuba extends Enemy {
                 this.game,
                 this.abdomen,
                 150,
-                13,
-                (me) => vec.arg(me.frame / 120 + (T * (k + 1)) / 3).scale(46),
+                Size.S,
+                (me) => vec.arg(me.frame / 120 + (T * (k + 1)) / 3).scale(64),
                 (me) => this.spill(me, k),
                 150,
             ),
@@ -90,8 +91,8 @@ class EnemyUsuba extends Enemy {
                 this.game,
                 this,
                 260,
-                16,
-                () => vec(side * (110 + 45 * row), 20),
+                Size.M,
+                () => vec(side * (105 + 65 * row), 20),
                 (me) => this.kick(me, side, row),
                 150,
             ),
@@ -102,7 +103,7 @@ class EnemyUsuba extends Enemy {
     readonly parts = [...this.jaws, this.abdomen, ...this.sandbags, ...this.legs]
 
     constructor(game: Game) {
-        super(game, 1600, 64, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
         this.abdomen.guardedBy(this.sandbags)
 
@@ -157,7 +158,7 @@ class EnemyUsuba extends Enemy {
                     this.game,
                     this,
                     250,
-                    24,
+                    Size.M,
                     () => vec(side * 78, row === 0 ? -78 : 78),
                     (me) => this.clods(me, side, row),
                     this.untilNextCycle(),

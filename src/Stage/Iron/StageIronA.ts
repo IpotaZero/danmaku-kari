@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Shield } from "./Shield"
+import { Size } from "../Size"
 
 // ステージ「盾」(鉄壁道場・門下生)
 // 門下生のまわりを、弾を並べた盾の輪がゆっくり回っている。盾は自機の弾を受け止めるので、輪の二か所の窓からしか弾は届かない。
@@ -38,7 +39,7 @@ class EnemyPupil extends Enemy {
     private readonly ring = new Shield.Ring(this, RING, this.random() * T)
 
     constructor(game: Game) {
-        super(game, 1200, 40, { renderer: new EnemyRendererCore() })
+        super(game, 1200, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

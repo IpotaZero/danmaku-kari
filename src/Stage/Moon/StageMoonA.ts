@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Part } from "../Part"
+import { Size } from "../Size"
 
 // ステージ「月見」(月影道場・門下生)
 // 門下生のまわりを、四つの月(子機)が横長の楕円を描いて回る。月は順に、三日月の形に並んだ弾を自機へ飛ばしてくる。
@@ -33,7 +34,7 @@ class EnemyPupil extends Enemy {
                 this.game,
                 this,
                 400,
-                20,
+                Size.S,
                 (me) => {
                     const angle = me.frame / 70 + (T * i) / 4
                     return vec(Math.cos(angle) * 190, Math.sin(angle) * 80)
@@ -45,7 +46,7 @@ class EnemyPupil extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は子機の総和くらい
-        super(game, 1400, 44, { renderer: new EnemyRendererCore() })
+        super(game, 1400, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }

@@ -8,6 +8,7 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Heat } from "./Heat"
+import { Size } from "../Size"
 
 // ステージ「陽炎の柱」(陽炎道場・師範代)
 // 師範代(ボス)が熱の種を4つ、画面の下の方へ投げる。種は床に落ちてしばらく揺らめいた後、真上へ熱の泡を噴き上げ始める。
@@ -37,7 +38,7 @@ class EnemyMaster extends Enemy {
 
     constructor(game: Game) {
         // 主機の体力は衛星の総和くらい
-        super(game, SPARK_LIFE * 2, 48, { renderer: new EnemyRendererCore() })
+        super(game, SPARK_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
@@ -69,7 +70,7 @@ class EnemyMaster extends Enemy {
 class EnemySpark extends Enemy {
     // side: -1で左、1で右
     constructor(game: Game, parent: Enemy, side: number) {
-        super(game, SPARK_LIFE, 24)
+        super(game, SPARK_LIFE, Size.S)
 
         this.setParent(parent, () => vec(side * game.WIDTH * 0.3, game.HEIGHT * 0.04 * Math.sin(this.frame / 100)))
 

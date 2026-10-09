@@ -7,6 +7,7 @@ import { Stage } from "../Stage"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
+import { Size } from "../Size"
 
 // ステージ「振り子」(修行場)
 // 画面の上の二か所から、弾を連ねた長い鎖の振り子が下がり、大きく揺れて画面の下の方を薙いでいく。
@@ -45,7 +46,7 @@ class EnemyMaster extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.2, this.game.HEIGHT * 0.03, 1, 2)
 
     constructor(game: Game) {
-        super(game, 3000, 48, { renderer: new EnemyRendererCore() })
+        super(game, 3000, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.addScript(() => this.enter())
     }
