@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-12 -12 24 24"
+   fill="none"
+   stroke="currentColor"
+   stroke-width="1.2"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="iron.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="24.416667"
+     inkscape:cx="12"
+     inkscape:cy="12"
+     inkscape:window-width="1440"
+     inkscape:window-height="830"
+     inkscape:window-x="-6"
+     inkscape:window-y="-6"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <ellipse
+     cx="0"
+     cy="2"
+     rx="5.5"
+     ry="7"
+     id="ellipse1" />
+  <path
+     d="M 0,-5 V 9 M 0,-5 c -0.0523322,-2.7485779 -0.07508532,-3.14562 -0.10921502,-5.409556 M -5,-1 -9,-3 M 5,-1 9,-3 M -5,4 -9,5 M 5,4 9,5 M -5.4573379,1.6211604 -9.2935154,1.5051195 M 9.4914676,1.8259386 5.5324232,1.668942"
+     id="path1"
+     inkscape:label="path1"
+     sodipodi:nodetypes="cccccccccccccccc" />
+</svg>

@@ -83,7 +83,7 @@ function* waitForStab(player: Player, me: Bullet): Generator<void, void, void> {
 // 弾と見間違えないよう、点や丸い粒は使わず線だけで描く
 function* stab(player: Player, tip: Vec, radian: number): Generator<void, void, void> {
     const game = player.game
-    game.se.crush.play()
+    game.se.hit.play()
     game.camera.shake(揺れの強さ, 揺れフレーム)
 
     const maxRadius = player.GRAZE_R * 衝撃半径倍率

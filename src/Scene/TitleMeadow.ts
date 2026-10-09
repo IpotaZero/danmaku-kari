@@ -44,7 +44,7 @@ export class TitleMeadow {
             bug.style.setProperty("--size", `${isNear ? 2.4 + Math.random() * 1.2 : 1.1 + Math.random() * 0.6}rem`)
             bug.innerHTML = `
                 <div class="meadow-bug-body">
-                    <svg viewBox="-14 -14 28 28" fill="currentColor">${Silhouette.bugs[kind]}</svg>
+                    <svg viewBox="-14 -14 28 28" fill="currentColor">${Silhouette.bugs[kind].content}</svg>
                 </div>`
             ;(isNear ? near : far).appendChild(bug)
         })

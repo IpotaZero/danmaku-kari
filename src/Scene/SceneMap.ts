@@ -13,6 +13,7 @@ import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 import { Menu, MenuOption, MenuOptionBox } from "../utils/Menu/Menu"
 import { MenuPreset } from "../utils/Menu/MenuPreset"
 import { Scene } from "../utils/Scene/Scene"
+import { SvgFile } from "../utils/SvgFile"
 
 type Direction = "up" | "down" | "left" | "right"
 
@@ -45,9 +46,10 @@ export class SceneMap extends Scene {
         this.selectedId = saved && graph.isUnlocked(saved, playerData) ? saved.id : graph.start.id
     }
 
-    // マップの取得を待ってから生成する
+    // マップと、ノードの絵柄・小物・蜂のSVGの取得を待ってから生成する
     static async create(): Promise<SceneMap> {
-        return new SceneMap(await MapGraph.load())
+        const [graph] = await Promise.all([MapGraph.load(), SvgFile.loadAll()])
+        return new SceneMap(graph)
     }
 
     protected async onStart(): Promise<void> {
@@ -92,7 +94,7 @@ export class SceneMap extends Scene {
             const el = document.createElement("div")
             // ノードには文字の代わりに、その場所の景色の絵柄を描く。まだ行けない場所の絵柄は伏せておく(css)
             el.className = `map-node scenery-${node.scenery.id}`
-            el.innerHTML = `<svg class="map-node-motif" viewBox="-12 -12 24 24">${node.scenery.motif}</svg>`
+            el.innerHTML = `<svg class="map-node-motif" viewBox="-12 -12 24 24">${node.scenery.motif.content}</svg>`
             el.classList.toggle("locked", !this.graph.isUnlocked(node, playerData))
             // クリア済みなら銀の星、ノーミスでクリア済みなら金の星を付ける
             el.classList.toggle("cleared", playerData.isStageCleared(node.id))

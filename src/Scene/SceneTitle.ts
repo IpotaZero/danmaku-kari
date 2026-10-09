@@ -2,6 +2,7 @@ import { Awaits } from "@ipota/functions"
 import { App } from "../App"
 import { Menu } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
+import { SvgFile } from "../utils/SvgFile"
 import { SettingsMenu } from "./SettingsMenu"
 import { TitleMeadow } from "./TitleMeadow"
 
@@ -12,6 +13,8 @@ export class SceneTitle extends Scene {
         console.log("SceneTitle")
 
         this.root.classList.add("scene-title", "paper-scene")
+        // 飛び交う虫のSVGを読み込み終えてから草むらを作る
+        await SvgFile.loadAll()
         this.root.appendChild(new TitleMeadow().element)
         this.root.insertAdjacentHTML(
             "beforeend",

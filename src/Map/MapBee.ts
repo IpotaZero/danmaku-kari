@@ -13,7 +13,7 @@ export class MapBee {
         this.el.className = "map-bee"
         this.el.innerHTML = `
             <div class="map-bee-body">
-                <svg viewBox="-14 -14 28 28" fill="currentColor">${Silhouette.bugs.bee}</svg>
+                <svg viewBox="-14 -14 28 28" fill="currentColor">${Silhouette.bugs.bee.content}</svg>
             </div>`
 
         this.x = node.x

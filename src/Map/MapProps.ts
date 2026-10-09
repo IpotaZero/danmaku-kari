@@ -76,7 +76,7 @@ export class MapProps {
                 el.style.setProperty("--tilt", `${prop.spin ? random() * 360 : (random() - 0.5) * 24}deg`)
                 el.style.setProperty("--flip", random() < 0.5 ? "-1" : "1")
                 el.style.setProperty("--delay", `${-random() * 10}s`)
-                el.innerHTML = `<svg viewBox="-12 -12 24 24">${prop.svg}</svg>`
+                el.innerHTML = `<svg viewBox="-12 -12 24 24">${prop.svg.content}</svg>`
                 elements.push(el)
                 break
             }

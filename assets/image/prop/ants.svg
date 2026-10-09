@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -12 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+    <circle class="solid" cx="-5.4" cy="0.8" r="0.9" />
+    <ellipse class="solid" cx="-7.4" cy="0.8" rx="1.1" ry="0.7" />
+    <ellipse class="solid" cx="-9.8" cy="0.8" rx="1.5" ry="1.1" />
+    <path d="M-8 0.8 L-9 -1.2 M-8 0.8 L-9 2.8 M-7.4 0.8 L-7.4 -1.4 M-7.4 0.8 L-7.4 3 M-6.8 0.8 L-6 -1.2 M-6.8 0.8 L-6 2.8" />
+    <circle class="solid" cx="2.6" cy="-1.5" r="0.9" />
+    <ellipse class="solid" cx="0.6" cy="-1.5" rx="1.1" ry="0.7" />
+    <ellipse class="solid" cx="-1.8" cy="-1.5" rx="1.5" ry="1.1" />
+    <path d="M0 -1.5 L-1 -3.5 M0 -1.5 L-1 0.5 M0.6 -1.5 L0.6 -3.7 M0.6 -1.5 L0.6 0.7 M1.2 -1.5 L2 -3.5 M1.2 -1.5 L2 0.5" />
+    <circle class="solid" cx="10.6" cy="0.8" r="0.9" />
+    <ellipse class="solid" cx="8.6" cy="0.8" rx="1.1" ry="0.7" />
+    <ellipse class="solid" cx="6.2" cy="0.8" rx="1.5" ry="1.1" />
+    <path d="M8 0.8 L7 -1.2 M8 0.8 L7 2.8 M8.6 0.8 L8.6 -1.4 M8.6 0.8 L8.6 3 M9.2 0.8 L10 -1.2 M9.2 0.8 L10 2.8" />
+</svg>
