@@ -102,7 +102,7 @@ class EnemyUsuba extends Enemy {
     readonly parts = [...this.jaws, this.abdomen, ...this.sandbags, ...this.legs]
 
     constructor(game: Game) {
-        super(game, 1600, 48, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, 64, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
         this.abdomen.guardedBy(this.sandbags)
 

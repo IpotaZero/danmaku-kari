@@ -10,18 +10,6 @@ import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
 
-// ステージ「玄武」(四天王)
-// 玄武のまわりに子機が幾何学的に並ぶ。内側の円を六枚の甲羅が回り、外側の円を六つの子機(蛇の頭と五つの節)が等間隔のまま回る。
-// 甲羅: 胴を囲んで回りながら、順に外向きの水弾を放つ。甲羅が胴を囲んでいるので、胴を狙った弾は甲羅に当たる。
-// 蛇の頭: 亀のまわりを速く回りながら、自機へ毒牙(針の三方向)を飛ばす。
-// 蛇の節: 回りながら、順に水滴を垂らす。水滴はだんだん速く真下へ落ちる。
-// 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ。
-// 一段目: 甲羅をすべて割ると次の段へ。胴はときどき輪を放つ。
-// 子亀: 胴はまわりの水を集めて、二匹の子亀を呼ぶ。子亀のまわりには三枚の小甲羅(孫機)が回っていて、小甲羅を割るまで子亀に攻撃が効かない。
-// 二段目: 子亀をすべて落とすと次の段へ。子亀は泡を吐き、小甲羅は外向きに水滴を飛ばす。
-//         胴は津波を起こす。画面の幅いっぱいの波を三列続けて押し寄せる。波には一か所だけ隙間があり、列ごとに少しずつずれる。
-// 三段目: 渦潮。胴に攻撃が効くようになり、津波に加えて、曲がりながら広がる四本腕の渦を巻く。
-
 export default class extends Stage {
     *G() {
         const boss = new EnemyGenbu(this.game)
@@ -79,7 +67,7 @@ class EnemyGenbu extends Enemy {
     readonly parts = [...this.shells, this.snakeHead, ...this.snakeBody]
 
     constructor(game: Game) {
-        super(game, 1600, 44, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, 64, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())

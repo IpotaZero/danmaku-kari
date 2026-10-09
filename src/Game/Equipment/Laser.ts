@@ -25,10 +25,16 @@ export const laser: MainEquipment = {
     *fire(player) {
         while (!player.game.isPlaying) yield
 
-        // 常設ビームなので、生成は最初の1回だけ。ゲームオーバーまで出し続ける
+        // 常設ビームなので、生成は最初の1回だけ。ゲームオーバーまで出し続ける。
+        // Remodel.beamは撃ち手の体力が0になると消えるが、自機は体力0でもまだ生きている(0を下回るとゲームオーバー)ので、
+        // beamは使わずにビームの形だけを与え、消えるかどうかは下のgでisGameOverを見て決める
         yield* remodel(player)
             .p(player.p.clone())
-            .beam(ビーム長さ)
+            .length(ビーム長さ)
+            .speed(0)
+            .appearance("beam")
+            .collision("rect")
+            .isScorable(false)
             .r(通常時太さ)
             .damage(通常時威力)
             .radian(-T / 4)

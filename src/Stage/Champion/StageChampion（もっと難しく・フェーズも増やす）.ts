@@ -141,7 +141,7 @@ class EnemyHornet extends Enemy {
     readonly parts = [...this.mandibles, ...this.wings, ...this.legs, this.stinger, ...this.workers]
 
     constructor(game: Game) {
-        super(game, 4000, 48, { renderer: new EnemyRendererBoss() })
+        super(game, 4000, 64, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())

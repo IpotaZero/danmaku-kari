@@ -9,12 +9,12 @@ import type { SubEquipment } from "./types"
 // 画面の弾をすべて蜜に変えるかわりに、次に使えるまでがとても長い。
 // どの提示で切るかを選ぶことが、この技の遊びになる。
 const 広がりフレーム = 40
-const クールダウンフレーム = 2400
+const クールダウンフレーム = 1440
 
 export const sweep: SubEquipment = {
     label: "一掃",
-    description: "自機から波を広げ、画面の敵弾をすべて蜜に変える。次に使えるまで40秒かかる。",
-    price: 15000,
+    description: "自機から波を広げ、画面の敵弾をすべて蜜に変える。",
+    price: 10000,
     *action(player) {
         while (true) {
             if (player.game.input.isPushed("action")) {

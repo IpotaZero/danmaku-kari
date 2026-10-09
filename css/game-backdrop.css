@@ -9,13 +9,14 @@
     pointer-events: none;
 
     /* 上の黒から地平線(下)へ、4段の帯でほんのわずかずつ空の色(--sky)を混ぜていく。どの段もほぼ黒で、目立たせない。
-       なめらかなグラデーションにはせず、段と段の境目だけを3%幅で少しぼかす */
+       紙や金のような明るい空の色でも段の差が目立たないよう、混ぜる量は控えめ(3%ずつ)にし、
+       段と段の境目は12%幅でゆっくりぼかす */
     background: linear-gradient(
         180deg,
-        black 0% 22%,
-        color-mix(in srgb, var(--sky) 7%, black) 25% 47%,
-        color-mix(in srgb, var(--sky) 13%, black) 50% 72%,
-        color-mix(in srgb, var(--sky) 20%, black) 75% 100%
+        black 0% 18%,
+        color-mix(in srgb, var(--sky) 3%, black) 30% 42%,
+        color-mix(in srgb, var(--sky) 6%, black) 55% 67%,
+        color-mix(in srgb, var(--sky) 9%, black) 80% 100%
     );
 }
 

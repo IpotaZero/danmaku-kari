@@ -80,7 +80,7 @@ class EnemyHotaru extends Enemy {
     readonly parts = [this.lantern, ...this.antennae, ...this.fireflies]
 
     constructor(game: Game) {
-        super(game, 1600, 46, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, 64, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())

@@ -1,6 +1,5 @@
 import { EquipmentId } from "../../Data/Equipment"
 import { barrier } from "./Barrier"
-import { buzz } from "./Buzz"
 import { dash } from "./Dash"
 import { laser } from "./Laser"
 import { needle } from "./Needle"
@@ -19,6 +18,5 @@ export const subEquipments: Record<EquipmentId, SubEquipment> = {
     dash,
     barrier,
     needle,
-    buzz,
     sweep,
 }

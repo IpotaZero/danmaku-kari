@@ -9,21 +9,6 @@ import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
 
-// ステージ「白虎」(四天王)
-// 白虎は、少し構えては素早く跳んで、画面の上の方を跳びまわる。
-// 白虎のまわりに子機が幾何学的に並ぶ。胴を囲む正五角形に前脚の一対・後脚の一対・尾、胴の下の横一列に三匹の子虎。
-// 前脚: 自機へ向けて、三本の爪痕を薄く見せてから、爪痕に沿って速い爪を走らせる。
-// 後脚: 横へ風を蹴り出す。風は大きく弧を描いて、画面の両脇から下へ回り込む。
-// 尾: 縞模様の帯を、何本も続けて振り下ろす。帯の弾の間は狭く、帯の端を回り込んでかわす。
-// 子虎: 小さな輪を放つ。親の下に並んでいるので、親を狙った弾をさえぎる。
-// 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ(胴に攻撃が効かない間は、弾が胴を素通りしてうしろの尾にも届く)。
-// 一段目: 前脚と尾を落とすと次の段へ。胴はときどき輪を放つ。
-// 遠吠え: 白虎は立ち止まって遠吠えし、親の左右に一対の若虎を呼ぶ。
-//         若虎のまわりを爪(孫機)が一つずつ回り、爪を落とすまで若虎に攻撃が効かない。
-// 二段目: 若虎をすべて落とすと次の段へ。若虎は止まってから散る輪を放ち、爪は真下へ三本の爪痕を落とす。
-//         胴は吠えるたびに、速さの違う三重の輪を放つ。
-// 三段目: 疾風。胴に攻撃が効くようになる。白虎は構える時間が短くなり、跳んで着地するたびに衝撃の輪を放つ。
-
 export default class extends Stage {
     *G() {
         const boss = new EnemyByakko(this.game)
@@ -95,7 +80,7 @@ class EnemyByakko extends Enemy {
     readonly parts = [...this.paws, ...this.hindLegs, this.tail, ...this.cubs]
 
     constructor(game: Game) {
-        super(game, 1600, 46, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, 64, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())

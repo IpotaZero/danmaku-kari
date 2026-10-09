@@ -83,7 +83,7 @@ class EnemyKagerou extends Enemy {
     readonly parts = [...this.foreWings, ...this.hindWings, ...this.tails]
 
     constructor(game: Game) {
-        super(game, 2400, 50, { renderer: new EnemyRendererBoss() })
+        super(game, 2400, 64, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())

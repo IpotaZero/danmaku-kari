@@ -60,7 +60,7 @@ class EnemyPhase1 extends Enemy {
                 yield* GenUtils.all({
                     move: function* (this: Enemy) {
                         while (true) {
-                            me.radian = startRadian + (T / 16) * Math.sin((T / 64) * (this.frame - startFrame))
+                            me.radian = startRadian + (T / 32) * Math.sin((T / 64) * (this.frame - startFrame))
                             yield
                         }
                     }.bind(this)(),
@@ -92,7 +92,7 @@ class EnemyPhase1 extends Enemy {
                 yield* GenUtils.all({
                     move: function* (this: Enemy) {
                         while (true) {
-                            me.radian = startRadian + (T / 8) * Math.sin((T / 32) * (this.frame - startFrame))
+                            me.radian = startRadian + (T / 16) * Math.sin((T / 32) * (this.frame - startFrame))
                             yield
                         }
                     }.bind(this)(),
@@ -145,7 +145,7 @@ class EnemyPhase2 extends Enemy {
                 yield* GenUtils.all({
                     move: function* (this: Enemy) {
                         while (true) {
-                            me.radian = startRadian + (T / 16) * Math.sin((T / 256) * (this.frame - startFrame))
+                            me.radian = startRadian + (T / 32) * Math.sin((T / 256) * (this.frame - startFrame))
                             yield
                         }
                     }.bind(this)(),
@@ -174,7 +174,7 @@ class EnemyPhase2 extends Enemy {
                 yield* GenUtils.all({
                     move: function* (this: Enemy) {
                         while (true) {
-                            me.radian = startRadian + (T / 12) * Math.sin((T / 32) * (this.frame - startFrame))
+                            me.radian = startRadian + (T / 24) * Math.sin((T / 32) * (this.frame - startFrame))
                             yield
                         }
                     }.bind(this)(),
@@ -225,7 +225,7 @@ class EnemyPhase3 extends Enemy {
                 yield* GenUtils.all({
                     move: function* (this: Enemy) {
                         while (true) {
-                            me.radian = startRadian + (T / 16) * Math.sin((T / 32) * (this.frame - startFrame))
+                            me.radian = startRadian + (T / 32) * Math.sin((T / 32) * (this.frame - startFrame))
                             yield
                         }
                     }.bind(this)(),
@@ -254,7 +254,7 @@ class EnemyPhase3 extends Enemy {
                 yield* GenUtils.all({
                     move: function* (this: Enemy) {
                         while (true) {
-                            me.radian = startRadian + (T / 16) * Math.sin((T / 32) * (this.frame - startFrame))
+                            me.radian = startRadian + (T / 32) * Math.sin((T / 32) * (this.frame - startFrame))
                             yield
                         }
                     }.bind(this)(),
@@ -287,7 +287,7 @@ class EnemyBoss extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.2, 5, 5)
 
     constructor(game: Game) {
-        super(game, 1800, 48, { renderer: new EnemyRendererBoss() })
+        super(game, 1800, 64, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
         this.addScript(() => this.enter())
     }

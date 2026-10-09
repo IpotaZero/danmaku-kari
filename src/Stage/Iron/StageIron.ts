@@ -77,7 +77,7 @@ class EnemyKabuto extends Enemy {
     readonly parts = [this.horn, ...this.elytra, ...this.legs]
 
     constructor(game: Game) {
-        super(game, 2800, 50, { renderer: new EnemyRendererBoss() })
+        super(game, 2800, 64, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())

@@ -451,7 +451,8 @@ export class SceneMap extends Scene {
         const subId = playerData.getLoadout().sub
         if (!subId) return "なし"
 
-        return subEquipments[subId]?.label ?? subId
+        // 削除した技を装備したままの保存データもある。ゲームでは技なしとして扱われる(SceneGame)ので、表示もそれに合わせる
+        return subEquipments[subId]?.label ?? "なし"
     }
 
     // 蜜はステージで稼ぐか技の習得で払ったときにだけ変わるので、毎フレームではなくその都度表示し直す

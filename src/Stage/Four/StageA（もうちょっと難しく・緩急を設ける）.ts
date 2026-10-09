@@ -10,16 +10,6 @@ import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
 
-// ステージ「青龍」(四天王)
-// 青龍の頭は画面の中ほどを大きく動きまわる。頭のまわりに子機が幾何学的に並ぶ。内側の円を宝珠が回り、外側の円を十の節が等間隔のまま回る。
-// 宝珠: 自機の方へ三本の雷を落とす。雷は落ちる前に細い線で見える。
-// 節: 輪の順に、外向きの鱗を払う。輪が回るので、鱗はあちこちへ向かう。
-// 段は部位を落とすと進む。頭に攻撃が効くのは最後の段だけ。
-// 一段目: 宝珠を落とすと次の段へ。頭はときどき輪を吐く。
-// 雷雲: 頭は雷の力を集めて、画面の上に三つの雷雲を呼ぶ。雷雲のまわりには雷玉(孫機)が二つずつ回り、雷玉を落とすまで雷雲に攻撃が効かない。
-// 二段目: 雷雲をすべて落とすと次の段へ。雷雲は雨を降らせ、雷玉は真下へ雷を落とす。頭は通った跡に雷を残し、残った雷は少しして弾ける。
-// 三段目: 昇龍。頭に攻撃が効くようになり、雷跡を残しながら、ときどき咆哮する。咆哮は下向きの大きな扇で、だんだん速くなる。
-
 export default class extends Stage {
     *G() {
         const boss = new EnemySeiryu(this.game)
@@ -61,7 +51,7 @@ class EnemySeiryu extends Enemy {
     readonly parts = [this.pearl, ...this.segments]
 
     constructor(game: Game) {
-        super(game, 1600, 40, { renderer: new EnemyRendererBoss() })
+        super(game, 1600, 64, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())

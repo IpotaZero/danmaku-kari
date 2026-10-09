@@ -10,18 +10,6 @@ import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
 
-// ステージ「朱雀」(四天王)
-// 朱雀は不死鳥。二度倒しても灰の中から蘇り、三度目でようやく倒れる。蘇ることがこの戦いのテーマ。
-// 朱雀のまわりに子機が幾何学的に並ぶ。胴の左右に翼の一対、胴の下に五枚の尾羽の横一列。両方の翼を落とすまで、胴に攻撃が効かない。
-// 尾羽: 火の粉を高く舞い上げる。火の粉は放物線を描いて落ち、落ちたところで小さく弾ける。
-// 胴: 翼があるうちはときどき輪を放ち、翼を落とされると、逆回りの炎の渦を撒く。
-// 再生: 朱雀が倒れると、灰の中から炎の卵が現れる。卵は温まりきる(充電が満ちる)まで何もせず、撃っても割れない。
-//       撃つほど早く温まる。孵る瞬間、画面が燃え上がり、生まれた朱雀は炎の輪を放ちながら舞い上がる。
-// 蘇るたびに、翼の攻撃は変わり、胴の攻撃は激しくなる。
-//   一代目の翼: 外側の斜め下へ、炎の羽の扇を二度払う。
-//   二代目の翼: 外から内へ、炎の帯を薙ぎ払う。左右の帯は胴の下で交差する。
-//   三代目の翼: 火の鳥を三羽放つ。火の鳥は外へ飛び出して止まり、自機のいた所へ急降下する。
-
 export default class extends Stage {
     *G() {
         // 朱雀が現れる場所。一代目は画面の外から、二代目からは卵の孵った所から
@@ -86,7 +74,7 @@ class EnemySuzaku extends Enemy {
     readonly parts: Part[]
 
     constructor(game: Game, generation: number, from: Vec) {
-        super(game, 1400, 46, { renderer: new EnemyRendererBoss() })
+        super(game, 1400, 64, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
         this.p = from.clone()
 

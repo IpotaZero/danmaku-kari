@@ -88,7 +88,7 @@
             opacity: 0.4;
 
             &.locked {
-                opacity: 0.08;
+                opacity: 0.2;
             }
 
             /* 主装備standardでのクリアが条件の辺は破線 */
