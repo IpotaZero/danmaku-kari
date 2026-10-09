@@ -2,21 +2,17 @@ import { App } from "../App"
 import { Dom } from "../Dom"
 import { playerData } from "../Data/PlayerData"
 import { mainEquipments, subEquipments } from "../Game/Equipment/PlayerEquipment"
-import { MapBounds, MapEdge, MapGraph, MapNode, MapNodeId } from "../Map/MapGraph"
+import { MapEdge, MapGraph, MapNode, MapNodeId } from "../Map/MapGraph"
 import { MapMinimap } from "../Map/MapMinimap"
 import { MapBee } from "../Map/MapBee"
+import { MapCamera } from "../Map/MapCamera"
 import { MapProps } from "../Map/MapProps"
 import { InputCode } from "../utils/InputCode"
+import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 import { Menu, MenuOption, MenuOptionBox } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
 
 type Direction = "up" | "down" | "left" | "right"
-
-// これ以上動かしたらタップではなくスワイプ(ドラッグ)とみなす閾値(px)
-const DRAG_THRESHOLD = 6
-
-// ノード選択時、そのノードが画面中央に来るまでのカメラ移動にかける時間
-const CAMERA_PAN_MS = 250
 
 // 全体図・型の変更画面を閉じるときのフェードアウトにかける時間
 const OVERLAY_FADE_OUT_MS = 200
@@ -28,14 +24,10 @@ const DIRECTION_VECTORS: Record<Direction, { x: number; y: number }> = {
     right: { x: 1, y: 0 },
 }
 
-type Camera = { x: number; y: number }
-
 export class SceneMap extends Scene {
     private selectedId: MapNodeId
     private readonly nodeElements = new Map<MapNodeId, HTMLElement>()
-    // カメラに合わせて動かす要素(ワールド本体と、方眼・紙の質感などの背景)。
-    // すべて同じtransformで動かすので、背景がワールドから遅れることがない
-    private cameraLayers: HTMLElement[] = []
+    private camera!: MapCamera
     // 地図の上の自分(蜂)。選んだノードへ飛んでいく
     private bee!: MapBee
     private livesEl!: HTMLElement
@@ -44,25 +36,11 @@ export class SceneMap extends Scene {
     private equipDescriptionEl?: HTMLElement
     private minimap?: MapMinimap
 
-    // ワールド座標系でのカメラ位置(=画面中央に表示されるワールド座標)
-    private camera: Camera = { x: 0, y: 0 }
-    private readonly worldBounds: MapBounds
-
-    // スワイプでのカメラ操作用の状態
-    private dragging = false
-    private dragMoved = false
-    private dragPointerId: number | null = null
-    private dragStartClient: Camera = { x: 0, y: 0 }
-    private dragStartCamera: Camera = { x: 0, y: 0 }
-    // ドラッグ後に発火するclickをタップと誤認しないようにするためのフラグ
-    private suppressNextClick = false
-
     private constructor(private readonly graph: MapGraph) {
         super()
         // 前回いたノードから始める。マップの変更で消えた/未解放になったノードならスタート地点に戻す
         const saved = graph.nodes.find((node) => node.id === playerData.mapNodeId)
         this.selectedId = saved && graph.isUnlocked(saved, playerData) ? saved.id : graph.start.id
-        this.worldBounds = graph.bounds()
     }
 
     // マップの取得を待ってから生成する
@@ -89,20 +67,21 @@ export class SceneMap extends Scene {
                 <div class="map-score"></div>
             </div>
             <div class="map-controls">
-                <div data-control="toggle-minimap"><span class="nowrap">全体図</span>: slow(${InputCode.primaryLabel(App.settings.keyConfig.slow)})</div>
+                ${isSmartPhone ? "" : `<div data-control="toggle-minimap"><span class="nowrap">全体図</span>: slow(${InputCode.primaryLabel(App.settings.keyConfig.slow)})</div>`}
                 <div data-control="open-equip"><span class="nowrap">型の変更</span>: action(${InputCode.primaryLabel(App.settings.keyConfig.action)})</div>
                 <div data-control="back-to-title"><span class="nowrap">タイトルへ戻る</span>: cancel(${InputCode.primaryLabel(App.settings.keyConfig.cancel)})</div>
             </div>
             <div class="texture-overlay map-backdrop map-camera-layer"></div>
         `
 
-        this.cameraLayers = Array.from(this.root.querySelectorAll<HTMLElement>(".map-camera-layer"))
-
-        // 背景はカメラが動ける範囲+画面1枚ぶんを覆う大きさにする(map.cssの.map-backdrop参照)
-        this.root.style.setProperty("--world-min-x", `${this.worldBounds.minX}px`)
-        this.root.style.setProperty("--world-min-y", `${this.worldBounds.minY}px`)
-        this.root.style.setProperty("--world-width", `${this.worldBounds.maxX - this.worldBounds.minX}px`)
-        this.root.style.setProperty("--world-height", `${this.worldBounds.maxY - this.worldBounds.minY}px`)
+        // スマホは全体図のボタンを置かない代わりに、ピンチで縮めて広く見渡せるようにする
+        this.camera = new MapCamera(
+            this.root,
+            Array.from(this.root.querySelectorAll<HTMLElement>(".map-camera-layer")),
+            this.graph.bounds(),
+            isSmartPhone ? { min: 0.3, max: 2 } : { min: 1, max: 1 },
+            () => !this.equipMenu && !this.minimap,
+        )
 
         const nodesEl = this.root.querySelector<HTMLElement>(".map-nodes")!
         // 塊のまわりの小物は、辺より手前・ノードより奥に置く
@@ -121,11 +100,8 @@ export class SceneMap extends Scene {
             el.style.width = `${node.width}px`
             el.style.height = `${node.height}px`
             el.addEventListener("click", () => {
-                // スワイプの指を離した直後に発火するclickをタップ選択として扱わない
-                if (this.suppressNextClick) {
-                    this.suppressNextClick = false
-                    return
-                }
+                // スワイプ・ピンチの指を離した直後に発火するclickをタップ選択として扱わない
+                if (this.camera.dragged) return
                 this.handleNodeTap(node.id)
             })
 
@@ -160,21 +136,10 @@ export class SceneMap extends Scene {
             `蜜 ${playerData.getTotalScore().toLocaleString()}`
 
         // 初期カメラは選択中ノードを中央に据えた状態から始める(アニメーションなし)
-        this.camera = this.clampCamera(this.graph.node(this.selectedId))
-        this.applyCamera(false)
-
-        this.root.addEventListener("pointerdown", this.handlePointerDown)
-        this.root.addEventListener("pointermove", this.handlePointerMove)
-        this.root.addEventListener("pointerup", this.handlePointerUp)
-        this.root.addEventListener("pointercancel", this.handlePointerUp)
+        this.camera.lookAt(this.graph.node(this.selectedId), false)
     }
 
-    protected async onEnd(): Promise<void> {
-        this.root.removeEventListener("pointerdown", this.handlePointerDown)
-        this.root.removeEventListener("pointermove", this.handlePointerMove)
-        this.root.removeEventListener("pointerup", this.handlePointerUp)
-        this.root.removeEventListener("pointercancel", this.handlePointerUp)
-    }
+    protected async onEnd(): Promise<void> {}
 
     update(): void {
         playerData.recoverLivesOverTime()
@@ -234,9 +199,7 @@ export class SceneMap extends Scene {
         this.nodeElements.forEach((el, nodeId) => el.classList.toggle("selected", nodeId === this.selectedId))
         this.minimap?.select(id)
         this.bee.flyTo(this.graph.node(id))
-
-        this.camera = this.clampCamera(this.graph.node(id))
-        this.applyCamera(true)
+        this.camera.lookAt(this.graph.node(id), true)
     }
 
     // 全ノードを一画面に収めた全体図の開閉。開いている間も方向キーでの選択移動はそのまま使える
@@ -257,61 +220,6 @@ export class SceneMap extends Scene {
         this.minimap.select(this.selectedId)
         // 左下の操作ボタンの上に被せ、全体図を開いている間は触れられないようにする
         this.root.appendChild(this.minimap.el)
-    }
-
-    // カメラをワールド座標posに向ける(=posが画面中央に来るようにする)。animateがtrueならアニメーションさせる
-    private applyCamera(animate: boolean) {
-        for (const el of this.cameraLayers) {
-            el.style.transition = animate ? `transform ${CAMERA_PAN_MS}ms ease-out` : "none"
-            el.style.transform = `translate(${-this.camera.x}px, ${-this.camera.y}px)`
-        }
-    }
-
-    // カメラがノードの存在範囲より外に出ないように制限する(スワイプで無の空間へ延々と行けてしまわないため)
-    private clampCamera(pos: { x: number; y: number }): Camera {
-        return {
-            x: clamp(pos.x, this.worldBounds.minX, this.worldBounds.maxX),
-            y: clamp(pos.y, this.worldBounds.minY, this.worldBounds.maxY),
-        }
-    }
-
-    private handlePointerDown = (e: PointerEvent) => {
-        if (this.equipMenu) return
-        if (this.minimap) return // 全体図ではカメラを動かさない
-        if (this.dragging) return // 既に別の指/ボタンでドラッグ中なら無視(多点タッチでの取り違え防止)
-        if (e.button !== 0) return // 左クリック/タッチのみ(右クリック等でのドラッグ開始を防ぐ)
-
-        this.dragging = true
-        this.dragMoved = false
-        this.dragPointerId = e.pointerId
-        this.dragStartClient = { x: e.clientX, y: e.clientY }
-        this.dragStartCamera = { ...this.camera }
-    }
-
-    private handlePointerMove = (e: PointerEvent) => {
-        if (!this.dragging || e.pointerId !== this.dragPointerId) return
-
-        const dx = e.clientX - this.dragStartClient.x
-        const dy = e.clientY - this.dragStartClient.y
-
-        if (!this.dragMoved) {
-            if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return
-            this.dragMoved = true
-            this.root.classList.add("dragging")
-        }
-
-        this.camera = this.clampCamera({ x: this.dragStartCamera.x - dx, y: this.dragStartCamera.y - dy })
-        this.applyCamera(false)
-    }
-
-    private handlePointerUp = (e: PointerEvent) => {
-        if (!this.dragging || e.pointerId !== this.dragPointerId) return
-
-        this.dragging = false
-        this.dragPointerId = null
-        this.root.classList.remove("dragging")
-        // ドラッグが発生した場合、指を離した直後に発火するclickをタップ選択として扱わない
-        if (this.dragMoved) this.suppressNextClick = true
     }
 
     // タップ操作用。既に選択中のノードをもう一度タップしたら決定(keyboardのok相当)、
@@ -394,6 +302,7 @@ export class SceneMap extends Scene {
                     onSelect: () => {
                         this.equipMenu?.back(1)
                     },
+                    sound: "cancel",
                 },
             ],
         ]
@@ -435,6 +344,7 @@ export class SceneMap extends Scene {
                     onSelect: () => {
                         this.equipMenu?.back(1)
                     },
+                    sound: "cancel",
                 },
             ],
         ]
@@ -487,6 +397,7 @@ export class SceneMap extends Scene {
                     onSelect: () => {
                         this.equipMenu?.back(1)
                     },
+                    sound: "cancel",
                 },
             ],
         ]
@@ -561,10 +472,6 @@ function pickClosestInDirection(
     }
 
     return best
-}
-
-function clamp(value: number, min: number, max: number): number {
-    return Math.min(Math.max(value, min), max)
 }
 
 function formatMmSs(ms: number): string {

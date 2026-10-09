@@ -5,7 +5,7 @@ import type { SubEquipment } from "./types"
 // 短く・頻繁に使え、薄い壁を一瞬で突き抜けるのが得意。
 // 弾は一つも消さないので、抜けた先に居場所がなければ意味がない。
 const 持続フレーム = 18
-const クールダウンフレーム = 960
+const クールダウンフレーム = 720
 const 速度倍率 = 7
 
 export const dash: SubEquipment = {

@@ -11,7 +11,7 @@ import type { SubEquipment } from "./types"
 const 持続フレーム = 120
 const 展開フレーム = 8
 const 消滅フレーム = 20
-const クールダウンフレーム = 960
+const クールダウンフレーム = 720
 const 半径倍率 = 12
 
 export const barrier: SubEquipment = {

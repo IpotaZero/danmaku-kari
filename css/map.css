@@ -21,7 +21,7 @@
         opacity: 0.4;
     }
 
-    /* ドラッグでのスワイプ操作を自前で処理するので、ブラウザ標準のスクロール/ズームジェスチャーには渡さない */
+    /* スワイプ・ピンチを自前で処理するので、ブラウザ標準のスクロール/ズームジェスチャーには渡さない */
     touch-action: none;
     cursor: grab;
 
@@ -29,15 +29,19 @@
         cursor: grabbing;
     }
 
-    /* 方眼・紙の質感など、ワールドと一緒にtransformで動かす背景。
-       カメラは全ノードの範囲(--world-*)の中しか動かないので、その範囲+画面1枚ぶん(100%)を覆えば途切れない */
+    /* 方眼・紙の質感など、ワールドと一緒にtransformで動かす背景(src/Map/MapCamera.ts)。
+       カメラは全ノードの範囲(--world-*)の中しか動かず、いちばん縮小したとき(--map-min-zoom)には画面1枚の1/--map-min-zoom倍が映るので、
+       その範囲+映る広さぶんを覆えば途切れない。
+       拡大縮小の中心はワールド(.map-world)と同じく画面中央に合わせる。この大きさなら、それは背景の中心から全ノードの範囲の中心ぶんずらした所になる */
     .map-backdrop {
         position: absolute;
         inset: auto;
-        left: calc(var(--world-min-x) - 64px);
-        top: calc(var(--world-min-y) - 64px);
-        width: calc(var(--world-width) + 100% + 128px);
-        height: calc(var(--world-height) + 100% + 128px);
+        left: calc(50% + var(--world-min-x) - 50% / var(--map-min-zoom) - 64px);
+        top: calc(50% + var(--world-min-y) - 50% / var(--map-min-zoom) - 64px);
+        width: calc(var(--world-width) + 100% / var(--map-min-zoom) + 128px);
+        height: calc(var(--world-height) + 100% / var(--map-min-zoom) + 128px);
+        transform-origin: calc(50% - var(--world-min-x) - var(--world-width) / 2)
+            calc(50% - var(--world-min-y) - var(--world-height) / 2);
         pointer-events: none;
     }
 
@@ -63,7 +67,7 @@
         opacity: 0.25;
     }
 
-    /* ノードのワールド座標(px)の原点。ここを画面中央に置き、カメラ位置ぶんだけJSでtranslateする */
+    /* ノードのワールド座標(px)の原点。ここを画面中央に置き、カメラ位置ぶんだけJSでtranslateして、ここを中心に拡大率ぶんscaleする */
     .map-world {
         position: absolute;
         left: 50%;
