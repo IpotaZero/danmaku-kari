@@ -61,7 +61,7 @@ type MenuLayer = {
 }
 
 // レイヤーの表示/非表示切り替えにかけるフェード時間(ms)
-const TRANSITION_MS = 150
+const TRANSITION_MS = 100
 
 // 触れてから離すまでにこの距離(px)以上動いたら、タップではなくなぞり(ホバー)とみなす
 const TAP_TOLERANCE_PX = 10
@@ -278,24 +278,46 @@ export class Menu {
         return el
     }
 
-    // opacityをアニメーションさせてから(非表示化時のみ)fadeout(display:none)を切り替える
-    private setHidden(elementId: string, hidden: boolean) {
-        const el = this.getElement(elementId)
-        el.style.transition = `opacity ${TRANSITION_MS}ms ease-out`
+    // 要素ID -> 隠すならtrue、表示するならfalse、をまとめて切り替える。
+    // 入れ替えのときに隠す要素を薄れさせていると、その間も場所を取って新しい要素を押しのけてしまうし、
+    // 薄れるのを待ってから出すと切り替えがもたつく。なので入れ替えでは古い要素をすぐ消し、新しい要素だけをフェードインさせる。
+    // 隠すだけのとき(サブメニューを閉じて、下に残っていた親が見えるだけのとき)は、押しのけるものがないのでフェードアウトさせる
+    private applyVisibility(changes: Map<string, boolean>) {
+        const hiding = [...changes].filter(([, hidden]) => hidden).map(([id]) => this.getElement(id))
+        const showing = [...changes].filter(([, hidden]) => !hidden).map(([id]) => this.getElement(id))
 
-        if (hidden) {
-            el.style.opacity = "0"
-            window.setTimeout(() => {
-                if (el.style.opacity === "0") el.classList.add("fadeout")
-            }, TRANSITION_MS)
-        } else {
-            el.classList.remove("fadeout")
-            el.style.opacity = "0"
-            // fadeoutを外した直後の同フレームでopacityを上げるとtransitionが飛ぶことがあるので次フレームにする
-            requestAnimationFrame(() => {
-                el.style.opacity = "1"
-            })
-        }
+        hiding.forEach((el) => (showing.length > 0 ? this.hideNow(el) : this.fadeOut(el)))
+        showing.forEach((el) => this.fadeIn(el))
+    }
+
+    // 切り替えの途中で逆向きの切り替えが来ることがある(すばやい操作をしたとき)。
+    // 予約しておいた続きが新しい切り替えを上書きしないよう、最後に望まれた状態をdatasetに覚えておき、続きの前に確かめる
+    private hideNow(el: HTMLElement) {
+        el.dataset.menuHidden = "true"
+        el.style.transition = "none"
+        el.style.opacity = "0"
+        el.classList.add("fadeout")
+    }
+
+    private fadeOut(el: HTMLElement) {
+        el.dataset.menuHidden = "true"
+        el.style.transition = `opacity ${TRANSITION_MS}ms ease-out`
+        el.style.opacity = "0"
+
+        window.setTimeout(() => {
+            if (el.dataset.menuHidden === "true") el.classList.add("fadeout")
+        }, TRANSITION_MS)
+    }
+
+    private fadeIn(el: HTMLElement) {
+        el.dataset.menuHidden = "false"
+        el.style.transition = `opacity ${TRANSITION_MS}ms ease-out`
+        el.classList.remove("fadeout")
+        el.style.opacity = "0"
+        // fadeoutを外した直後の同フレームでopacityを上げるとtransitionが飛ぶことがあるので次フレームにする
+        requestAnimationFrame(() => {
+            if (el.dataset.menuHidden === "false") el.style.opacity = "1"
+        })
     }
 
     // 現在のカーソル位置に選択肢が存在するか
@@ -357,8 +379,13 @@ export class Menu {
     }
 
     pushSubMenu(subMenu: MenuOptionBox, { hides = [], shows = [] }: { hides?: string[]; shows?: string[] } = {}) {
-        hides.forEach((id) => this.setHidden(id, true))
-        shows.forEach((id) => this.setHidden(id, false))
+        this.applyVisibility(
+            new Map([
+                ...hides.map((id) => [id, true] as const),
+                ...shows.map((id) => [id, false] as const),
+                [subMenu.elementId, false],
+            ]),
+        )
 
         this.history.push(this.cursor)
         this.hidesStack.push(hides)
@@ -367,29 +394,30 @@ export class Menu {
         this.layerStack.push({ box: subMenu, options: [] })
         this.cursor = subMenu.initialCursor?.() ?? { row: 0, col: 0 }
 
-        this.setHidden(subMenu.elementId, false)
         this.render()
     }
 
     back(depth: number) {
+        // 何層も戻るときは、途中の層で表示してすぐ隠すような要素があるので、最後の状態だけをまとめて切り替える
+        const changes = new Map<string, boolean>()
+
         for (let i = 0; i < depth; i++) {
             if (this.layerStack.length <= 1) {
+                this.applyVisibility(changes)
                 this.onBack()
                 return
             }
 
             const current = this.layerStack.pop()!
-            this.setHidden(current.box.elementId, true)
+            changes.set(current.box.elementId, true)
 
-            const hides = this.hidesStack.pop()!
-            hides.forEach((id) => this.setHidden(id, false))
-
-            const shows = this.showsStack.pop()!
-            shows.forEach((id) => this.setHidden(id, true))
+            this.hidesStack.pop()!.forEach((id) => changes.set(id, false))
+            this.showsStack.pop()!.forEach((id) => changes.set(id, true))
 
             this.cursor = this.history.pop()!
         }
 
+        this.applyVisibility(changes)
         this.render()
     }
 

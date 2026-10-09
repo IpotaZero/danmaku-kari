@@ -1,5 +1,6 @@
 import { App } from "../App"
 import { Dom } from "../Dom"
+import { EquipmentId } from "../Data/Equipment"
 import { playerData } from "../Data/PlayerData"
 import { mainEquipments, subEquipments } from "../Game/Equipment/PlayerEquipment"
 import { MapEdge, MapGraph, MapNode, MapNodeId } from "../Map/MapGraph"
@@ -10,6 +11,7 @@ import { MapProps } from "../Map/MapProps"
 import { InputCode } from "../utils/InputCode"
 import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 import { Menu, MenuOption, MenuOptionBox } from "../utils/Menu/Menu"
+import { MenuPreset } from "../utils/Menu/MenuPreset"
 import { Scene } from "../utils/Scene/Scene"
 
 type Direction = "up" | "down" | "left" | "right"
@@ -131,9 +133,7 @@ export class SceneMap extends Scene {
         this.livesRecoveryEl = this.root.querySelector<HTMLElement>(".map-lives-recovery")!
         this.updateLivesDisplay()
 
-        // scoreはステージ内でのみ変動する値で、SceneMap滞在中には変わらないので一度だけ表示すればよい
-        this.root.querySelector<HTMLElement>(".map-score")!.textContent =
-            `蜜 ${playerData.getTotalScore().toLocaleString()}`
+        this.updateScoreDisplay()
 
         // 初期カメラは選択中ノードを中央に据えた状態から始める(アニメーションなし)
         this.camera.lookAt(this.graph.node(this.selectedId), false)
@@ -249,6 +249,7 @@ export class SceneMap extends Scene {
             `<div id="equip-root"></div>
              <div id="equip-main-options" class="fadeout"></div>
              <div id="equip-sub-options" class="fadeout"></div>
+             <div id="equip-learn" class="fadeout"></div>
              <div class="equip-description"></div>
              <div class="texture-overlay"></div>`,
             {
@@ -289,7 +290,8 @@ export class SceneMap extends Scene {
                 {
                     type: "submenu",
                     label: `技: ${this.getSubEquipmentLabel()}`,
-                    hides: [],
+                    // 技は数が多く、型の変更と並べると画面からはみ出すので、選んでいる間は隠す
+                    hides: ["equip-root"],
                     onFocus: () => this.hideEquipDescription(),
                     subMenu: () => this.buildSubEquipmentSubMenu(),
                 },
@@ -377,18 +379,7 @@ export class SceneMap extends Scene {
                     },
                 },
             ],
-            ...Object.keys(subEquipments).map((id) => [
-                {
-                    type: "select" as const,
-                    label: subEquipments[id]?.label ?? id,
-                    disabled: () => !playerData.getOwnedSubEquipmentIds().has(id),
-                    onFocus: () => this.showEquipDescription(subEquipments[id]?.description ?? ""),
-                    onSelect: () => {
-                        playerData.setLoadout({ ...playerData.getLoadout(), sub: id })
-                        this.equipMenu?.backToRoot()
-                    },
-                },
-            ]),
+            ...Object.keys(subEquipments).map((id) => [this.buildSubEquipmentOption(id)]),
             [
                 {
                     type: "select",
@@ -401,6 +392,48 @@ export class SceneMap extends Scene {
                 },
             ],
         ]
+    }
+
+    // 持っている技は選べばそのまま装備する。まだ持っていない技は、蜜を払って習得するかを尋ねる
+    private buildSubEquipmentOption(id: EquipmentId): MenuOption {
+        const equipment = subEquipments[id]!
+        const equip = () => {
+            playerData.setLoadout({ ...playerData.getLoadout(), sub: id })
+            this.equipMenu?.backToRoot()
+        }
+
+        if (playerData.getOwnedSubEquipmentIds().has(id)) {
+            return {
+                type: "select",
+                label: equipment.label,
+                onFocus: () => this.showEquipDescription(equipment.description),
+                onSelect: equip,
+            }
+        }
+
+        return {
+            type: "submenu",
+            label: `${equipment.label}　<span class="equip-price">蜜 ${equipment.price.toLocaleString()}</span>`,
+            hides: ["equip-sub-options"],
+            disabled: () => playerData.getTotalScore() < equipment.price,
+            onFocus: () => this.showEquipDescription(equipment.description),
+            subMenu: () => ({
+                ...MenuPreset.buildConfirmBox(
+                    this.equipMenu!,
+                    () => {
+                        playerData.learnSubEquipment(id, equipment.price)
+                        this.updateScoreDisplay()
+                        equip()
+                    },
+                    {
+                        title: "--:: 習得する? ::--",
+                        elementId: "equip-learn",
+                        // 題に値段まで入れるとスマホの幅からはみ出すので、払う量は「はい」の側に添える
+                        confirmLabel: `はい　<span class="equip-price">蜜 ${equipment.price.toLocaleString()}</span>`,
+                    },
+                ),
+            }),
+        }
     }
 
     // 装備選択肢にカーソルが乗っている間、その装備の説明を表示する
@@ -419,6 +452,12 @@ export class SceneMap extends Scene {
         if (!subId) return "なし"
 
         return subEquipments[subId]?.label ?? subId
+    }
+
+    // 蜜はステージで稼ぐか技の習得で払ったときにだけ変わるので、毎フレームではなくその都度表示し直す
+    private updateScoreDisplay() {
+        this.root.querySelector<HTMLElement>(".map-score")!.textContent =
+            `蜜 ${playerData.getTotalScore().toLocaleString()}`
     }
 
     private updateLivesDisplay() {

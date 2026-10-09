@@ -1,4 +1,6 @@
-import { actionReadyEffect } from "./ActionReadyEffect"
+import { GenUtils } from "@ipota/functions"
+import type { Player } from "../Actor/Player"
+import { actionCooldown } from "./ActionCooldown"
 import type { SubEquipment } from "./types"
 
 // 高速移動は「場所を移る」装備。
@@ -11,38 +13,27 @@ const 速度倍率 = 7
 export const dash: SubEquipment = {
     label: "高速移動",
     description: "一瞬だけ高速移動する。高速移動中は無敵になる。",
+    price: 0,
     *action(player) {
-        let cooldown = 0
-        let burstFramesRemaining = 0
-
         while (true) {
-            // クールタイムはダッシュ中も含め毎フレーム進める
-            if (cooldown > 0) {
-                cooldown--
-                player.actionCooldownRemaining = cooldown / クールダウンフレーム
-
-                if (cooldown === 0) {
-                    player.addScript(() => actionReadyEffect(player))
-                }
-            }
-
-            if (burstFramesRemaining > 0) {
-                burstFramesRemaining--
-
-                if (burstFramesRemaining === 0) {
-                    player.speedMultiplier = 1
-                    player.isActionInvincible = false
-                }
-            } else if (cooldown === 0 && player.game.input.isPushed("action")) {
-                cooldown = クールダウンフレーム
-                burstFramesRemaining = 持続フレーム
-                player.actionCooldownRemaining = 1
-                player.speedMultiplier = 速度倍率
-                player.isActionInvincible = true
-                player.game.se.dash.play()
+            if (player.game.input.isPushed("action")) {
+                // クールタイムはダッシュ中も含めて進める
+                player.addScript(() => burst(player))
+                yield* actionCooldown(player, クールダウンフレーム)
             }
 
             yield
         }
     },
+}
+
+function* burst(player: Player): Generator<void, void, void> {
+    player.speedMultiplier = 速度倍率
+    player.isActionInvincible = true
+    player.game.se.dash.play()
+
+    yield* GenUtils.waitFrames(持続フレーム)
+
+    player.speedMultiplier = 1
+    player.isActionInvincible = false
 }

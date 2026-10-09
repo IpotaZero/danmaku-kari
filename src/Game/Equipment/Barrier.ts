@@ -1,7 +1,7 @@
 import { Ease } from "@ipota/functions"
 import { Ctx } from "../../utils/Functions/Ctx"
 import type { Player } from "../Actor/Player"
-import { actionReadyEffect } from "./ActionReadyEffect"
+import { actionCooldown } from "./ActionCooldown"
 import type { SubEquipment } from "./types"
 
 // 障壁は「空間を作る」装備。
@@ -17,21 +17,12 @@ const 半径倍率 = 12
 export const barrier: SubEquipment = {
     label: "障壁",
     description: "その場に結界を張る。結界は2秒間その位置に留まり、中に入った敵弾を蜜に変える。",
+    price: 1000,
     *action(player) {
-        let cooldown = 0
-
         while (true) {
-            if (cooldown > 0) {
-                cooldown--
-                player.actionCooldownRemaining = cooldown / クールダウンフレーム
-
-                if (cooldown === 0) {
-                    player.addScript(() => actionReadyEffect(player))
-                }
-            } else if (player.game.input.isPushed("action")) {
-                cooldown = クールダウンフレーム
-                player.actionCooldownRemaining = 1
+            if (player.game.input.isPushed("action")) {
                 player.addScript(() => barrierField(player))
+                yield* actionCooldown(player, クールダウンフレーム)
             }
 
             yield

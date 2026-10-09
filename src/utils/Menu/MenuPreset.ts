@@ -8,7 +8,8 @@ export namespace MenuPreset {
             title = "ほんとに?",
             elementId = "yes-no",
             confirmSound,
-        }: { title?: string; elementId?: string; confirmSound?: MenuSoundPattern } = {},
+            confirmLabel = "はい",
+        }: { title?: string; elementId?: string; confirmSound?: MenuSoundPattern; confirmLabel?: string } = {},
     ): MenuOptionBox => ({
         elementId,
         title,
@@ -16,7 +17,7 @@ export namespace MenuPreset {
             [
                 {
                     type: "select",
-                    label: "はい",
+                    label: confirmLabel,
                     sound: confirmSound,
                     onSelect: () => {
                         onConfirm()

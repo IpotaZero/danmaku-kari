@@ -397,7 +397,7 @@
         display: flex;
         flex-direction: column;
         gap: 0.25em;
-        top: 0.8em;
+        top: 1em;
         left: 5%;
 
         padding-left: 0.5em;
@@ -492,11 +492,18 @@
         padding-top: 0.5em;
     }
 
-    #equip-sub-options {
+    #equip-sub-options,
+    #equip-learn {
         flex-direction: column;
         width: 100%;
         max-width: 20em;
         padding-top: 0.5em;
+    }
+
+    /* まだ習得していない技に添える、習得に払う蜜の量 */
+    .equip-price {
+        font-size: 0.8em;
+        color: var(--gold);
     }
 
     .equip-description {
@@ -575,6 +582,15 @@
                 background: var(--paper);
                 color: var(--forest);
                 box-shadow: 0 0.25em 0 -0.15em var(--gold);
+            }
+
+            /* 蜜が足りない技は行ごと薄くする。menu.cssの既定はspanごとに重ねて薄くなり、値段まで読めなくなる */
+            &.disabled {
+                opacity: 0.4;
+
+                span {
+                    opacity: 1;
+                }
             }
         }
     }
