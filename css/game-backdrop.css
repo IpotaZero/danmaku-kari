@@ -1,5 +1,5 @@
-/* 戦闘画面のキャンバス外に敷く夜の草むら(GameBackdrop.ts)。
-   色は base.css の4色だけを使い、マップ画面と同じ夜の地(--night)につなげる。
+/* 戦闘画面のキャンバス外に敷く景色(GameBackdrop.ts)。
+   色は base.css の4色だけを使う。場所ごとの色と漂うものは css/scenery.css の変数で決まる。
    キャンバスより目立たないよう、どれも暗く・ゆっくり動かす。 */
 
 .game-backdrop {
@@ -8,14 +8,14 @@
     overflow: hidden;
     pointer-events: none;
 
-    /* 上の黒から地平線(下)へ、4段の帯でほんのわずかずつ墨緑を混ぜていく。どの段もほぼ黒で、目立たせない。
+    /* 上の黒から地平線(下)へ、4段の帯でほんのわずかずつ空の色(--sky)を混ぜていく。どの段もほぼ黒で、目立たせない。
        なめらかなグラデーションにはせず、段と段の境目だけを3%幅で少しぼかす */
     background: linear-gradient(
         180deg,
         black 0% 22%,
-        color-mix(in srgb, var(--forest) 7%, black) 25% 47%,
-        color-mix(in srgb, var(--forest) 13%, black) 50% 72%,
-        color-mix(in srgb, var(--forest) 20%, black) 75% 100%
+        color-mix(in srgb, var(--sky) 7%, black) 25% 47%,
+        color-mix(in srgb, var(--sky) 13%, black) 50% 72%,
+        color-mix(in srgb, var(--sky) 20%, black) 75% 100%
     );
 }
 
@@ -24,9 +24,9 @@
     animation-play-state: paused;
 }
 
-/* 右上の月明かり。枝のシルエットをこの明るみに重ねて見せる。
+/* 右上の日や月の光(--light)。枝のシルエットをこの明るみに重ねて見せる。
    ぼんやり広がる光ではなく、月暈(つきがさ)のような3重の輪にし、輪の縁だけを少しぼかす */
-.backdrop-moon {
+.backdrop-light {
     position: absolute;
     top: -25vmin;
     right: -15vmin;
@@ -36,11 +36,12 @@
 
     background: radial-gradient(
         circle,
-        color-mix(in srgb, var(--gold) 6%, transparent) 0% 16%,
-        color-mix(in srgb, var(--gold) 3.5%, transparent) 18% 30%,
-        color-mix(in srgb, var(--gold) 1.5%, transparent) 32% 46%,
+        color-mix(in srgb, var(--light) 6%, transparent) 0% 16%,
+        color-mix(in srgb, var(--light) 3.5%, transparent) 18% 30%,
+        color-mix(in srgb, var(--light) 1.5%, transparent) 32% 46%,
         transparent 48%
     );
+    opacity: var(--light-strength);
 }
 
 /* 草も枝も、地よりさらに暗いほぼ黒で描いてシルエットにする */
@@ -113,38 +114,87 @@
     }
 }
 
-/* 雪虫。淡い綿毛をまとった粒が、ゆっくり揺れながら舞い降りる。キャンバスより目立たないよう薄くする */
-.backdrop-yukimushi {
+/* 漂うもの。色・大きさ・ぼかし・動き方は場所ごとの変数(css/scenery.css)で決まる。
+   位置(--x, --y)・ゆらぎ(--drift)・周期の倍率(--pace)は要素ごとにばらつかせてある(GameBackdrop.ts) */
+.backdrop-motes {
+    position: absolute;
+    inset: 0;
+}
+
+.backdrop-mote {
     position: absolute;
     left: var(--x);
-    top: -1rem;
-    width: 0.2rem;
-    height: 0.2rem;
+    top: var(--y);
+    width: var(--mote-size);
+    height: var(--mote-size);
     border-radius: 50%;
 
-    background: color-mix(in srgb, var(--paper) 60%, transparent);
-    box-shadow: 0 0 0.5rem 0.2rem color-mix(in srgb, var(--paper) 15%, transparent);
+    background: var(--mote);
+    filter: blur(var(--mote-blur));
+    opacity: 0;
 
-    animation: backdrop-yukimushi-fall var(--fall) linear infinite;
+    animation-name: var(--mote-motion);
+    animation-duration: calc(var(--mote-period) * var(--pace));
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
     animation-delay: var(--delay);
 }
 
-@keyframes backdrop-yukimushi-fall {
+/* 上から舞い降りる(雪・葉) */
+@keyframes backdrop-fall {
     0% {
-        transform: translate(0, 0);
+        transform: translate(0, calc(-1 * var(--y) - 2rem));
         opacity: 0;
     }
-    10% {
-        opacity: 0.5;
-    }
-    50% {
-        transform: translate(calc(var(--drift) * -0.6), 50dvh);
-    }
+    10%,
     90% {
-        opacity: 0.5;
+        opacity: var(--mote-opacity);
     }
     100% {
-        transform: translate(var(--drift), 100dvh);
+        transform: translate(var(--drift), calc(100dvh - var(--y) + 2rem));
         opacity: 0;
+    }
+}
+
+/* 下から立ちのぼる(花粉・陽炎・火の粉) */
+@keyframes backdrop-rise {
+    0% {
+        transform: translate(0, calc(100dvh - var(--y) + 2rem));
+        opacity: 0;
+    }
+    10%,
+    90% {
+        opacity: var(--mote-opacity);
+    }
+    100% {
+        transform: translate(var(--drift), calc(-1 * var(--y) - 2rem));
+        opacity: 0;
+    }
+}
+
+/* 左から右へ吹き流される(風に飛ぶ花びら・砂・霧) */
+@keyframes backdrop-blow {
+    0% {
+        transform: translate(calc(-1 * var(--x) - 4rem), 0);
+        opacity: 0;
+    }
+    10%,
+    90% {
+        opacity: var(--mote-opacity);
+    }
+    100% {
+        transform: translate(calc(100vw - var(--x) + 4rem), var(--drift));
+        opacity: 0;
+    }
+}
+
+/* その場で瞬く(露・星) */
+@keyframes backdrop-twinkle {
+    0%,
+    100% {
+        opacity: 0;
+    }
+    50% {
+        opacity: var(--mote-opacity);
     }
 }

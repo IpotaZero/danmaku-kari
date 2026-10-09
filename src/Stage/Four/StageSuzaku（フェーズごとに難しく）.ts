@@ -4,14 +4,13 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
-import { Figure } from "../Figure"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
 
-// ステージ「朱雀」(前日・育房)
+// ステージ「朱雀」(四天王)
 // 朱雀は不死鳥。二度倒しても灰の中から蘇り、三度目でようやく倒れる。蘇ることがこの戦いのテーマ。
 // 朱雀のまわりに子機が幾何学的に並ぶ。胴の左右に翼の一対、胴の下に五枚の尾羽の横一列。両方の翼を落とすまで、胴に攻撃が効かない。
 // 尾羽: 火の粉を高く舞い上げる。火の粉は放物線を描いて落ち、落ちたところで小さく弾ける。
@@ -23,24 +22,8 @@ import { Charge } from "../Charge"
 //   二代目の翼: 外から内へ、炎の帯を薙ぎ払う。左右の帯は胴の下で交差する。
 //   三代目の翼: 火の鳥を三羽放つ。火の鳥は外へ飛び出して止まり、自機のいた所へ急降下する。
 
-// 物語では、スズメバチの巣の育房として出る(前日)。妹たちを食べて育った子どもたちが、繭を破って次々に羽化してくる
 export default class extends Stage {
     *G() {
-        yield* this.narrate(
-            "前日。育房。",
-            "六角形の部屋が、何段も、何段も続いている。",
-            "どの部屋にも、白い繭のふたがしてあった。",
-        )
-
-        this.showFigure(Figure.hachinoko)
-        this.showFigure(Figure.yukimushi)
-        yield* this.talk("世話係", "しずかに。いま、子どもたちが羽化するところなの。")
-        yield* this.talk("ハチノコ", "……妹たちは、どこ。")
-        yield* this.talk("世話係", "蜜蜂の子? みんな、ここにいるわ。", "この子たちが食べたの。よく育ったでしょう。")
-        yield* this.talk("ハチノコ", "……。")
-        yield* this.narrate("繭のふたが、ひとつ、内側から破れた。")
-        this.hideAllFigures()
-
         // 朱雀が現れる場所。一代目は画面の外から、二代目からは卵の孵った所から
         let from = vec(-200, -200)
 
@@ -65,12 +48,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        yield* this.narrate("育房は、静かになった。", "破れた繭がいくつも、ぶら下がっていた。")
-        this.showFigure(Figure.hachinoko)
-        this.showFigure(Figure.yukimushi)
-        yield* this.talk("ユキムシ", "……あと一日。")
-        this.hideAllFigures()
     }
 }
 

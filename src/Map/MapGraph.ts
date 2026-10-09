@@ -1,10 +1,11 @@
 import { Game } from "../Game/Game"
 import { EquipmentId } from "../Data/Equipment"
-import { PlayerData } from "../Data/PlayerData"
+import { BadgeId, PlayerData } from "../Data/PlayerData"
 import { Stage } from "../Stage/Stage"
 import { EdgeCondition } from "./EdgeCondition"
 import { JsonCanvas, JsonCanvasNode } from "./JsonCanvas"
 import { isSmartPhone } from "../utils/Functions/isSmartPhone"
+import { Scenery } from "../World/Scenery"
 
 // ノード間の距離の倍率。スマホは画面が狭いので、ノードの大きさはそのままに間隔だけ詰めて周りまで見えるようにする
 const POSITION_SCALE = isSmartPhone ? 0.5 : 1
@@ -17,21 +18,24 @@ export type MapNodeId = string
 
 type StageModule = { default: new (game: Game) => Stage }
 
+// path はStageフォルダからの相対パス(拡張子なし)。最初のフォルダ名がステージのある場所(景色)になる
+type StageLoader = { readonly path: string; readonly load: () => Promise<StageModule> }
+
 // ステージはStageフォルダからの相対パス(拡張子なし)で参照する。同名ファイルがなければファイル名だけでも参照できる。
+// ファイル名の末尾の全角括弧は覚え書き(「StageByakko（もっと難しく）」など)なので、参照するときは外す。
 // 遅延読み込みなので、マップ画面では各ステージのコードを読み込まない。
-const stageLoaders: ReadonlyMap<string, () => Promise<StageModule>> = (() => {
+const stageLoaders: ReadonlyMap<string, StageLoader> = (() => {
     // @ts-ignore
     const modules: Record<string, () => Promise<StageModule>> = import.meta.glob<StageModule>("../Stage/**/*.ts")
-    const loaders = new Map<string, () => Promise<StageModule>>()
+    const loaders = new Map<string, StageLoader>()
     const pathsByName = new Map<string, string[]>()
     for (const [path, load] of Object.entries(modules)) {
-        // ファイル名の末尾の全角括弧は覚え書き(「StageByakko（もっと難しく）」など)なので、参照するときは外す
         const stagePath = path
             .replace(/^.*\/Stage\//, "")
             .replace(/\.ts$/, "")
             .replace(/（[^（）]*）$/, "")
         const name = stagePath.replace(/^.*\//, "")
-        loaders.set(stagePath, load)
+        loaders.set(stagePath, { path: stagePath, load })
         const paths = pathsByName.get(name) ?? []
         paths.push(stagePath)
         pathsByName.set(name, paths)
@@ -45,11 +49,11 @@ const stageLoaders: ReadonlyMap<string, () => Promise<StageModule>> = (() => {
 // ステージのファイルが見つからないノードでは、代わりにこのステージを遊ばせる
 const MISSING_STAGE_NAME = "Test/StageNotImplemented"
 
-// ノードを越えると手に入る装備
-type Reward = { readonly slot: "main" | "sub"; readonly id: EquipmentId }
-
 export class MapNode {
-    private readonly loadStage: () => Promise<StageModule>
+    private readonly loader: StageLoader
+
+    // ステージのある場所の景色。ステージのフォルダで決まる
+    readonly scenery: Scenery
 
     constructor(
         // Canvasのカードのid。同じステージを複数のノードで使い回せるよう、ステージ名とは別に持つ
@@ -62,58 +66,46 @@ export class MapNode {
         // 見た目の大きさ(px)。Canvasのカードの大きさをそのまま使う
         readonly width: number,
         readonly height: number,
-        // 初雪まであと何日の場所か(Day参照)。日付のないノードもある
-        readonly day: number | undefined,
-        private readonly rewards: readonly Reward[],
+        // クリアすると授かる免状。道場主のノードにだけ付く
+        readonly badge?: BadgeId,
     ) {
         // 見つからなくてもマップ全体は遊べるよう止めずに代わりのステージにする。書き間違いには読み込み時点の警告で気づけるようにする
-        const loadStage = stageLoaders.get(stageName)
-        if (!loadStage) {
+        const loader = stageLoaders.get(stageName)
+        if (!loader) {
             const available = [...stageLoaders.keys()].join(", ")
             console.warn(
                 `ステージのファイルが見つかりません: ${stageName} (ノード「${label}」)。${MISSING_STAGE_NAME}で代用します。候補: [${available}]`,
             )
         }
-        this.loadStage = loadStage ?? stageLoaders.get(MISSING_STAGE_NAME)!
+        this.loader = loader ?? stageLoaders.get(MISSING_STAGE_NAME)!
+        this.scenery = Scenery.ofArea(this.loader.path.split("/")[0]!)
     }
 
     // カード本文の1行目をラベル、2行目をステージの相対パスまたは一意なファイル名として読む。座標はカードの中心。
-    // 3行目以降は「キー:値」の形の追加情報。
-    //   day:5      初雪まであと5日の場所
-    //   main:laser 越えると主装備laserが手に入る
-    //   sub:dash   越えると副装備dashが手に入る
+    // 3行目以降は「キー:値」の形の追加情報(今のところ免状を授ける"badge"だけ)
     static fromCanvas(card: JsonCanvasNode): MapNode {
         const [label = "", stageName = "", ...rest] = (card.text ?? "").split("\n").map((line) => line.trim())
 
-        let day: number | undefined
-        const rewards: Reward[] = []
+        let badge: BadgeId | undefined
         for (const line of rest.filter((line) => line.length > 0)) {
-            const [rawKey = "", ...values] = line.split(":")
-            const key = rawKey.trim()
-            const value = values.join(":").trim()
-
-            if (key === "day") {
-                day = Number(value)
-            } else if (key === "main" || key === "sub") {
-                rewards.push({ slot: key, id: value })
-            } else {
-                throw new Error(`不明な追加情報です: ${line} (ノード「${label}」)`)
-            }
+            const [key = "", ...value] = line.split(":")
+            if (key.trim() !== "badge") throw new Error(`不明な追加情報です: ${line} (ノード「${label}」)`)
+            badge = value.join(":").trim()
         }
 
         const x = (card.x + card.width / 2) * POSITION_SCALE
         const y = (card.y + card.height / 2) * POSITION_SCALE
-        return new MapNode(card.id, label, stageName, x, y, card.width / 2, card.height / 2, day, rewards)
+        return new MapNode(card.id, label, stageName, x, y, card.width / 2, card.height / 2, badge)
     }
 
-    // クリアを記録し、越えると手に入る装備を渡す
+    // クリアを記録し、免状を授けるノードなら免状も授ける
     recordClear(playerData: PlayerData, mainEquipmentId: EquipmentId, noMiss: boolean) {
         playerData.recordStageClear(this.id, mainEquipmentId, noMiss)
-        this.rewards.forEach((reward) => playerData.grantEquipment(reward.slot, reward.id))
+        if (this.badge) playerData.awardBadge(this.badge)
     }
 
     async stage(game: Game): Promise<Stage> {
-        const { default: StageClass } = await this.loadStage()
+        const { default: StageClass } = await this.loader.load()
         return new StageClass(game)
     }
 }
@@ -177,6 +169,7 @@ export class MapGraph {
     static fromCanvas(canvas: JsonCanvas): MapGraph {
         const nodes = canvas.nodes.filter((card) => card.type === "text").map((card) => MapNode.fromCanvas(card))
         const nodesById = new Map(nodes.map((node) => [node.id, node]))
+        const badges = new Set(nodes.flatMap((node) => (node.badge ? [node.badge] : [])))
 
         const findNode = (id: string): MapNode => {
             const node = nodesById.get(id)
@@ -189,7 +182,7 @@ export class MapGraph {
                 new MapEdge(
                     findNode(edge.fromNode),
                     findNode(edge.toNode),
-                    EdgeCondition.fromLabel(edge.label?.trim() || undefined),
+                    EdgeCondition.fromLabel(edge.label?.trim() || undefined, badges),
                 ),
         )
 
@@ -219,12 +212,25 @@ export class MapGraph {
         return this.edges.filter((edge) => edge.to === node).some((edge) => edge.isOpen(playerData))
     }
 
-    // 今日の日付(初雪まであと何日か)。越えたノードのうち、いちばん先の日。まだどこも越えていなければundefined
-    today(playerData: PlayerData): number | undefined {
-        const days = this.nodes.flatMap((node) =>
-            node.day !== undefined && playerData.isStageCleared(node.id) ? [node.day] : [],
-        )
-        return days.length > 0 ? Math.min(...days) : undefined
+    // 塊。同じ景色のノードが辺でつながったまとまり(地図の上の、ひとつの場所)
+    clusters(): MapNode[][] {
+        // それぞれのノードの属する塊の代表。同じ景色どうしの辺でつながったノードを、同じ代表にまとめていく
+        const leader = new Map(this.nodes.map((node) => [node, node]))
+        const find = (node: MapNode): MapNode => {
+            const parent = leader.get(node)!
+            return parent === node ? node : find(parent)
+        }
+        for (const edge of this.edges) {
+            if (edge.from.scenery === edge.to.scenery) leader.set(find(edge.from), find(edge.to))
+        }
+
+        const clusters = new Map<MapNode, MapNode[]>()
+        for (const node of this.nodes) {
+            const cluster = clusters.get(find(node)) ?? []
+            cluster.push(node)
+            clusters.set(find(node), cluster)
+        }
+        return [...clusters.values()]
     }
 
     // 全ノードを囲む範囲

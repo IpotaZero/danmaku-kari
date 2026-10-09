@@ -5,7 +5,7 @@ import { Behavior, remodel } from "../../Game/Remodel"
 import { T } from "../../T"
 import { Mirage } from "./Mirage"
 
-// 日だまりの石垣の「熱」。床に落ちた熱の種から、揺らめく泡の柱が昇る
+// 陽炎道場の「熱」。床に落ちた熱の種から、揺らめく泡の柱が昇る
 export namespace Heat {
     export const COLOR: Color = "#ffb070"
 

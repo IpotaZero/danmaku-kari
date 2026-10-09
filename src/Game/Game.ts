@@ -13,7 +13,7 @@ import { FigureLayer } from "../utils/FigureLayer"
 import { TouchControls } from "./TouchControls"
 import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 import { Dom } from "../Dom"
-import { Ctx } from "../utils/Functions/Ctx"
+import { Scenery } from "../World/Scenery"
 
 const FPS = 60
 
@@ -41,6 +41,8 @@ export type GameConfig = {
     playerConfig: PlayerConfig
     // ゲーム全体の更新速度を変える(ボス撃破時のスローモーション用)
     setFPS: (fps: number) => void
+    // ステージのある場所の景色。キャンバスの地面に模様を流す
+    scenery: Scenery
 }
 
 /**
@@ -82,6 +84,10 @@ export class Game extends IteratorQueue {
 
     private score = 0
 
+    // 地面の模様を流すための経過フレーム数。スローモーション中は地面もゆっくり流れる
+    private frame = 0
+    private readonly scenery: Scenery
+
     // WebGLの初期化や弾のスプライト作りをステージに入るたびにやり直さないよう、全ステージで使い回す
     private static readonly bulletDrawer = new BulletDrawer()
     // スクリプトがupdate中に積む、ワールド座標の描画命令。描画はrAFごとに1回なので、update中に直接ctxへ描かず、ここに溜めてdraw()で再生する
@@ -101,8 +107,10 @@ export class Game extends IteratorQueue {
     private readonly onScoreCollected: (score: number) => void
     private readonly setFPS: (fps: number) => void
 
-    private constructor({ input, se, onWin, onLose, onScoreCollected, playerConfig, setFPS }: GameConfig) {
+    private constructor({ input, se, onWin, onLose, onScoreCollected, playerConfig, setFPS, scenery }: GameConfig) {
         super()
+
+        this.scenery = scenery
 
         this.setFPS = setFPS
         this.se = se
@@ -168,6 +176,7 @@ export class Game extends IteratorQueue {
     update(): void {
         // 1回のrAFで複数回updateされても、描かれるのは最後のupdateで積まれた分だけ
         this.worldDrawings.length = 0
+        this.frame++
 
         this.touchControls.update()
 
@@ -325,6 +334,8 @@ export class Game extends IteratorQueue {
 
         ctx.save()
         this.camera.apply(ctx, this.WIDTH, this.HEIGHT)
+        // 地面は弾より奥に、ごく薄く描く
+        this.scenery.ground.draw(ctx, this.WIDTH, this.HEIGHT, this.frame)
         this.bullets.forEach((b) => Game.bulletDrawer.draw(b, ctx))
         ctx.restore()
 
@@ -344,14 +355,6 @@ export class Game extends IteratorQueue {
             ctx.restore()
         })
         ctx.restore()
-
-        // 集めた蜜。弾をかすめたり、敵を倒してその弾を蜜に変えたりすると増える
-        Ctx.text(ctx, { x: this.WIDTH - 12, y: 8 }, "rgba(255, 236, 190, 0.6)", `蜜 ${this.score}`, {
-            align: "right",
-            baseline: "top",
-            fontFamily: "dot",
-            fontSize: 18,
-        })
 
         this.stage.drawOverlay(ctx, this.WIDTH, this.HEIGHT)
     }

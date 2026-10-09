@@ -2,9 +2,10 @@ import { Silhouette } from "../utils/Silhouette"
 import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 
 /**
- * 戦闘画面の、キャンバスの外側(左右の余白)に敷く晩秋の夜の草むら。雪虫が漂っている。
+ * 戦闘画面の、キャンバスの外側(左右の余白)に敷く景色。草むらと枝のシルエットに、日や月の光と、漂うもの(雪・風に飛ぶ花びら・霧・砂・星など)。
  * キャンバスの後ろに置くだけなので、見えるのはキャンバスからはみ出た部分だけになる。
- * プレイの邪魔にならないよう、動きはどれもゆっくり・暗めにしてある。色と動きはCSS(game-backdrop.css)に任せる。
+ * 何がどう漂うか・空の色は、場所ごとにCSS(css/scenery.css の scenery-<id>)が決める。ここでは要素を並べるだけ。
+ * プレイの邪魔にならないよう、動きはどれもゆっくり・暗めにしてある。
  */
 export class GameBackdrop {
     readonly element = document.createElement("div")
@@ -14,7 +15,7 @@ export class GameBackdrop {
         // スマホは縦長でキャンバスにほぼ隠れるのに、アニメーションの合成だけは毎フレーム走ってカクつきの元になるので止める
         if (isSmartPhone) this.element.classList.add("smartphone")
         this.element.innerHTML = `
-            <div class="backdrop-moon"></div>
+            <div class="backdrop-light"></div>
             <svg class="backdrop-branch backdrop-branch-right" viewBox="0 0 400 260">
                 <g transform="translate(400 0) scale(-1 1)">${Silhouette.branch(14)}</g>
             </svg>
@@ -25,16 +26,20 @@ export class GameBackdrop {
             <svg class="backdrop-grass backdrop-grass-front" viewBox="0 0 1600 200" preserveAspectRatio="xMidYMax slice">
                 ${Silhouette.grass(100, 120, 10)}
             </svg>
+            <div class="backdrop-motes"></div>
         `
 
-        for (let i = 0; i < 24; i++) {
-            const yukimushi = document.createElement("div")
-            yukimushi.className = "backdrop-yukimushi"
-            yukimushi.style.setProperty("--x", `${Math.random() * 100}%`)
-            yukimushi.style.setProperty("--drift", `${(Math.random() - 0.5) * 12}rem`)
-            yukimushi.style.setProperty("--fall", `${22 + Math.random() * 18}s`)
-            yukimushi.style.setProperty("--delay", `${-Math.random() * 40}s`)
-            this.element.appendChild(yukimushi)
+        // 漂うもの。位置と周期だけばらつかせ、動き方はCSSに任せる
+        const motes = this.element.querySelector(".backdrop-motes")!
+        for (let i = 0; i < 28; i++) {
+            const mote = document.createElement("div")
+            mote.className = "backdrop-mote"
+            mote.style.setProperty("--x", `${Math.random() * 100}vw`)
+            mote.style.setProperty("--y", `${Math.random() * 100}dvh`)
+            mote.style.setProperty("--drift", `${(Math.random() - 0.5) * 12}rem`)
+            mote.style.setProperty("--pace", `${0.7 + Math.random() * 0.6}`)
+            mote.style.setProperty("--delay", `${-Math.random() * 40}s`)
+            motes.appendChild(mote)
         }
     }
 }

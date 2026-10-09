@@ -37,9 +37,11 @@ export class SceneGame extends Scene {
             onScoreCollected: (score) => playerData.addScore(score),
             playerConfig: createPlayerConfig(),
             setFPS: (fps) => App.looper.setFPS(fps),
+            scenery: this.node.scenery,
         })
 
-        this.root.classList.add("scene-game")
+        // キャンバスの地の色・キャンバスの外の景色は、場所ごとにCSS(css/scenery.css)で変える
+        this.root.classList.add("scene-game", `scenery-${this.node.scenery.id}`)
         this.game.canvas.id = "main"
         this.root.append(new GameBackdrop().element, this.game.canvas, this.game.figureLayer.box, this.game.textBox.box)
     }

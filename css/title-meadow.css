@@ -6,7 +6,7 @@
     pointer-events: none;
 }
 
-/* 晩秋の薄日。輪郭はなく、紙の上にかすかに光が落ちている程度にする */
+/* 輪郭のない大きな陽だまり。主張させず、紙の上に光が落ちている程度にする */
 .meadow-sun {
     position: absolute;
     top: -30vmin;
@@ -16,7 +16,7 @@
     border-radius: 50%;
 
     background: radial-gradient(circle, var(--gold) 0%, transparent 65%);
-    opacity: 0.1;
+    opacity: 0.22;
     animation: meadow-sun-breathe 9s ease-in-out infinite;
 }
 
@@ -24,11 +24,11 @@
     0%,
     100% {
         transform: scale(1);
-        opacity: 0.08;
+        opacity: 0.18;
     }
     50% {
-        transform: scale(1.03);
-        opacity: 0.12;
+        transform: scale(1.05);
+        opacity: 0.26;
     }
 }
 
@@ -178,38 +178,30 @@
     }
 }
 
-/* 雪虫。墨色の小さな体に、綿のような淡い毛をまとって、ゆっくり舞い降りる */
-.meadow-yukimushi {
+.meadow-pollen {
     position: absolute;
-    top: -1rem;
+    bottom: -1rem;
     left: var(--x);
-    width: 0.18rem;
-    height: 0.18rem;
+    width: 0.16rem;
+    height: 0.16rem;
     border-radius: 50%;
 
-    background: var(--forest);
-    box-shadow: 0 0 0.35rem 0.2rem color-mix(in srgb, var(--sage) 70%, transparent);
+    background: var(--gold);
 
-    animation: meadow-yukimushi-fall var(--duration) linear infinite;
+    animation: meadow-pollen-rise var(--duration) linear infinite;
     animation-delay: var(--delay);
 }
 
-@keyframes meadow-yukimushi-fall {
+@keyframes meadow-pollen-rise {
     0% {
         transform: translate(0, 0);
         opacity: 0;
     }
-    15% {
-        opacity: 0.7;
-    }
-    50% {
-        transform: translate(calc(var(--drift) * -0.5), 50dvh);
-    }
-    85% {
-        opacity: 0.7;
+    20% {
+        opacity: 0.8;
     }
     100% {
-        transform: translate(var(--drift), 100dvh);
+        transform: translate(var(--drift), -100dvh);
         opacity: 0;
     }
 }

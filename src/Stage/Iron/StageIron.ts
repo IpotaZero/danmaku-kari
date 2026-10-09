@@ -4,14 +4,13 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
-import { Figure } from "../Figure"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 
-// ステージ「カブト」(四日前・枯れ木)
-// ボスのまわりに子機が幾何学的に並ぶ。胴の前に角と左右一対の鞘翅、胴のまわりに正六角形の輪(脚)。
+// ステージ「カブト」(鉄壁道場・道場主)
+// 道場主のまわりに子機が幾何学的に並ぶ。胴の前に角と左右一対の鞘翅、胴のまわりに正六角形の輪(脚)。
 // 角: 自機へ向けて予告の線を引き、少しして線に沿って速い針の列を突き出す。
 // 鞘翅: 胴の前の大きな一対。胴を狙った弾をその身で受け止める。ゆっくりした大玉の輪を放つ。
 // 脚: 正六角形に並んでゆっくり回り、順に外向きの扇を撃つ。扇の波が輪をひと回りする。
@@ -19,25 +18,6 @@ import { Part } from "../Part"
 
 export default class extends Stage {
     *G() {
-        yield* this.narrate(
-            "四日前。枯れ木。",
-            "樹液は、もう出ていない。",
-            "幹に、大きな甲虫がひとり、しがみついていた。",
-        )
-
-        this.showFigure(Figure.hachinoko)
-        this.showFigure(Figure.yukimushi)
-        yield* this.talk(
-            "カブト",
-            "……蜜蜂か。",
-            "夏のあいだ、この木の樹液を一番に吸うのは俺だった。誰にも割られなかった。",
-        )
-        yield* this.talk("カブト", "仲間は、夏の終わりにみんな死んだ。俺だけが残った。", "凍えて死ぬのは、ごめんだ。")
-        yield* this.talk("カブト", "我が鞘翅を割ってみろ。割れたら、それでいい。")
-        yield* this.talk("ハチノコ", "……わたしは、通りたいだけ。")
-        yield* this.talk("カブト", "なら、割っていけ。")
-        this.hideAllFigures()
-
         const boss = new EnemyKabuto(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -51,16 +31,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        this.showFigure(Figure.hachinoko)
-        yield* this.talk("カブト", "……見事。", "礼を言う。")
-        yield* this.narrate("角が、ゆっくりと幹から離れた。")
-        this.showFigure(Figure.yukimushi)
-        yield* this.talk("ユキムシ", "あと四日。")
-        yield* this.talk("ユキムシ", "ねえ。キミも、知ってるんでしょ。妹たちのこと。")
-        yield* this.talk("ハチノコ", "……。")
-        yield* this.talk("ハチノコ", "行く。")
-        this.hideAllFigures()
     }
 }
 

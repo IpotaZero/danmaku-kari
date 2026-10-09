@@ -8,8 +8,6 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
 import { GenUtils } from "@ipota/functions"
 import { Curves } from "../../utils/Functions/Curves"
-import { isSmartPhone } from "../../utils/Functions/isSmartPhone"
-import { dash } from "../../Game/Equipment/Dash"
 
 // ボスの登場演出にかかるフレーム数。衛星もこれだけ待ってから合わせて動き出す
 const ENTRANCE_FRAMES = 150
@@ -17,28 +15,13 @@ const ENTRANCE_FRAMES = 150
 // お互いを一切参照せずとも常に同じフレームで発射できる
 const REST_FRAMES = 240
 
-// 序章「巣」。八日前の夜、秋の終わりに羽化したばかりのハチノコが、姉のミツに飛び方を教わる。
-// スズメバチの偵察を二度落とすが、巣にはもう仲間を呼ぶ印をつけられていて、その夜、巣は襲われる。
 export default class extends Stage {
     *G() {
-        yield* this.narrate("十一月の終わり。山の中腹、古い杉の洞。", "蜜蜂の巣。")
-
-        this.showFigure(Figure.hachinokoSmile)
-        yield* this.talk("ミツ", "羽、乾いた?")
-        yield* this.talk("ハチノコ", "うん。")
-        yield* this.talk("ミツ", "じゃあ今夜は、わたしの横で見張りを覚えて。", "秋はね、怖いのが来るから。")
+        // 最初に一度だけ、自分が誰なのかを見せる。言葉は添えない
         this.showFigure(Figure.hachinoko)
-
-        if (isSmartPhone) {
-            yield* this.talk("ミツ", "指でなぞった方へ飛ぶの。")
-        } else {
-            yield* this.talk("ミツ", "矢印キーで飛ぶの。Shiftを押してるあいだは、ゆっくり。")
-        }
-        yield* this.talk("ミツ", "針は勝手に出る。前にいるやつに当てればいい。")
-
-        yield* this.talk("ハチノコ", "……何か来る。")
-        yield* this.talk("ミツ", "スズメバチの偵察。一匹でも帰したら、だめ。")
+        yield* Array(150)
         this.hideFigure(Figure.hachinoko)
+        yield* Array(30)
 
         const parent = new EnemyBoss(this.game)
         this.game.enemies.push(parent)
@@ -51,29 +34,7 @@ export default class extends Stage {
         yield* this.waitAllEnemiesDead()
         this.scorenizeAllBullets()
 
-        yield* this.talk("ミツ", "……遅かった。入り口に、匂いをつけられてる。")
-        yield* this.talk("ハチノコ", "匂い?")
-        yield* this.talk("ミツ", "仲間を呼ぶ印。今夜、群れで来る。")
-
-        if (this.game.player.isEquipped(dash)) {
-            if (isSmartPhone) {
-                yield* this.talk(
-                    "ミツ",
-                    "危ないときは、二本指でたたいて。<br>一瞬だけ速く飛べる。そのあいだは、何にも当たらない。",
-                )
-            } else {
-                yield* this.talk("ミツ", "危ないときは、Ctrl。<br>一瞬だけ速く飛べる。そのあいだは、何にも当たらない。")
-            }
-        } else {
-            if (isSmartPhone) {
-                yield* this.talk("ミツ", "二本指でたたくと、技が出る。<br>……それ、わたしの知らない飛び方だね。")
-            } else {
-                yield* this.talk("ミツ", "Ctrlで、技が出る。<br>……それ、わたしの知らない飛び方だね。")
-            }
-        }
-
-        yield* this.talk("ハチノコ", "また来る。")
-        yield* this.talk("ミツ", "先ぶれ。本隊が着く前に、落とす。")
+        yield* Array(120)
 
         const parent2 = new EnemyBoss(this.game)
         this.game.enemies.push(parent2)
@@ -87,26 +48,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(60)
-
-        this.showFigure(Figure.hachinoko)
-        yield* this.talk("ミツ", "ハチノコ。巣房に入って。朝まで、出ちゃだめ。")
-        yield* this.talk("ハチノコ", "ねえさんは?")
-        yield* this.talk("ミツ", "蜂球。みんなで、あいつらを包むの。", "熱いのは、得意なんだ。わたしたち。")
-        this.hideFigure(Figure.hachinoko)
-
-        yield* this.narrate("その夜、羽音が巣を埋めつくした。")
-        yield* this.narrate("朝。")
-
-        this.showFigure(Figure.hachinoko)
-        yield* this.talk("ハチノコ", "ねえさん。")
-        yield* this.narrate("返事はなかった。")
-        yield* this.narrate(
-            "巣の入り口に、蜂球の跡があった。<br>スズメバチの死骸がひとつ。そのまわりに、姉たちがたくさん。",
-            "巣房は、どれも空だった。<br>幼虫も、蛹も。",
-        )
-        yield* this.talk("ハチノコ", "……妹たちは。")
-        yield* this.narrate("スズメバチの死骸に、針が一本、刺さったまま残っていた。", "ハチノコは、それを抜いた。")
-        this.hideFigure(Figure.hachinoko)
     }
 }
 

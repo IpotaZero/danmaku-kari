@@ -1,10 +1,8 @@
-import { Figure } from "../Figure"
 import { Stage } from "../Stage"
 
+// 地図のノードがステージのファイルを見つけられなかったときの代わり。開発中にだけ見る画面なので、文字で知らせる
 export default class extends Stage {
     *G() {
-        this.showFigure(Figure.hachinoko)
-        yield* this.narrate("未実装")
-        this.hideFigure(Figure.hachinoko)
+        yield* this.game.textBox.say(["未実装"])
     }
 }

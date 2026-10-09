@@ -20,7 +20,8 @@
 
         touch-action: none;
 
-        background-color: black;
+        /* 場所ごとの地の色(css/scenery.css)。どれもほぼ黒 */
+        background-color: var(--field);
 
         /* 夜の草むらに馴染むよう、枠線は紙色を薄くして控えめにする */
         border: 1px solid color-mix(in srgb, var(--paper) 35%, transparent);

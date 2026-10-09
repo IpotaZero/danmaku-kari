@@ -37,27 +37,12 @@ const AREA_PER_SNOW = 9000
 
 export default class extends Stage {
     *G() {
-        yield* this.narrate(
-            "七日前。雪虫の野。",
-            "山を登る風が冷たい。",
-            "白いものが、ふわふわと飛んでいた。雪ではなかった。",
-        )
-
+        // 雪虫と向かい合う。言葉は交わさない
         this.showFigure(Figure.hachinoko)
         this.showFigure(Figure.yukimushi)
-        yield* this.talk("ユキムシ", "蜜蜂だ。めずらしい。この時期に、ひとりで。")
-        yield* this.talk("ハチノコ", "スズメバチの巣を探してる。")
-        yield* this.talk("ユキムシ", "山のてっぺん。……何しに行くの?")
-        yield* this.talk("ハチノコ", "妹たちを、連れて帰る。")
-        yield* this.talk("ユキムシ", "……ふうん。")
-        yield* this.talk("ユキムシ", "ボクたちが飛びはじめたら、七日で雪が降るんだ。", "蜜蜂は、寒いと飛べないでしょ。")
-        yield* this.talk("ハチノコ", "七日あれば、着く。")
-        yield* this.talk(
-            "ユキムシ",
-            "じゃあ、ボクの雪くらいは抜けられないとね。",
-            "抜けられないなら、山の上の雪で死ぬだけだから。",
-        )
+        yield* Array(150)
         this.hideAllFigures()
+        yield* Array(30)
 
         const boss = new EnemyFrost(this.game)
         const core0 = new EnemyCore(this.game, boss, 0)
@@ -90,26 +75,11 @@ export default class extends Stage {
 
         yield* Array(300)
 
+        // 熱にへばった雪虫
         this.showFigure(Figure.yukimushiDefeat)
-        yield* this.talk("ユキムシ", "あちち。")
-        this.showFigure(Figure.hachinoko)
-        yield* this.talk("ユキムシ", "キミ、あったかすぎ。", "ボクら、手のひらの熱でも弱っちゃうんだよ。")
-        yield* this.talk("ハチノコ", "……ごめん。")
-        yield* this.talk("ユキムシ", "いいよ。へばっただけ。")
-        this.showFigure(Figure.yukimushi)
-        yield* this.talk(
-            "ユキムシ",
-            "でも、その熱、いいね。",
-            "蜜蜂って、みんなで熱くなって、スズメバチを蒸し殺すんでしょ。",
-        )
-        yield* this.talk("ハチノコ", "蜂球。……一匹じゃ、できない。")
-        yield* this.talk("ユキムシ", "小さいのなら、できるよ。ボクがへばるくらいのは。")
-        yield* this.narrate("ハチノコは、胸の奥で翅の筋肉をふるわせた。", "小さな熱が生まれた。")
-        yield* this.talk("ユキムシ", "ついてっていい? 雪が降るまで、ひまなんだ。")
-        yield* this.talk("ハチノコ", "近づかないなら。")
-        yield* this.talk("ユキムシ", "そっちこそ。")
+        yield* Array(150)
         this.hideAllFigures()
-        yield* this.narrate('技<span style="color: red">「蜂球」</span>を身に付けた。')
+        yield* Array(30)
     }
 }
 

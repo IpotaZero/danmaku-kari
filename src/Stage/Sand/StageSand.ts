@@ -4,15 +4,14 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
-import { Figure } from "../Figure"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
 
-// ステージ「ウスバ」(五日前・砂の崖)
-// ボスのまわりに子機が幾何学的に並ぶ。胴の前に大顎の一対、胴の上に腹、胴の左右に脚の横一列。腹のまわりを三つの砂袋(孫機)が回る。
+// ステージ「ウスバ」(砂塵道場・道場主)
+// 道場主のまわりに子機が幾何学的に並ぶ。胴の前に大顎の一対、胴の上に腹、胴の左右に脚の横一列。腹のまわりを三つの砂袋(孫機)が回る。
 // どの部位も一巡(330フレーム)の頭にまとめて攻撃し、残りの時間は静かになる。攻撃と休憩をはっきり分ける。
 // 大顎: 外へ向けて吐いた砂の流れが、内側へ巻き込むように曲がる。左右の流れは自機の前で交差する。
 // 脚: 砂をかき出す。速さのばらばらな砂粒が、散弾のように飛ぶ。
@@ -27,20 +26,6 @@ import { Charge } from "../Charge"
 
 export default class extends Stage {
     *G() {
-        yield* this.narrate("五日前。砂の崖。", "崖の下に、すり鉢の形の穴がいくつも並んでいる。")
-
-        this.showFigure(Figure.hachinoko)
-        this.showFigure(Figure.yukimushi)
-        yield* this.talk("ユキムシ", "縁に近づかないで。落ちたら、上がれないよ。")
-        yield* this.talk("アリジゴク", "落ちてきなよ。", "三年、この穴の底で待ってたんだ。蟻も蜂も、同じ味がする。")
-        yield* this.talk("ハチノコ", "三年も。")
-        yield* this.talk(
-            "アリジゴク",
-            "そろそろ外に出るころなんだ。翅が生えて、空を飛ぶ。",
-            "そのための、最後のごはん。",
-        )
-        this.hideAllFigures()
-
         const boss = new EnemyUsuba(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -48,19 +33,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        this.showFigure(Figure.hachinoko)
-        yield* this.talk("ウスバカゲロウ", "……寒い。", "三年待って、外に出たら、冬だった。")
-        yield* this.narrate("薄い翅は、一度も羽ばたかなかった。")
-        this.showFigure(Figure.yukimushi)
-        yield* this.talk("ハチノコ", "あなたは、雪が降ったらどうするの。")
-        yield* this.talk(
-            "ユキムシ",
-            "卵を産んで、死ぬよ。",
-            "ボクたちは、雪が来るって知らせるために飛んでるんだ。知らせたら、おしまい。",
-        )
-        yield* this.talk("ユキムシ", "あと五日。")
-        this.hideAllFigures()
     }
 }
 

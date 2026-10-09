@@ -62,17 +62,7 @@ export abstract class Stage extends IteratorQueue {
         this.game.camera.shake(intensity, frame)
     }
 
-    // 地の文。時と場所は「五日前。霧の沢。」のように一行に縮めて書く
-    protected *narrate(...texts: string[]): Generator<void, void, void> {
-        yield* this.game.textBox.say(texts)
-    }
-
-    // 台詞。texts は同じ人物が続けて話す
-    protected *talk(name: string, ...texts: string[]): Generator<void, void, void> {
-        yield* this.game.textBox.say(texts, { name })
-    }
-
-    // 立ち絵を表示する。同じ人物の立ち絵を出し直すと、表情だけが差し替わる
+    // 立ち絵を表示する。言葉は添えず、姿だけを見せる。同じ人物の立ち絵を出し直すと、表情だけが差し替わる
     protected showFigure(figure: Figure) {
         this.game.figureLayer.show(figure.id, figure.src, figure.offsetPercent)
     }

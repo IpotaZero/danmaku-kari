@@ -6,7 +6,7 @@ import type { Player } from "../Actor/Player"
 
 const 演出フレーム = 45
 
-// クールタイムが明けた瞬間に、広がるリングと"CHARGED"の文字を表示する
+// クールタイムが明けた瞬間に、広がるリングと、まわりに放射状に並ぶ七本の光の筋を表示する。文字は使わない
 export function* actionReadyEffect(player: Player): Generator<void, void, void> {
     player.game.se.charge.play()
 
@@ -22,11 +22,17 @@ export function* actionReadyEffect(player: Player): Generator<void, void, void> 
             Ctx.arc(ctx, player.p, r + player.GRAZE_R * 0.3, "#ffffffc0", { lineWidth: 2 })
             Ctx.arc(ctx, player.p, r / 2, "#ffffffc0", { lineWidth: 2 })
 
-            const text = [..."CHARGED"]
-            text.forEach((c, index) => {
-                const charP = player.p.add(vec.arg(T * (index / text.length)).scale(player.GRAZE_R * 3))
-                Ctx.text(ctx, charP, "#ffffff80", c, { fontFamily: "dot", fontSize: player.GRAZE_R })
-            })
+            ctx.strokeStyle = "#ffffff80"
+            ctx.lineWidth = 2
+            for (let k = 0; k < 7; k++) {
+                const direction = vec.arg(T * (k / 7) + progress)
+                const from = player.p.add(direction.scale(player.GRAZE_R * 2.6))
+                const to = player.p.add(direction.scale(player.GRAZE_R * 3.4))
+                ctx.beginPath()
+                ctx.moveTo(from.x, from.y)
+                ctx.lineTo(to.x, to.y)
+                ctx.stroke()
+            }
         })
         yield
     }

@@ -4,13 +4,12 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
-import { Figure } from "../Figure"
 import { T } from "../../T"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
 
-// ステージ「白虎」(二日前・巣の門)
+// ステージ「白虎」(四天王)
 // 白虎は、少し構えては素早く跳んで、画面の上の方を跳びまわる。
 // 白虎のまわりに子機が幾何学的に並ぶ。胴を囲む正五角形に前脚の一対・後脚の一対・尾、胴の下の横一列に三匹の子虎。
 // 前脚: 自機へ向けて、三本の爪痕を薄く見せてから、爪痕に沿って速い爪を走らせる。
@@ -25,20 +24,8 @@ import { Charge } from "../Charge"
 //         胴は吠えるたびに、速さの違う三重の輪を放つ。
 // 三段目: 疾風。胴に攻撃が効くようになる。白虎は構える時間が短くなり、跳んで着地するたびに衝撃の輪を放つ。
 
-// 物語では、スズメバチの巣の門番として出る(二日前・山頂)
 export default class extends Stage {
     *G() {
-        yield* this.narrate("二日前。山頂。", "雪の匂いがする。", "岩の割れ目の奥から、低い羽音が聞こえる。")
-
-        this.showFigure(Figure.hachinoko)
-        this.showFigure(Figure.yukimushi)
-        yield* this.talk("ユキムシ", "……ここだよ。")
-        yield* this.talk("門番", "止まれ。", "蜜蜂? 一匹で?")
-        yield* this.talk("門番", "その匂い。山の中腹の、杉の洞の巣か。")
-        yield* this.talk("ハチノコ", "妹たちを、返して。")
-        yield* this.talk("門番", "返せるものは、もう何もない。")
-        this.hideAllFigures()
-
         const boss = new EnemyByakko(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -46,13 +33,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        this.showFigure(Figure.hachinoko)
-        yield* this.talk("門番", "……奥へは、行かせるな……。")
-        yield* this.narrate("門の奥は、暗かった。")
-        this.showFigure(Figure.yukimushi)
-        yield* this.talk("ユキムシ", "あと二日。")
-        this.hideAllFigures()
     }
 }
 

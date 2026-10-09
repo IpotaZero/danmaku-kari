@@ -20,9 +20,8 @@ const 集中時威力 = 1
 // 自機の左右2本、細く長いビームを常時出し続ける。自機狙いをせず一直線にしか飛ばないため、
 // 敵の正面に自機を移動させて撃ち合わせないと当たらない
 export const laser: MainEquipment = {
-    label: "姉の針",
-    description:
-        "巣の入り口で、スズメバチの死骸から抜いた姉の針。左右からまっすぐ、どこまでも届く。低速時は幅が狭くなる。",
+    label: "貫通弾",
+    description: "自機の左右から常時光線を出し続ける。低速時は幅が狭くなる。",
     *fire(player) {
         while (!player.game.isPlaying) yield
 

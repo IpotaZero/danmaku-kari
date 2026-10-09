@@ -5,7 +5,7 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { remodel } from "../../Game/Remodel"
 import { T } from "../../T"
 
-// 枯れ木の「盾」。盾の弾は自機の弾を受け止めて消す(レーザーは貫く)。もちろん自機が触れれば被弾する。
+// 鉄壁道場の「盾」。盾の弾は自機の弾を受け止めて消す(レーザーは貫く)。もちろん自機が触れれば被弾する。
 // 盾のすき間を通さないと、奥の敵に弾が届かない
 export namespace Shield {
     export const COLOR: Color = "#c8d4e8"

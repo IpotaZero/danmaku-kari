@@ -5,7 +5,7 @@ import { Behavior, remodel } from "../../Game/Remodel"
 import { Ctx } from "../../utils/Functions/Ctx"
 import { MathEx } from "../../utils/Functions/MathEx"
 
-// 日だまりの石垣の「蜃気楼」。
+// 陽炎道場の「蜃気楼」。
 // 鏡の線(center を通る angle 向きの線)を挟んで、敵の弾はすべて鏡写しの双子を持つ(Remodel.mirror)。
 // 双子を撃つのは鏡の向こうに映った敵の幻なので、幻と鏡の線を描いて、どこから弾が来るかを分かるようにする。
 // 幻は描かれるだけで、撃っても当たらない。

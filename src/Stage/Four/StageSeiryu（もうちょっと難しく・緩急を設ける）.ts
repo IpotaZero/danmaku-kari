@@ -4,14 +4,13 @@ import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
 import { Behavior, remodel } from "../../Game/Remodel"
 import { Stage } from "../Stage"
-import { Figure } from "../Figure"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Charge } from "../Charge"
 
-// ステージ「青龍」(二日前・巣の外皮)
+// ステージ「青龍」(四天王)
 // 青龍の頭は画面の中ほどを大きく動きまわる。頭のまわりに子機が幾何学的に並ぶ。内側の円を宝珠が回り、外側の円を十の節が等間隔のまま回る。
 // 宝珠: 自機の方へ三本の雷を落とす。雷は落ちる前に細い線で見える。
 // 節: 輪の順に、外向きの鱗を払う。輪が回るので、鱗はあちこちへ向かう。
@@ -21,26 +20,8 @@ import { Charge } from "../Charge"
 // 二段目: 雷雲をすべて落とすと次の段へ。雷雲は雨を降らせ、雷玉は真下へ雷を落とす。頭は通った跡に雷を残し、残った雷は少しして弾ける。
 // 三段目: 昇龍。頭に攻撃が効くようになり、雷跡を残しながら、ときどき咆哮する。咆哮は下向きの大きな扇で、だんだん速くなる。
 
-// 物語では、ハチノコの巣を見つけた偵察蜂として出る(二日前・巣の外皮)。翅がぼろぼろの、秋の働き蜂
 export default class extends Stage {
     *G() {
-        yield* this.narrate(
-            "二日前。巣の外皮。",
-            "紙を何枚も重ねたような壁が、どこまでも続いている。",
-            "その隙間を、一匹のスズメバチが這っていた。翅がぼろぼろだった。",
-        )
-
-        this.showFigure(Figure.hachinoko)
-        yield* this.talk("偵察蜂", "その匂い。覚えてるよ。", "あんたの巣を見つけたのは、あたしだ。")
-        yield* this.talk("偵察蜂", "甘い、いい匂いがした。")
-        yield* this.talk("ハチノコ", "……あなたが。")
-        yield* this.talk(
-            "偵察蜂",
-            "恨みな。でも、あたしももう長くない。この翅を見ればわかるだろ。",
-            "秋の働き蜂は、冬を越せないんだ。あんたと同じさ。",
-        )
-        this.hideAllFigures()
-
         const boss = new EnemySeiryu(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
@@ -48,14 +29,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        this.showFigure(Figure.hachinoko)
-        yield* this.talk("偵察蜂", "……あの子たちだけは、冬を越すんだ……。")
-        this.showFigure(Figure.yukimushi)
-        yield* this.talk("ユキムシ", "あの子たち?")
-        yield* this.talk("ハチノコ", "……。")
-        yield* this.talk("ユキムシ", "日が暮れる。あしたは、もう前日だよ。")
-        this.hideAllFigures()
     }
 }
 

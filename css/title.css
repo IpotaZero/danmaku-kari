@@ -9,50 +9,11 @@
 }
 
 .scene-pre-title {
-    flex-direction: column;
     align-items: center;
-    gap: 3em;
-}
-
-/* 題辞。縦書きの句と、その下に小さく作者名。ゆっくり浮かび上がらせる */
-.pre-title-epigraph {
-    position: absolute;
-    writing-mode: vertical-rl;
-    /* 縦書きでは column が右から左へ並ぶ。句の左に作者名を置き、作者名は下に寄せる */
-    flex-direction: column;
-    gap: 1em;
-
-    opacity: 0;
-    animation: pre-title-epigraph-rise 3s ease-out 0.3s forwards;
-}
-
-.pre-title-haiku {
-    font-size: 1.3em;
-    letter-spacing: 0.3em;
-}
-
-.pre-title-poet {
-    align-self: flex-end;
-    font-size: 0.8em;
-    letter-spacing: 0.3em;
-    opacity: 0.6;
-}
-
-@keyframes pre-title-epigraph-rise {
-    from {
-        opacity: 0;
-        filter: blur(0.05em);
-    }
-    to {
-        opacity: 1;
-        filter: blur(0);
-    }
 }
 
 /* 押されるまで待つ画面なので、急かさないようゆっくり明滅させる */
 .pre-title-message {
-    position: absolute;
-    bottom: 1em;
     letter-spacing: 0.3em;
     max-width: 100%;
     padding: 0 1em;

@@ -1,0 +1,148 @@
+/* 場所ごとの景色(src/World/Scenery.ts)。戦闘画面の .scene-game に scenery-<id> が付く。
+   地図の左から右へ、冬から晩秋へと一年が進む。季節は文字ではなく、色と漂うものだけで伝える。
+   キャンバスの外は base.css の4色(paper / sage / forest / gold)と黒だけを混ぜて作る。
+
+   --field          キャンバスの地の色。弾が読めなくならないよう、どれもほぼ黒
+   --sky            キャンバスの外の空の色。地平線へ向けて少しずつ混ぜる(game-backdrop.css)
+   --light          右上の日や月の光の色。--light-strength が0なら出さない
+   --mote           漂うものの色。大きさ・ぼかし・濃さ・動き方・周期も変数で決める
+   --mote-motion    backdrop-fall(舞い降りる) / backdrop-rise(立ちのぼる) / backdrop-blow(吹き流される) / backdrop-twinkle(瞬く) */
+
+.scene-game {
+    --field: black;
+    --sky: var(--forest);
+    --light: var(--gold);
+    --light-strength: 1;
+    --mote: var(--paper);
+    --mote-size: 0.2rem;
+    --mote-blur: 0px;
+    --mote-opacity: 0.4;
+    --mote-motion: backdrop-twinkle;
+    --mote-period: 6s;
+}
+
+/* 巣。蜜の色の暗がりに、花粉が立ちのぼる */
+.scene-game.scenery-hive {
+    --field: #0b0804;
+    --sky: var(--gold);
+    --mote: var(--gold);
+    --mote-size: 0.18rem;
+    --mote-opacity: 0.5;
+    --mote-motion: backdrop-rise;
+    --mote-period: 30s;
+}
+
+/* 冬。低く白い日の下に、雪が舞い降りる */
+.scene-game.scenery-frost {
+    --field: #05080d;
+    --sky: var(--paper);
+    --light: var(--paper);
+    --light-strength: 0.8;
+    --mote-size: 0.22rem;
+    --mote-opacity: 0.6;
+    --mote-motion: backdrop-fall;
+    --mote-period: 30s;
+}
+
+/* 早春。尾根の風に、花びらが吹き流される */
+.scene-game.scenery-gale {
+    --field: #050a07;
+    --sky: var(--sage);
+    --light: var(--paper);
+    --light-strength: 0.7;
+    --mote-size: 0.3rem;
+    --mote-opacity: 0.45;
+    --mote-motion: backdrop-blow;
+    --mote-period: 9s;
+}
+
+/* 春の朝。蜘蛛の巣の露が、あちこちで光る */
+.scene-game.scenery-web {
+    --field: #07080b;
+    --sky: var(--paper);
+    --light-strength: 0.8;
+    --mote-size: 0.16rem;
+    --mote-opacity: 0.7;
+    --mote-motion: backdrop-twinkle;
+    --mote-period: 5s;
+}
+
+/* 梅雨。日は見えず、大きな霧のかたまりがゆっくり流れていく */
+.scene-game.scenery-mist {
+    --field: #080a0c;
+    --sky: var(--paper);
+    --light-strength: 0;
+    --mote-size: 9rem;
+    --mote-blur: 2.5rem;
+    --mote-opacity: 0.06;
+    --mote-motion: backdrop-blow;
+    --mote-period: 70s;
+}
+
+/* 夏。乾いた崖を、砂粒が速く吹き抜ける */
+.scene-game.scenery-sand {
+    --field: #0c0905;
+    --sky: var(--gold);
+    --mote: var(--gold);
+    --mote-size: 0.14rem;
+    --mote-opacity: 0.5;
+    --mote-motion: backdrop-blow;
+    --mote-period: 6s;
+}
+
+/* 盛夏。焼けた石垣から、陽炎がゆらゆら立ちのぼる */
+.scene-game.scenery-haze {
+    --field: #0d0804;
+    --sky: var(--gold);
+    --mote: var(--gold);
+    --mote-size: 0.5rem;
+    --mote-blur: 0.3rem;
+    --mote-opacity: 0.15;
+    --mote-motion: backdrop-rise;
+    --mote-period: 20s;
+}
+
+/* 夏の午後。古い木の陰に、葉がひらひら落ちる */
+.scene-game.scenery-iron {
+    --field: #0a0705;
+    --sky: var(--forest);
+    --light-strength: 0.7;
+    --mote: var(--sage);
+    --mote-size: 0.28rem;
+    --mote-opacity: 0.4;
+    --mote-motion: backdrop-fall;
+    --mote-period: 34s;
+}
+
+/* 夏の夜。日も月もなく、星だけが瞬く */
+.scene-game.scenery-meteor {
+    --field: #03040b;
+    --sky: var(--forest);
+    --light-strength: 0;
+    --mote-size: 0.14rem;
+    --mote-opacity: 0.8;
+    --mote-motion: backdrop-twinkle;
+    --mote-period: 4s;
+}
+
+/* 秋の夜。大きな月の下を、草の綿毛がゆっくり昇っていく */
+.scene-game.scenery-moon {
+    --field: #06060b;
+    --sky: var(--forest);
+    --mote-size: 0.2rem;
+    --mote-opacity: 0.3;
+    --mote-motion: backdrop-rise;
+    --mote-period: 40s;
+}
+
+/* 晩秋。スズメバチの巣の暗がりに、紙のくずが舞い上がる */
+.scene-game.scenery-nest {
+    --field: #0c0603;
+    --sky: var(--gold);
+    --light-strength: 0;
+    --mote: var(--gold);
+    --mote-size: 0.16rem;
+    --mote-opacity: 0.5;
+    --mote-motion: backdrop-rise;
+    --mote-period: 24s;
+}

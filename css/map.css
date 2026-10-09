@@ -41,6 +41,21 @@
         pointer-events: none;
     }
 
+    /* 一年の移ろい。地図の左から右へ、冬(紙の白)、春(若草)、夏(金)、夏の夜(墨緑)、晩秋(金)と、地の色がほんのわずかに移る。
+       文字の代わりに、先へ進むほど季節が進んでいくことを感じさせる */
+    .map-seasons {
+        background: linear-gradient(
+            90deg,
+            color-mix(in srgb, var(--paper) 7%, transparent) 0%,
+            color-mix(in srgb, var(--paper) 6%, transparent) 12%,
+            color-mix(in srgb, var(--sage) 9%, transparent) 25%,
+            color-mix(in srgb, var(--gold) 7%, transparent) 42%,
+            color-mix(in srgb, var(--forest) 18%, transparent) 60%,
+            color-mix(in srgb, var(--gold) 9%, transparent) 80%,
+            color-mix(in srgb, var(--gold) 5%, transparent) 100%
+        );
+    }
+
     /* 紙に打たれた方眼の点 */
     .map-grid {
         background-image: radial-gradient(circle, var(--sage) 1.2px, transparent 1.6px);
@@ -115,8 +130,9 @@
             border-color: var(--gold);
         }
 
-        /* 選択中は紙色で塗り、地の色の余白を挟んだ金の細い枠で囲む */
+        /* 選択中は紙色で塗り、地の色の余白を挟んだ金の細い枠で囲む。絵柄は地の色で描く */
         &.selected {
+            color: var(--map-ground);
             background: var(--paper);
             border-color: var(--paper);
             transform: translate(-50%, -50%) scale(1.15);
@@ -148,46 +164,134 @@
         &.no-miss::after {
             color: var(--gold);
         }
-    }
 
-    .map-node-info {
-        position: absolute;
-        transform: translate(-50%, calc(-100% - 1em));
-
-        display: flex;
-        flex-direction: column;
-        gap: 0.2em;
-
-        width: fit-content;
-        white-space: nowrap;
-
-        padding: 0.45em 1em 0.5em;
-
-        background: #1118;
-        border: 1px solid var(--gold);
-
-        color: var(--paper);
-        letter-spacing: 0.15em;
-        text-align: center;
-
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.15s ease-out;
-
-        z-index: 100;
-
-        &.visible {
-            opacity: 1;
+        /* まだ行けない場所は、どんな所なのかを伏せておく */
+        &.locked .map-node-motif {
+            visibility: hidden;
         }
     }
 
-    .map-node-info-label {
-        font-size: 0.9em;
+    /* ノードに描く、その場所の景色の絵柄(src/World/Scenery.ts)。ノードの大きさに合わせて大きくなる */
+    .map-node-motif {
+        width: 55%;
+        height: 55%;
+
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+
+        pointer-events: none;
     }
 
-    .map-node-info-description {
-        font-size: 0.7em;
-        opacity: 0.8;
+    /* 塊のまわりに置く、その場所を特徴づける小物(src/Map/MapProps.ts, src/World/Prop.ts)。
+       ノードより控えめに、薄く描く。まだ行けない塊の小物は伏せておく */
+    .map-props {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+
+    .map-props-cluster.locked {
+        visibility: hidden;
+    }
+
+    .map-prop {
+        position: absolute;
+        transform: translate(-50%, -50%) rotate(var(--tilt)) scaleX(var(--flip));
+        opacity: 0.45;
+
+        &.tone-paper {
+            color: var(--paper);
+        }
+
+        &.tone-sage {
+            color: var(--sage);
+        }
+
+        &.tone-gold {
+            color: var(--gold);
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .solid {
+            fill: currentColor;
+            stroke: none;
+        }
+
+        /* 動きは小物ごとに --delay でずらし、そろって動かないようにする */
+        &.motion-bob svg {
+            animation: map-prop-bob 2.6s ease-in-out var(--delay) infinite alternate;
+        }
+
+        &.motion-sway svg {
+            transform-origin: 50% 100%;
+            animation: map-prop-sway 4s ease-in-out var(--delay) infinite alternate;
+        }
+
+        &.motion-hang svg {
+            transform-origin: 50% 0%;
+            animation: map-prop-sway 3.2s ease-in-out var(--delay) infinite alternate;
+        }
+
+        &.motion-twinkle svg {
+            animation: map-prop-twinkle 3s ease-in-out var(--delay) infinite alternate;
+        }
+
+        &.motion-turn svg {
+            animation: map-prop-turn 40s linear var(--delay) infinite;
+        }
+    }
+
+    /* 地図の上の自分(src/Map/MapBee.ts)。選んだノードの上にとまり、ノードを移るとカメラと同じ速さで飛んでいく */
+    .map-bee {
+        position: absolute;
+        width: 4rem;
+        height: 4rem;
+        transform: translate(-50%, -95%);
+
+        color: var(--paper);
+        pointer-events: none;
+        z-index: 50;
+
+        transition:
+            left 0.25s ease-out,
+            top 0.25s ease-out;
+
+        svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        &.facing-left svg {
+            transform: scaleX(-1);
+        }
+
+        .wing {
+            transform-box: fill-box;
+            transform-origin: bottom center;
+            animation: map-bee-wing 0.07s linear infinite alternate;
+        }
+    }
+
+    /* とまっている間も、ふわふわと少しだけ浮き沈みする */
+    .map-bee-body {
+        width: 100%;
+        height: 100%;
+        animation: map-bee-hover 1.6s ease-in-out infinite alternate;
     }
 
     /* 全ノードを一画面に収めた全体図。SVGのviewBoxで縮尺を合わせる */
@@ -478,5 +582,59 @@
     }
     to {
         opacity: 0.3;
+    }
+}
+
+@keyframes map-bee-wing {
+    from {
+        transform: rotate(-20deg);
+    }
+    to {
+        transform: rotate(15deg);
+    }
+}
+
+@keyframes map-bee-hover {
+    from {
+        transform: translateY(-0.15rem);
+    }
+    to {
+        transform: translateY(0.15rem);
+    }
+}
+
+@keyframes map-prop-bob {
+    from {
+        transform: translateY(-2px);
+    }
+    to {
+        transform: translateY(2px);
+    }
+}
+
+@keyframes map-prop-sway {
+    from {
+        transform: rotate(-5deg);
+    }
+    to {
+        transform: rotate(5deg);
+    }
+}
+
+@keyframes map-prop-twinkle {
+    from {
+        opacity: 0.35;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes map-prop-turn {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
     }
 }

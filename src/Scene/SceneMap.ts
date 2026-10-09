@@ -4,15 +4,13 @@ import { playerData } from "../Data/PlayerData"
 import { mainEquipments, subEquipments } from "../Game/Equipment/PlayerEquipment"
 import { MapBounds, MapEdge, MapGraph, MapNode, MapNodeId } from "../Map/MapGraph"
 import { MapMinimap } from "../Map/MapMinimap"
-import { Day } from "../Map/Day"
+import { MapBee } from "../Map/MapBee"
+import { MapProps } from "../Map/MapProps"
 import { InputCode } from "../utils/InputCode"
 import { Menu, MenuOption, MenuOptionBox } from "../utils/Menu/Menu"
 import { Scene } from "../utils/Scene/Scene"
 
 type Direction = "up" | "down" | "left" | "right"
-
-// 説明の枠のopacity遷移(css側のtransition時間と合わせる)にかける時間
-const INFO_FADE_MS = 150
 
 // これ以上動かしたらタップではなくスワイプ(ドラッグ)とみなす閾値(px)
 const DRAG_THRESHOLD = 6
@@ -20,7 +18,7 @@ const DRAG_THRESHOLD = 6
 // ノード選択時、そのノードが画面中央に来るまでのカメラ移動にかける時間
 const CAMERA_PAN_MS = 250
 
-// 全体図・支度画面を閉じるときのフェードアウトにかける時間
+// 全体図・型の変更画面を閉じるときのフェードアウトにかける時間
 const OVERLAY_FADE_OUT_MS = 200
 
 const DIRECTION_VECTORS: Record<Direction, { x: number; y: number }> = {
@@ -38,8 +36,8 @@ export class SceneMap extends Scene {
     // カメラに合わせて動かす要素(ワールド本体と、方眼・紙の質感などの背景)。
     // すべて同じtransformで動かすので、背景がワールドから遅れることがない
     private cameraLayers: HTMLElement[] = []
-    private infoEl!: HTMLElement
-    private infoShowTimer?: number
+    // 地図の上の自分(蜂)。選んだノードへ飛んでいく
+    private bee!: MapBee
     private livesEl!: HTMLElement
     private livesRecoveryEl!: HTMLElement
     private equipMenu?: Menu
@@ -77,17 +75,14 @@ export class SceneMap extends Scene {
 
         this.root.classList.add("scene-map", "paper-scene")
         this.root.innerHTML = `
+            <div class="map-seasons map-backdrop map-camera-layer"></div>
             <div class="map-grid map-backdrop map-camera-layer"></div>
             <div class="map-world map-camera-layer">
                 <svg class="map-edges">
                     ${this.graph.edges.map((edge) => this.renderEdge(edge)).join("")}
                 </svg>
                 <div class="map-nodes"></div>
-                <div class="map-node-info">
-                    <div class="map-node-info-label"></div>
-                </div>
             </div>
-            <div class="map-day"></div>
             <div class="map-lives">
                 <div class="map-lives-count"></div>
                 <div class="map-lives-recovery"></div>
@@ -95,7 +90,7 @@ export class SceneMap extends Scene {
             </div>
             <div class="map-controls">
                 <div data-control="toggle-minimap"><span class="nowrap">全体図</span>: slow(${InputCode.primaryLabel(App.settings.keyConfig.slow)})</div>
-                <div data-control="open-equip"><span class="nowrap">支度</span>: action(${InputCode.primaryLabel(App.settings.keyConfig.action)})</div>
+                <div data-control="open-equip"><span class="nowrap">型の変更</span>: action(${InputCode.primaryLabel(App.settings.keyConfig.action)})</div>
                 <div data-control="back-to-title"><span class="nowrap">タイトルへ戻る</span>: cancel(${InputCode.primaryLabel(App.settings.keyConfig.cancel)})</div>
             </div>
             <div class="texture-overlay map-backdrop map-camera-layer"></div>
@@ -110,9 +105,13 @@ export class SceneMap extends Scene {
         this.root.style.setProperty("--world-height", `${this.worldBounds.maxY - this.worldBounds.minY}px`)
 
         const nodesEl = this.root.querySelector<HTMLElement>(".map-nodes")!
+        // 塊のまわりの小物は、辺より手前・ノードより奥に置く
+        nodesEl.before(new MapProps(this.graph, playerData).el)
         for (const node of this.graph.nodes) {
             const el = document.createElement("div")
-            el.className = "map-node"
+            // ノードには文字の代わりに、その場所の景色の絵柄を描く。まだ行けない場所の絵柄は伏せておく(css)
+            el.className = `map-node scenery-${node.scenery.id}`
+            el.innerHTML = `<svg class="map-node-motif" viewBox="-12 -12 24 24">${node.scenery.motif}</svg>`
             el.classList.toggle("locked", !this.graph.isUnlocked(node, playerData))
             // クリア済みなら銀の星、ノーミスでクリア済みなら金の星を付ける
             el.classList.toggle("cleared", playerData.isStageCleared(node.id))
@@ -149,7 +148,8 @@ export class SceneMap extends Scene {
             this.openEquipMenu()
         })
 
-        this.infoEl = this.root.querySelector<HTMLElement>(".map-node-info")!
+        this.bee = new MapBee(this.graph.node(this.selectedId))
+        this.root.querySelector(".map-world")!.appendChild(this.bee.el)
 
         this.livesEl = this.root.querySelector<HTMLElement>(".map-lives-count")!
         this.livesRecoveryEl = this.root.querySelector<HTMLElement>(".map-lives-recovery")!
@@ -159,16 +159,9 @@ export class SceneMap extends Scene {
         this.root.querySelector<HTMLElement>(".map-score")!.textContent =
             `蜜 ${playerData.getTotalScore().toLocaleString()}`
 
-        // 日付もステージを越えたときにしか進まないので、一度だけ表示すればよい
-        const today = this.graph.today(playerData)
-        this.root.querySelector<HTMLElement>(".map-day")!.textContent = today === undefined ? "" : Day.countdown(today)
-
         // 初期カメラは選択中ノードを中央に据えた状態から始める(アニメーションなし)
         this.camera = this.clampCamera(this.graph.node(this.selectedId))
         this.applyCamera(false)
-
-        // keepInfoOnScreen()が画面上の実際の位置を見て判定するため、カメラ適用後に呼ぶ
-        this.showInfo()
 
         this.root.addEventListener("pointerdown", this.handlePointerDown)
         this.root.addEventListener("pointermove", this.handlePointerMove)
@@ -177,8 +170,6 @@ export class SceneMap extends Scene {
     }
 
     protected async onEnd(): Promise<void> {
-        clearTimeout(this.infoShowTimer)
-
         this.root.removeEventListener("pointerdown", this.handlePointerDown)
         this.root.removeEventListener("pointermove", this.handlePointerMove)
         this.root.removeEventListener("pointerup", this.handlePointerUp)
@@ -242,7 +233,7 @@ export class SceneMap extends Scene {
         playerData.moveOnMap(id)
         this.nodeElements.forEach((el, nodeId) => el.classList.toggle("selected", nodeId === this.selectedId))
         this.minimap?.select(id)
-        this.hideInfo()
+        this.bee.flyTo(this.graph.node(id))
 
         this.camera = this.clampCamera(this.graph.node(id))
         this.applyCamera(true)
@@ -354,7 +345,7 @@ export class SceneMap extends Scene {
              <div class="texture-overlay"></div>`,
             {
                 elementId: "equip-root",
-                title: "--:: 支度 ::--",
+                title: "--:: 型の変更 ::--",
                 options: () => this.buildEquipRootOptions(),
             },
             App.input,
@@ -380,7 +371,7 @@ export class SceneMap extends Scene {
             [
                 {
                     type: "submenu",
-                    label: `針: ${mainEquipments[playerData.getLoadout().main]?.label ?? playerData.getLoadout().main}`,
+                    label: `流派: ${mainEquipments[playerData.getLoadout().main]?.label ?? playerData.getLoadout().main}`,
                     hides: [],
                     onFocus: () => this.hideEquipDescription(),
                     subMenu: () => this.buildMainEquipmentSubMenu(),
@@ -411,7 +402,7 @@ export class SceneMap extends Scene {
     private buildMainEquipmentSubMenu(): MenuOptionBox {
         return {
             elementId: "equip-main-options",
-            title: "--:: 針を選ぶ ::--",
+            title: "--:: 流派を選択 ::--",
             options: () => this.buildMainEquipmentOptions(),
             // 開いた瞬間、現在装備している主装備にカーソルを合わせる
             initialCursor: () => {
@@ -452,7 +443,7 @@ export class SceneMap extends Scene {
     private buildSubEquipmentSubMenu(): MenuOptionBox {
         return {
             elementId: "equip-sub-options",
-            title: "--:: 技を選ぶ ::--",
+            title: "--:: 技を選択 ::--",
             options: () => this.buildSubEquipmentOptions(),
             // 開いた瞬間、現在装備している副装備にカーソルを合わせる(「なし」は先頭行)
             initialCursor: () => {
@@ -517,42 +508,6 @@ export class SceneMap extends Scene {
         if (!subId) return "なし"
 
         return subEquipments[subId]?.label ?? subId
-    }
-
-    // 選択移動中は説明の枠を隠し、移動が落ち着いてから改めて表示する
-    private hideInfo() {
-        this.infoEl.classList.remove("visible")
-
-        clearTimeout(this.infoShowTimer)
-        this.infoShowTimer = window.setTimeout(() => this.showInfo(), INFO_FADE_MS)
-    }
-
-    private showInfo() {
-        const node = this.graph.node(this.selectedId)
-        this.infoEl.style.left = `${node.x}px`
-        // 説明の枠はノードの上端の少し上に出す
-        this.infoEl.style.top = `${node.y - node.height / 2}px`
-        this.infoEl.querySelector(".map-node-info-label")!.textContent =
-            node.day === undefined ? node.label : `${Day.label(node.day)}　${node.label}`
-        this.infoEl.classList.add("visible")
-
-        this.keepInfoOnScreen()
-    }
-
-    // 中央寄せ(CSSのtransform: translate(-50%, ...))のままだと、端寄りのノードや長いラベルで
-    // 画面外にはみ出すことがあるため、実際の描画幅を見てその分だけ左右にずらす
-    private keepInfoOnScreen() {
-        const margin = 8
-        this.infoEl.style.transform = ""
-
-        const rect = this.infoEl.getBoundingClientRect()
-        let shiftX = 0
-        if (rect.left < margin) shiftX = margin - rect.left
-        else if (rect.right > window.innerWidth - margin) shiftX = window.innerWidth - margin - rect.right
-
-        if (shiftX !== 0) {
-            this.infoEl.style.transform = `translate(calc(-50% + ${shiftX}px), calc(-100% - 0.6em))`
-        }
     }
 
     private updateLivesDisplay() {
