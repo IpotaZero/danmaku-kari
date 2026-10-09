@@ -53,7 +53,8 @@ export class Settings {
     keyConfig: KeyConfigMap = DEFAULT_KEY_CONFIG
 
     // スマホは描画が重くてカクつきやすいので、初期値を30fpsにする
-    drawFps: DrawFps = isSmartPhone ? 30 : 60
+    // やっぱなし
+    drawFps: DrawFps = 60
 
     showFps = false
 
