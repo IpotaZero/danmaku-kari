@@ -15,10 +15,6 @@ const AFTER_IMAGE_DECAY = 0.05
 
 const WING_FLAP_INTERVAL = 2
 
-// 翅の画像(createWingsで作る、幅512pxのキャンバス)の中での、右の翅の先の位置。左の翅はx=256を軸にした鏡写し
-const UPPER_WING_TIP = { x: 177, y: 39 }
-const LOWER_WING_TIP = { x: 108, y: 63 }
-
 const HIT_SHAKE_INTENSITY = 12
 const HIT_SHAKE_FRAME = 60
 
@@ -442,23 +438,6 @@ export class Player extends Actor {
         ctx.globalAlpha = 0.6
         ctx.rotate((this.v.x / 20) * T * 0.02)
         ctx.translate(-256, -40)
-
-        // 失った残機のぶんだけ、翅の先がすり切れて短くなる。数字の代わりに、自分の体の傷み具合で残りを感じさせる。
-        // 翅の先の外側に置いた円で、翅の先から内側へ削っていく
-        const wear = Math.min(1, Math.max(0, (this.maxLife - this.life) / this.maxLife))
-        if (wear > 0) {
-            const tip = isUpperFrame ? UPPER_WING_TIP : LOWER_WING_TIP
-            const r = 30 + wear * tip.x * 0.6
-
-            ctx.beginPath()
-            ctx.rect(0, -64, 512, 256)
-            for (const side of [-1, 1]) {
-                const cx = 256 + side * (tip.x + 30)
-                ctx.moveTo(cx + r, tip.y)
-                ctx.arc(cx, tip.y, r, 0, T)
-            }
-            ctx.clip("evenodd")
-        }
 
         ctx.drawImage(isUpperFrame ? upperWing : lowerWing, Math.random() - 0.5, Math.random() - 0.5)
 

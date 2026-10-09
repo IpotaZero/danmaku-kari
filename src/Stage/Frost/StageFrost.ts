@@ -37,13 +37,6 @@ const AREA_PER_SNOW = 9000
 
 export default class extends Stage {
     *G() {
-        // 雪虫と向かい合う。言葉は交わさない
-        this.showFigure(Figure.hachinoko)
-        this.showFigure(Figure.yukimushi)
-        yield* Array(150)
-        this.hideAllFigures()
-        yield* Array(30)
-
         const boss = new EnemyFrost(this.game)
         const core0 = new EnemyCore(this.game, boss, 0)
         const core1 = new EnemyCore(this.game, boss, 1)

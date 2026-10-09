@@ -17,12 +17,6 @@ const REST_FRAMES = 240
 
 export default class extends Stage {
     *G() {
-        // 最初に一度だけ、自分が誰なのかを見せる。言葉は添えない
-        this.showFigure(Figure.hachinoko)
-        yield* Array(150)
-        this.hideFigure(Figure.hachinoko)
-        yield* Array(30)
-
         const parent = new EnemyBoss(this.game)
         this.game.enemies.push(parent)
 
@@ -32,22 +26,6 @@ export default class extends Stage {
         }
 
         yield* this.waitAllEnemiesDead()
-        this.scorenizeAllBullets()
-
-        yield* Array(120)
-
-        const parent2 = new EnemyBoss(this.game)
-        this.game.enemies.push(parent2)
-
-        const satelliteCount2 = 3
-        for (let i = 0; i < satelliteCount2; i++) {
-            this.game.enemies.push(new EnemySatellite(this.game, parent2, i, satelliteCount2))
-        }
-
-        yield* this.waitAllEnemiesDead()
-        this.scorenizeAllBullets()
-
-        yield* Array(60)
     }
 }
 
