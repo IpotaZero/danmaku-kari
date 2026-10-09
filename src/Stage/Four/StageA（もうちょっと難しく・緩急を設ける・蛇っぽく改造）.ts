@@ -13,7 +13,7 @@ import { Size } from "../Size"
 
 export default class extends Stage {
     *G() {
-        const boss = new EnemySeiryu(this.game)
+        const boss = new EnemyBoss(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
         yield* this.waitAllEnemiesDead()
@@ -23,7 +23,7 @@ export default class extends Stage {
     }
 }
 
-class EnemySeiryu extends Enemy {
+class EnemyBoss extends Enemy {
     // 宝珠。頭のまわりの内側の円を回る
     private readonly pearl = new Part(
         this.game,

@@ -13,7 +13,7 @@ import { Size } from "../Size"
 
 export default class extends Stage {
     *G() {
-        const boss = new EnemyGenbu(this.game)
+        const boss = new EnemyBoss(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
         yield* this.waitAllEnemiesDead()
@@ -23,7 +23,7 @@ export default class extends Stage {
     }
 }
 
-class EnemyGenbu extends Enemy {
+class EnemyBoss extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.06, 2, 3)
 
     // 甲羅(六枚)。胴を囲んで回る

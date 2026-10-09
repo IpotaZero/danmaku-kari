@@ -16,7 +16,7 @@ export default class extends Stage {
         let from = vec(-200, -200)
 
         for (let generation = 0; generation < 3; generation++) {
-            const boss = new EnemySuzaku(this.game, generation, from)
+            const boss = new EnemyBoss(this.game, generation, from)
             this.game.enemies.push(boss, ...boss.parts)
 
             while (boss.life > 0) {
@@ -62,7 +62,7 @@ class EnemyEgg extends Enemy {
     }
 }
 
-class EnemySuzaku extends Enemy {
+class EnemyBoss extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.08, 2, 3)
 
     // 翼(左右)

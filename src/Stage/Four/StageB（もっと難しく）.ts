@@ -12,7 +12,7 @@ import { Size } from "../Size"
 
 export default class extends Stage {
     *G() {
-        const boss = new EnemyByakko(this.game)
+        const boss = new EnemyBoss(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
         yield* this.waitAllEnemiesDead()
@@ -22,7 +22,7 @@ export default class extends Stage {
     }
 }
 
-class EnemyByakko extends Enemy {
+class EnemyBoss extends Enemy {
     // 前脚(左右一対)。胴を囲む正五角形の、下の二つの角
     private readonly paws = [-1, 1].map(
         (side) =>
