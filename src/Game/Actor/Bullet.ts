@@ -200,7 +200,7 @@ export class Bullet extends Actor {
         this.appearance = "score"
         this.r = 8
         this.alpha = 0.8
-        this.color = "#ebb922"
+        this.color = "#ecce74"
         this.isScorable = false
 
         this.clearScripts()

@@ -271,8 +271,8 @@
         z-index: 50;
 
         transition:
-            left 0.25s ease-out,
-            top 0.25s ease-out;
+            left 0.4s ease-out,
+            top 0.4s ease-out;
 
         svg {
             width: 100%;
@@ -313,7 +313,7 @@
     .map-minimap-svg {
         width: 100%;
         height: 100%;
-        padding: 0.5em;
+        padding: 1.5em;
 
         line {
             stroke: var(--paper);
@@ -352,10 +352,10 @@
             pointer-events: none;
 
             transition:
-                x 0.1s ease-out,
-                y 0.1s ease-out,
-                width 0.1s ease-out,
-                height 0.1s ease-out;
+                x 0.4s ease-out,
+                y 0.4s ease-out,
+                width 0.4s ease-out,
+                height 0.4s ease-out;
             animation: map-minimap-cursor-blink 0.8s ease-in-out infinite alternate;
         }
     }

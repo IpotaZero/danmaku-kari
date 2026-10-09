@@ -67,12 +67,6 @@ export default class extends Stage {
         this.scorenizeAllBullets()
 
         yield* Array(300)
-
-        // 熱にへばった雪虫
-        this.showFigure(Figure.yukimushiDefeat)
-        yield* Array(150)
-        this.hideAllFigures()
-        yield* Array(30)
     }
 }
 

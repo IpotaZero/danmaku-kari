@@ -9,7 +9,9 @@ import {
 const MAX_LIVES = 8
 
 // 残機が1回復するのにかかる時間(ms)
-export const LIFE_RECOVERY_INTERVAL_MS = 5
+// 製作中のため爆速
+//
+export const LIFE_RECOVERY_INTERVAL_MS = 120000
 
 // v2: Loadoutのsub装備を3枠から1枠に変更したため、古い保存形式と区別するためキーを変えている
 const STORAGE_KEY = "danmaku-kari.playerData.v2"

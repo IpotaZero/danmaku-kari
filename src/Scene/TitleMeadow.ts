@@ -30,7 +30,7 @@ export class TitleMeadow {
             "ladybug",
             "butterfly",
             "dragonfly",
-            "bee",
+            "ladybug",
             "butterfly",
         ] as const
         kinds.forEach((kind, i) => {
