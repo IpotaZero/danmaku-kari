@@ -12,24 +12,16 @@ import { Mirage } from "./Mirage"
 import { Heat } from "./Heat"
 import { Size } from "../Size"
 
-// ステージ「陽炎」(陽炎道場・道場主)
-// 一段目: 逃げ水。画面の真ん中を通る鏡に、道場主の揺らめく輪と矢が映る。鏡は周期ごとに傾きを変えて引き直される。
-//   鏡が引かれる間(提示)に、幻がどこに映るか、つまり下からの弾がどこから来るかを読む。
-// 二段目: 合わせ鏡。縦横の鏡で、道場主の矢が四つに映る。鏡の線から離れた部屋の真ん中で戦う。
-// 三段目: 陽炎の柱。5本の泡の柱が下から昇る中へ、道場主がゆっくりした輪を落とす。
-// 最終段: 蝉時雨。泡の柱が真ん中の鏡に映り、上からも降りてくる。上下から伸びた柱が真ん中でつながり、画面を縦に仕切る。
-
 const ENTRANCE_FRAMES = 150
 const COLOR: Color = "#ffb070"
 const ARROW_COLOR: Color = "#ffe0b0"
 
 const CYCLE0_FRAMES = 460
-// 一段目の鏡を引くのにかかる時間と、鏡の傾きの範囲(水平からの角度)。
-// 傾けすぎると幻が画面の外に映ってしまうので、水平に近い範囲で左右交互に傾ける
+
 const DRAW_FRAMES = 50
 const TILT_MIN = T / 60
 const TILT_MAX = T / 15
-// 二段目で、輪を放ってから鏡が回り始めるまでと、90度回るのにかかる時間
+
 const TURN_WAIT = 60
 const TURN_FRAMES = 640
 const CYCLE2_FRAMES = Heat.PLUME_TOTAL_FRAMES + 360
@@ -68,7 +60,7 @@ export default class extends Stage {
 
 class EnemyHaze extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.8, this.game.HEIGHT * 0.05, 1, 2)
-    // 今掛かっている鏡
+
     private mirrors: readonly Mirage.Mirror[] = []
 
     constructor(game: Game) {
@@ -98,14 +90,11 @@ class EnemyHaze extends Enemy {
         yield
     }
 
-    // 240フレーム待ってから鏡を掛け替える。鏡は掛け替えるときに作る
     private *reflectInLater(mirrors: () => readonly Mirage.Mirror[]) {
         yield* Array(240)
         this.reflectIn(mirrors(), DRAW_FRAMES)
     }
 
-    // 鏡を掛け替える。今の鏡は取り去られ、鏡の線も幻も、映っていた弾も薄れて消える。
-    // 新しい鏡は drawFrames かけて引かれ、引き終わってから幻が映る
     private reflectIn(mirrors: readonly Mirage.Mirror[], drawFrames: number) {
         this.mirrors.forEach((m) => m.remove())
         this.mirrors = mirrors
@@ -128,7 +117,6 @@ class EnemyHaze extends Enemy {
         yield
     }
 
-    // 揺らめきながら広がる輪
     private ring(count: number, sign: number) {
         return remodel(this)
             .format("diamond")
@@ -147,7 +135,6 @@ class EnemyHaze extends Enemy {
             })
     }
 
-    // 最初はゆっくり、だんだん速くなる矢
     private arrows(way: number) {
         return remodel(this)
             .format("arrow")
@@ -159,8 +146,6 @@ class EnemyHaze extends Enemy {
             .g((me) => Behavior.accel(me, 50, 3.6))
     }
 
-    // 周期ごとに傾きを変えて鏡を引き直し、引き終わったら揺らめく輪と矢を鏡に映して撃つ。
-    // 前の鏡に映っていた弾は、鏡を引き直すと薄れて消える。傾ける向きを左右交互にするため、自分でくり返す
     private *cycle0() {
         for (let side = this.random() < 0.5 ? -1 : 1; ; side *= -1) {
             const mirrors = [
@@ -185,9 +170,6 @@ class EnemyHaze extends Enemy {
         }
     }
 
-    // 縦横の鏡に映る矢を撃ち、輪を放つ。輪が近づいてくるころ、二枚の鏡が逆向きにゆっくり90度ずつ回る。
-    // 鏡に映った弾や幻は鏡と一緒に大きく振れて、画面を薙いでいく。
-    // 縦横の鏡は90度回ると元と同じ形に戻るので、次の周期はそこから始まる
     private *cycle1() {
         const mirrors = this.mirrors
         const turn = this.random() < 0.5 ? -1 : 1
@@ -215,9 +197,6 @@ class EnemyHaze extends Enemy {
 
         const starts = mirrors.map((m) => m.angle)
 
-        // 二枚の鏡を逆向きに回す。直交したまま同じ向きに回すと、二枚の鏡の両方に映った像(斜め向かいの幻)は
-        // 中心を挟んだ点対称の位置から動かない。逆向きに回せば、その像も中心のまわりをぐるりと回る。
-        // 90度ずつ回ると二枚はまた縦横に戻る
         for (let f = 1; f <= TURN_FRAMES; f++) {
             mirrors.forEach((m, i) => {
                 const direction = turn
@@ -245,7 +224,6 @@ class EnemyHaze extends Enemy {
         yield* Array(360)
     }
 
-    // 柱が鏡に映り、上からも降りてくる。上下の柱が真ん中でつながる間に、鏡に映る矢を撃つ
     private *cycle3() {
         const mirrors = this.mirrors
 

@@ -9,27 +9,21 @@ import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Size } from "../Size"
 
-// ステージ「波紋」(修行場)
-// 修行相手が水面へしずくを投げる。しずくは薄く(当たり判定なし)飛んでいき、落ちた場所から三重の波紋が広がる。
-// 波紋は弾を輪に並べたもので、落ちた場所の近くでは弾が詰まって抜けられないが、広がるほど弾の間がひらき、やがて薄れて消える。
-// しずくの落ちる場所はしずくが飛んでいる間に分かるので、落ちる場所から離れ、広がってまばらになった波紋をくぐる。
-// しずくはあちこちに時間差で落ち、いくつもの波紋が重なり合う。
-
 const ENTRANCE_FRAMES = 150
-// 1周期の長さ。最後の波紋が消えた後、2秒ほど休憩が入る
+
 const CYCLE_FRAMES = 520
-// 1周期に投げるしずくの数と間隔
+
 const DROPS = 5
 const DROP_INTERVAL = 32
-// しずくが飛んでいる時間(提示)
+
 const FLIGHT_FRAMES = 50
-// 波紋の重なりの数・間隔と、一つの輪の弾の数・広がる速さ・消え始めるまでの時間
+
 const RIPPLES = 3
 const RIPPLE_INTERVAL = 16
 const RIPPLE_COUNT = 40
 const RIPPLE_SPEED = 1.6
 const RIPPLE_LIFE = 140
-// しずくを自機からどれだけ離して落とすか
+
 const LAND_MIN = 70
 const LAND_MAX = 240
 const COLOR: Color = "#a8e0ff"
@@ -79,7 +73,6 @@ class EnemyMaster extends Enemy {
         })
     }
 
-    // 自機から少し離れた、画面の中の場所
     private landing(): Vec {
         const p = this.game.player.p.add(
             vec.arg(this.random() * T).scale(LAND_MIN + this.random() * (LAND_MAX - LAND_MIN)),
@@ -90,7 +83,6 @@ class EnemyMaster extends Enemy {
         )
     }
 
-    // しずくを投げ、落ちた場所から三重の波紋を広げる
     private *drop(target: Vec) {
         const game = this.game
 

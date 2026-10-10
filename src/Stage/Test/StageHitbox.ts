@@ -8,18 +8,10 @@ import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { T } from "../../T"
 import { Size } from "../Size"
 
-// 確認用「当たり判定」
-// すべての種類の弾を画面に並べて止めておく。弾はゆっくり回るので、向きのある弾もあらゆる角度で確かめられる。
-// 自機が弾に触れている間、その弾は赤くなる。判定には本番と同じBulletCollisionを使うので、
-// 「見た目では触れていないのに赤い」「見た目では触れているのに白い」なら、見た目と当たり判定がずれている。
-// 弾はneutralなので被弾はしない。上の的を倒すと終了。
-
-// 弾が1周するのにかかるフレーム数
 const SPIN_FRAMES = 1200
 const COLOR_IDLE = "#ffffff"
 const COLOR_HIT = "#ff3355"
 
-// 並べる弾。formatで作れるものに加え、formatにない多角形もそのまま並べる
 const SAMPLES: ((r: Remodel<Enemy>) => Remodel<Enemy>)[] = [
     ...Format.format.map((type) => (r: Remodel<Enemy>) => r.format(type)),
     (r) => r.beam(1000),
@@ -46,7 +38,6 @@ class EnemyTarget extends Enemy {
         this.scripts.add(() => this.lineUp())
     }
 
-    // 弾を2列に並べる。的が倒れるまで、自機に触れているかどうかで色を変え続ける
     private *lineUp() {
         const collision = new BulletCollision()
         const columns = 2

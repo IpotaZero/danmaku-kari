@@ -9,17 +9,11 @@ import { T } from "../../T"
 import { Phase } from "./Phase"
 import { Size } from "../Size"
 
-// ステージ「満ち欠け」(月影道場・高弟)
-// 高弟(月)が輪を次々に広げる。輪は月のように一部だけが照らされていて、照らされた弧だけが実体、影の側は薄く当たり判定がない。
-// 輪を出すたびに月が満ちていき、照らされた弧は三日月から半月、満月へと太り、また痩せていく。照らされる向きも少しずつ回る。
-// 影の側へ回り込めば素通りできるが、満月に近づくほど影は細くなる。満月の輪は全部が実体なので、輪の弾のすき間を抜ける。
-// 新月のあたりで一息つける。左右の星(衛星)がゆっくりした矢を投げてくる。
-
 const ENTRANCE_FRAMES = 150
-// 一巡(新月→満月→新月)に広げる輪の数と間隔
+
 const RINGS = 9
 const RING_INTERVAL = 30
-// 1周期の長さ。最後の輪が広がった後、3秒ほど休憩が入る
+
 const CYCLE_FRAMES = RINGS * RING_INTERVAL + 200
 const RING: Phase.Ring = { count: 36, speed: 3, color: "#fff2c0" }
 
@@ -38,7 +32,6 @@ class EnemyMoon extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.05, 1, 2)
 
     constructor(game: Game) {
-        // 主機の体力は衛星の総和くらい
         super(game, STAR_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.scripts.add(() => this.enter())
@@ -60,7 +53,6 @@ class EnemyMoon extends Enemy {
         yield
     }
 
-    // 輪を出すたびに月を満ちさせ、照らされる向きを回す
     private *cycle() {
         const light = this.random() * T
         const turn = this.random() < 0.5 ? -1 : 1
@@ -77,7 +69,6 @@ class EnemyMoon extends Enemy {
 }
 
 class EnemyStar extends Enemy {
-    // side: -1で左、1で右
     constructor(game: Game, parent: Enemy, side: number) {
         super(game, STAR_LIFE, Size.S)
 

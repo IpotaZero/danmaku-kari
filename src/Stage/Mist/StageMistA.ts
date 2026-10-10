@@ -10,22 +10,16 @@ import { T } from "../../T"
 import { Mist } from "./Mist"
 import { Size } from "../Size"
 
-// ステージ「朧」(霧隠道場・門下生)
-// 左右の灯籠(衛星)が、それぞれ桃色と青色の輪を広げる。二色の輪は時計に合わせて交互に霧になる。
-// 霧になった輪は薄く、当たり判定がない。今濃い色の輪だけを避け、薄い色の輪の上は素通りしてよい。
-// ただし入れ替わりが近づくと薄い輪がだんだん濃くなってくるので、それまでに薄い輪の上から降りておく。
-// 門下生(ボス)は霧にならない矢を自機へ投げ、立ち止まらせない。
-
 const ENTRANCE_FRAMES = 150
-// 1周期の長さ。輪が画面を抜けた後、2秒ほど休憩が入る
+
 const CYCLE_FRAMES = 560
-// 輪を広げ続ける時間と、輪を出す間隔
+
 const RING_FRAMES = 200
 const RING_INTERVAL = 20
-// 一つの輪の弾の数と、広がる速さ
+
 const RING_COUNT = 31
 const RING_SPEED = 2.2
-// 二色が一度ずつ実体になるまでの長さと、入れ替わりにかかる時間
+
 const CLOCK = new Mist.Clock(360, 36)
 const COLORS: Color[] = ["#ffb0d0", "#a0c8ff"]
 
@@ -44,7 +38,6 @@ class EnemyPupil extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.06, 1, 2)
 
     constructor(game: Game) {
-        // 主機の体力は衛星の総和くらい
         super(game, LANTERN_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.scripts.add(() => this.enter())
@@ -73,7 +66,6 @@ class EnemyPupil extends Enemy {
         })
     }
 
-    // 霧にならない矢。ゆっくり飛び出し、少しずつ速くなる
     private *arrows() {
         for (let k = 0; k < 3; k++) {
             yield* Array(80)
@@ -92,7 +84,6 @@ class EnemyPupil extends Enemy {
 }
 
 class EnemyLantern extends Enemy {
-    // phase: 0なら左で桃色、1なら右で青色
     constructor(game: Game, parent: Enemy, phase: number) {
         super(game, LANTERN_LIFE, Size.S)
 
@@ -111,7 +102,6 @@ class EnemyLantern extends Enemy {
         })
     }
 
-    // 時計に合わせて霧になる輪を、一定の間隔で広げる。輪ごとに向きを半分ずらす
     private *rings(phase: number) {
         for (let k = 0; k < RING_FRAMES / RING_INTERVAL; k++) {
             yield* remodel(this)

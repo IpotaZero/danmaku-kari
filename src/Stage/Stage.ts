@@ -4,7 +4,6 @@ import { IteratorQueue } from "../Game/IteratorQueue"
 import { Figure } from "./Figure"
 
 export abstract class Stage {
-    // ステージを進めるスクリプト
     readonly scripts = new IteratorQueue()
 
     private flashAlpha = 0
@@ -18,7 +17,6 @@ export abstract class Stage {
         this.scripts.update()
     }
 
-    // G()が最後まで到達したらステージクリア
     isCleared(): boolean {
         return !this.scripts.has("runToEnd")
     }
@@ -48,7 +46,6 @@ export abstract class Stage {
         this.game.bullets.filter((b) => b.type === "enemy" || b.type === "neutral").forEach((b) => b.scorenize())
     }
 
-    // 画面全体を指定色でフラッシュさせる(frameフレームかけて薄れて消える)。敵の演出からも game.stage.flash で呼べる
     flash(color: string = "#ffffff", frame: number = 12) {
         this.flashColor = color
         this.scripts.add(() => this.flashG(frame), { id: "flash" })
@@ -63,12 +60,10 @@ export abstract class Stage {
         this.flashAlpha = 0
     }
 
-    // 画面全体を揺らす。実体はCameraの揺れなので、Player被弾時の揺れと共存できる
     protected shake(intensity: number = 8, frame: number = 20) {
         this.game.camera.shake(intensity, frame)
     }
 
-    // 立ち絵を表示する。言葉は添えず、姿だけを見せる。同じ人物の立ち絵を出し直すと、表情だけが差し替わる
     protected showFigure(figure: Figure) {
         this.game.figureLayer.show(figure.id, figure.src, figure.offsetPercent)
     }
@@ -81,7 +76,6 @@ export abstract class Stage {
         this.game.figureLayer.hideAll()
     }
 
-    // Gameの描画が全て終わった後に呼ばれる、画面全体を覆うオーバーレイの描画
     drawOverlay(ctx: CanvasRenderingContext2D, width: number, height: number): void {
         if (this.flashAlpha <= 0) return
 

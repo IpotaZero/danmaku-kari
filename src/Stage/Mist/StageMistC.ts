@@ -10,28 +10,21 @@ import { T } from "../../T"
 import { Mist } from "./Mist"
 import { Size } from "../Size"
 
-// ステージ「霞隠れ」(霧隠道場・師範代)
-// 師範代のまわりに4体の分身(衛星)が並ぶ。分身は自機のまわりへ、霧の手裏剣(薄く、当たり判定なし)を投げる。
-// 手裏剣は自機から少し離れた場所に刺さると実体になり、しばらくして輪になって弾け飛ぶ。
-// 刺さる場所は霧のうちに見えるので、どこから輪が来るかを先に読める。輪はあちこちから時間差で来るので、すき間を探して抜ける。
-// 分身のうち本物は一度に1体だけで、ほかは攻撃が効かない(体力の帯が赤い)。本物は周期ごとに入れ替わるので、狙い直す必要がある。
-// 師範代(ボス)は、手裏剣が弾け終わるころにゆっくりした輪を放つ。
-
 const ENTRANCE_FRAMES = 150
-// 1周期の長さ。最後の輪が広がった後、2秒ほど休憩が入る
+
 const CYCLE_FRAMES = 540
-// 分身が手裏剣を投げる時刻。分身の番号ごとにずらし、1周期に2巡する
+
 const THROW_INTERVAL = 20
 const ROUND_INTERVAL = 110
-// 手裏剣が刺さる場所の、自機からの距離
+
 const LAND_MIN = 90
 const LAND_MAX = 170
-// 手裏剣は40フレーム霧のまま飛び、刺さって45フレーム後に弾ける
+
 const SHURIKEN: Mist.Shuriken = { flight: 90, stuck: 45, burstCount: 14, burstSpeed: 1.8, color: "#e0e0ff" }
 
 const CLONE_COUNT = 4
 const CLONE_LIFE = 450
-// 師範代から見た、分身の位置
+
 const CLONE_OFFSETS = [vec(-0.36, 0.02), vec(0.36, 0.02), vec(-0.18, 0.14), vec(0.18, 0.14)]
 
 export default class extends Stage {
@@ -48,7 +41,6 @@ class EnemyMaster extends Enemy {
     readonly clones = CLONE_OFFSETS.map((o, i) => new EnemyClone(this.game, this, o, i))
 
     constructor(game: Game) {
-        // 主機の体力は衛星の総和くらい
         super(game, CLONE_LIFE * CLONE_COUNT, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.scripts.add(() => this.enter())
@@ -79,7 +71,6 @@ class EnemyMaster extends Enemy {
         })
     }
 
-    // 生きている分身から本物を1体選び、ほかは攻撃が効かないようにする
     private chooseReal() {
         const alive = this.clones.filter((c) => c.life > 0)
         if (alive.length === 0) return
@@ -125,7 +116,6 @@ class EnemyClone extends Enemy {
         })
     }
 
-    // 自機から少し離れた場所へ霧の手裏剣を投げる。刺さると実体になり、少しして輪になって弾ける
     private *shuriken(wait: number) {
         yield* Array(wait)
         if (this.life <= 0) return

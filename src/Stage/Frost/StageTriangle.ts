@@ -9,23 +9,18 @@ import { GenUtils } from "@ipota/functions"
 import { Curves } from "../../utils/Functions/Curves"
 import { Size } from "../Size"
 
-// 試作「三角」
-// 画面の上に弾を並べた正三角形が描かれ、回りながらゆっくり落ちてくる。
-// 辺の上は弾が詰まっていて抜けられないので、回る辺の隙間を縫うか、三角形の内側に入ってやり過ごす。
-// 隣り合う三角形は逆向きに回るので、間を抜けるときは両方の辺の動きを見る必要がある。
-
 const ENTRANCE_FRAMES = 150
-// 1周期の長さ
+
 const CYCLE_FRAMES = 420
-// 1周期に落とす三角形の数と、落とす間隔
+
 const HEXAGON_COUNT = 3
 const DROP_INTERVAL = 52
-// 三角形の中心から頂点までの距離
+
 const HEXAGON_RADIUS = 64
-// 辺を構成する弾の間隔。自機の当たり判定の8倍より狭いので、辺は抜けられない
+
 const HEXAGON_SPACING = 32
 const FALL_SPEED = 1.6
-// 1フレームあたりの回転角
+
 const SPIN = T / 600
 
 export default class extends Stage {
@@ -37,7 +32,6 @@ export default class extends Stage {
     }
 }
 
-// 中心から見た、正三角形の辺の上の弾の位置。頂点を上に向けた形
 function hexagon(radius: number): Vec[] {
     const vertices = [0, 1, 2, 3, 4, 5].map((k) => vec.arg((T * k) / 6).scale(radius))
     const perSide = Math.round((radius * Math.sqrt(3)) / HEXAGON_SPACING)
@@ -64,7 +58,7 @@ class EnemyLine extends Enemy {
 
     private *line() {
         yield* Array(140)
-        yield* remodel(this) //
+        yield* remodel(this)
             .format("line")
             .color("#ffbfbf")
             .r(28)
@@ -145,11 +139,9 @@ class EnemyHexagon extends Enemy {
         })
     }
 
-    // 画面の上端に六角形を描き、回しながら落とす。
-    // 全員が同じフレームに動き出すので、六角形は形を崩さず一枚の板のように回る
     private *drop(lane: number, direction: number) {
         const width = this.game.WIDTH
-        // 回っても頂点が画面の外に出ない(Bulletのboundaryで消えない)位置に置く
+
         const laneWidth = (width - HEXAGON_RADIUS * 2) / 3
         const center = vec(HEXAGON_RADIUS + laneWidth * (lane + 0.2 + this.random() * 0.6), HEXAGON_RADIUS + 8)
         const offsets = hexagon(HEXAGON_RADIUS)
@@ -162,7 +154,7 @@ class EnemyHexagon extends Enemy {
                 return b
             })
             .g((me, i) => Behavior.revolve(me, center, offsets[i], vec(0, FALL_SPEED), SPIN * direction))
-            // 辺をなぞるように順番に現れる(見た目と判定は常に一致)
+
             .appear(12, 1)
             .fire(this.game.bullets)
     }

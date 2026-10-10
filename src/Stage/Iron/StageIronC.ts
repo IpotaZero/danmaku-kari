@@ -9,11 +9,6 @@ import { T } from "../../T"
 import { Part } from "../Part"
 import { Size } from "../Size"
 
-// ステージ「鉄壁陣」(鉄壁道場・師範代)
-// 師範代の前(下)に、五人の盾持ち(子機)が弧を描いて並ぶ。盾持ちは大きく頑丈で、師範代を狙った弾をその身で受け止めてしまう。
-// 陣は左右にゆっくり振れるので、盾持ちの隙間から撃ち込むか、盾持ちを倒して陣に穴を開ける。
-// 盾持ちは、一度止まってから散る小さな輪を放つ。師範代は盾の上から、一度止まってから一気に速くなる大きな扇を撃つ。
-
 export default class extends Stage {
     *G() {
         const master = new EnemyMaster(this.game)
@@ -29,8 +24,6 @@ class EnemyMaster extends Enemy {
     readonly guards = [0, 1, 2, 3, 4].map((i) => new ShieldBearer(this.game, this, i))
 
     constructor(game: Game) {
-        // 盾持ちが先に攻撃をすべて受け止めるので、師範代を撃てるのは盾持ちが減ってから。
-        // 師範代だけが残るつまらない時間を短くするため、体力は盾持ちの総和よりずっと少なくする
         super(game, 800, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.scripts.add(() => this.enter())
@@ -52,7 +45,6 @@ class EnemyMaster extends Enemy {
         yield
     }
 
-    // 盾の上から、下へ向けて大きな扇。一度止まってから一気に速くなる
     private *fan() {
         yield* remodel(this)
             .format("diamond")
@@ -68,7 +60,6 @@ class EnemyMaster extends Enemy {
     }
 }
 
-// 盾持ち。師範代の下に、半径120pxの弧の上に並ぶ。陣はシーソーのように左右へ振れる
 class ShieldBearer extends Part {
     constructor(
         game: Game,
@@ -82,7 +73,6 @@ class ShieldBearer extends Part {
         return vec.arg(T / 4 + (this.i - 2) * 0.42 + 0.35 * Math.sin(this.frame / 70)).scale(120)
     }
 
-    // 盾突き。一度止まってから散る小さな輪
     protected *attack() {
         yield* remodel(this)
             .format("small-ball")

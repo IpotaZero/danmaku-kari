@@ -10,15 +10,10 @@ import { T } from "../../T"
 import { Mochi } from "./Mochi"
 import { Size } from "../Size"
 
-// ステージ「月の兎」(月影道場・師範代)
-// 左右の兎(衛星)が、大きな餅を高く放り投げる。餅は放物線を描いて画面の底で弾み、弾むたびに底から半円の衝撃波が広がる。
-// 餅は弾むたびに低くなっていく。放物線は読みやすいので、餅の下をくぐるか、弾む場所から離れて衝撃波をやり過ごす。
-// 師範代(臼)は、ときどき杵でついたようにゆっくりした輪を放つ。
-
 const ENTRANCE_FRAMES = 150
-// 1周期の長さ。最後の餅が消えた後、2秒ほど休憩が入る
+
 const CYCLE_FRAMES = 620
-// 兎が1周期に餅を放る回数と間隔
+
 const TOSSES = 2
 const TOSS_INTERVAL = 140
 const MOCHI: Mochi.Config = {
@@ -45,7 +40,6 @@ class EnemyMortar extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.2, this.game.HEIGHT * 0.04, 1, 2)
 
     constructor(game: Game) {
-        // 主機の体力は衛星の総和くらい
         super(game, RABBIT_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.scripts.add(() => this.enter())
@@ -67,7 +61,6 @@ class EnemyMortar extends Enemy {
         yield
     }
 
-    // 杵でつくように、ゆっくりした輪を2つ続けて放つ
     private *cycle() {
         for (let k = 0; k < 2; k++) {
             yield* remodel(this)
@@ -88,7 +81,6 @@ class EnemyMortar extends Enemy {
 }
 
 class EnemyRabbit extends Enemy {
-    // side: -1で左、1で右
     constructor(game: Game, parent: Enemy, side: number) {
         super(game, RABBIT_LIFE, Size.S)
 
@@ -104,7 +96,6 @@ class EnemyRabbit extends Enemy {
         })
     }
 
-    // 画面の反対側の方へ、餅を高く放る。左右の兎で放る時刻をずらす
     private *tosses(side: number) {
         yield* Array(side > 0 ? TOSS_INTERVAL / 2 : 0)
 

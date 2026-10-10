@@ -9,12 +9,6 @@ import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Size } from "../Size"
 
-// ステージ「彗星」(流星道場・高弟)
-// 高弟(太陽)のすぐそばから、尾を引く彗星が次々に飛び出す。彗星は細長い楕円を描いて画面の下の方まで振れていき、
-// また太陽のそばへ戻ってくる。太陽の近くでは速く、遠い所(自機のいる下の方)ではゆっくりになる。
-// 彗星は必ず太陽のそばから現れるので、飛び出した向きと回る向きを見れば、どこへ振れてくるかが読める。
-// 太陽のまわりを四つの惑星(子機)が回っていて、二つは自機へ扇を、二つは輪を撃ってくる。
-
 export default class extends Stage {
     *G() {
         const sun = new EnemySun(this.game)
@@ -28,7 +22,6 @@ class EnemySun extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.06, 2, 3)
 
     constructor(game: Game) {
-        // 主機の体力は子機の総和くらい
         super(game, 2400, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.scripts.add(() => this.enter())
@@ -50,7 +43,6 @@ class EnemySun extends Enemy {
         yield
     }
 
-    // 彗星を五つ、間を空けて放つ。行き先は画面の下の方のあちこち、回る向きは交互。そのあと2秒半ほど休む
     private *cycle() {
         for (let k = 0; k < 5; k++) {
             const aphelion = vec(
@@ -65,10 +57,6 @@ class EnemySun extends Enemy {
         yield* Array(330)
     }
 
-    // 太陽のすぐそば(行き先と反対側)から彗星を飛び出させる。彗星は飛び出した時の太陽の位置に引かれて楕円を描き、
-    // 行き先 aphelion(太陽から一番遠い点)まで振れてから、飛び出した所へ戻って消える。turn は回る向き。
-    // (動いている太陽に引かせると軌道が乱れて飛んでいってしまうので、引く所は飛び出した時に決める)
-    // 太陽のそばは速いので、1フレームを8回に分けて動きを計算する
     private *comet(aphelion: Vec, turn: number) {
         const sun = this.p.clone()
 
@@ -79,11 +67,10 @@ class EnemySun extends Enemy {
             .speed(0)
             .unbounded()
             .g(function* (me) {
-                // 太陽から一番近い点(飛び出す所)は、太陽を挟んで行き先と反対側の70px先
                 const far = aphelion.sub(sun).magnitude()
                 const away = sun.sub(aphelion).normalize()
                 const a = (far + 70) / 2
-                // 一周(行って戻る)にかかるのは240フレーム
+
                 const gm = (4 * Math.PI ** 2 * a ** 3) / 240 ** 2
 
                 me.p = sun.add(away.scale(70))
@@ -101,7 +88,6 @@ class EnemySun extends Enemy {
 
                     me.radian = v.radian()
 
-                    // 尾。止まった小さな弾をしばらく残す
                     if (f % 2 === 0) {
                         yield* remodel(this)
                             .format("small-ball")
@@ -125,7 +111,6 @@ class EnemySun extends Enemy {
     }
 }
 
-// 太陽のまわりを回る惑星。偶数番は自機へ扇を、奇数番は輪を撃つ
 class EnemyPlanet extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
         super(game, 600, Size.S)
@@ -141,7 +126,6 @@ class EnemyPlanet extends Enemy {
         }
     }
 
-    // ゆっくり出て、一気に速くなる扇
     private *fan() {
         yield* remodel(this)
             .format("donut")
@@ -156,7 +140,6 @@ class EnemyPlanet extends Enemy {
         yield* Array(70)
     }
 
-    // 一度止まってから散る輪
     private *ring() {
         yield* remodel(this)
             .format("small-ball")

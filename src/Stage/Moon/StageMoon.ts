@@ -10,19 +10,6 @@ import { Part } from "../Part"
 import { Charge } from "../Charge"
 import { Size } from "../Size"
 
-// ステージ「スズムシ」(月影道場・道場主)
-// 道場主のまわりに子機が幾何学的に並ぶ。胴のすぐ左右に翅の一対、その外側に触角の一対、胴の下に六つの鈴の横一列。
-// 翅: 擦り合わせて音を鳴らす。左右の翅から同時に半円の波が広がり、二つの波が重なって格子のような隙間ができる。
-// 触角: 探るように弾を撒き、少しして自機の方へ向きを変えて飛ばす。
-// 鈴: 順に鈴玉を落とす。鈴玉は少し落ちてから、輪になって鳴り響く。
-// 鈴は胴の下に並んでいるので、胴を撃とうとすると鈴に当たる。鈴を落とすと胴の下が開ける。
-// 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ。
-// 一段目: 翅を両方落とすと次の段へ。胴はときどき輪を放つ。
-// 合奏: 胴は大きく息を吸い込んで、胴の下に横一列に三匹の子スズムシを呼ぶ。子スズムシのまわりを小鈴(孫機)が二つずつ回り、小鈴を落とすまで子スズムシに攻撃が効かない。
-// 二段目: 子スズムシをすべて落とすと次の段へ。子スズムシも半円の波を鳴らすので、三つの波が重なって、隙間がもっと細かくなる。
-//         胴は月の輪(一度広がって止まり、くるりと回ってから散る輪)を放つ。
-// 三段目: 満月。胴に攻撃が効くようになり、胴は自分でも半円の波を鳴らしながら、月の輪を放つ。
-
 export default class extends Stage {
     *G() {
         const boss = new EnemySuzumushi(this.game)
@@ -69,11 +56,9 @@ class EnemySuzumushi extends Enemy {
     }
 
     private *phases() {
-        // 一段目: 翅を両方落とすと次の段へ
         this.scripts.add(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
         while (this.wings.some((p) => p.life > 0)) yield
 
-        // 合奏。大きく息を吸い込んでから、小鈴(孫機)に守られた子スズムシを呼ぶ
         this.scripts.remove("body")
         yield* Charge.gather(this, 150, "#fff0b0")
 
@@ -85,17 +70,14 @@ class EnemySuzumushi extends Enemy {
             return cricket
         })
 
-        // 二段目: 子スズムシをすべて落とすと次の段へ。胴は月の輪を放つ
         this.scripts.add(() => this.moonRing(), { loop: Infinity, margin: 90, id: "body" })
         while (crickets.some((p) => p.life > 0)) yield
 
-        // 三段目: 満月。胴に攻撃が効くようになり、胴も半円の波を鳴らす
         this.isInvincible = false
         this.game.camera.shake(8, 30)
         this.scripts.add(() => Suzumushi.chirp(this, 0, 21), { loop: Infinity, margin: 30, id: "song" })
     }
 
-    // 一段目の胴。ときどき輪を放つ
     private *ring() {
         yield* remodel(this)
             .format("small-ball")
@@ -110,7 +92,6 @@ class EnemySuzumushi extends Enemy {
         yield* Array(170)
     }
 
-    // 月の輪。一度広がって止まり、その場でくるりと回ってから外へ散る
     private *moonRing() {
         const turn = this.random() < 0.5 ? -0.03 : 0.03
 
@@ -142,9 +123,7 @@ class EnemySuzumushi extends Enemy {
     }
 }
 
-// スズムシの攻撃のうち、部位と胴の両方が使うもの
 namespace Suzumushi {
-    // 半円の音の波。下向きの半円の波を三つ続けて広げる。右寄りのものほど少し遅れるので、波がずれて重なる
     export function* chirp(me: Enemy, side: number, count: number) {
         yield* Array(side > 0 ? 6 : 0)
 
@@ -165,7 +144,6 @@ namespace Suzumushi {
     }
 }
 
-// 翅(左右一対)。胴のすぐ左右にある
 class Wing extends Part {
     constructor(
         game: Game,
@@ -184,7 +162,6 @@ class Wing extends Part {
     }
 }
 
-// 触角(左右一対)。翅のさらに外側にある
 class Antenna extends Part {
     constructor(
         game: Game,
@@ -198,7 +175,6 @@ class Antenna extends Part {
         return vec(this.side * 135, 0)
     }
 
-    // 触角の探り。外寄りの上へ弾を撒き、少しして自機の方へ向きを変えて一気に飛ばす
     protected *attack() {
         yield* remodel(this)
             .format("diamond")
@@ -218,7 +194,6 @@ class Antenna extends Part {
     }
 }
 
-// 鈴(六つ)。胴の下に横一列に並ぶ
 class Bell extends Part {
     constructor(
         game: Game,
@@ -232,7 +207,6 @@ class Bell extends Part {
         return vec((this.k - 2.5) * 50, 100)
     }
 
-    // 鈴の音。k 番目の鈴は 12k フレーム待ってから鈴玉を落とす。鈴玉は少し落ちてから、輪になって鳴り響く
     protected *attack() {
         yield* Array(this.k * 12)
 
@@ -263,7 +237,6 @@ class Bell extends Part {
     }
 }
 
-// 子スズムシ(三匹)。合奏で胴が呼び、胴の下に横一列に並ぶ。小鈴に守られている
 class Cricket extends Part {
     constructor(
         game: Game,
@@ -282,7 +255,6 @@ class Cricket extends Part {
     }
 }
 
-// 小鈴(孫機、二つ)。子スズムシのまわりを回る
 class SmallBell extends Part {
     constructor(
         game: Game,
@@ -296,7 +268,6 @@ class SmallBell extends Part {
         return vec.arg(this.frame / 60 + (this.side > 0 ? 0 : Math.PI)).scale(56)
     }
 
-    // 小鈴の音。小さな鈴玉が少し落ちてから、小さな輪になる
     protected *attack() {
         yield* remodel(this)
             .format("small-ball")

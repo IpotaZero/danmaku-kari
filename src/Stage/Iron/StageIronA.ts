@@ -10,16 +10,10 @@ import { T } from "../../T"
 import { Shield } from "./Shield"
 import { Size } from "../Size"
 
-// ステージ「盾」(鉄壁道場・門下生)
-// 門下生のまわりを、弾を並べた盾の輪がゆっくり回っている。盾は自機の弾を受け止めるので、輪の二か所の窓からしか弾は届かない。
-// 門下生も窓から外へ向けて弾を撃つ。窓が回るので、弾の筋は灯台の光のように画面を薙いでいく。
-// 窓と向き合えば撃ち込めるが、そこは弾の筋の通り道でもある。筋が止んでいる間に窓の正面へ回り込んで撃ち込む。
-// 撃ち合いの合間に、門下生はゆっくりした輪も放つ(輪は盾をすり抜ける)。
-
 const ENTRANCE_FRAMES = 150
-// 盾の輪。窓一つは弾4個ぶん(70px)ほど開く
+
 const RING: Shield.RingConfig = { radius: 84, slots: 21, windowSlots: 4, spin: T / 720 }
-// 窓から弾を撃ち続ける時間と、休む時間
+
 const FIRE_FRAMES = 90
 const REST_FRAMES = 110
 const STREAM_INTERVAL = 5
@@ -69,7 +63,6 @@ class EnemyPupil extends Enemy {
         })
     }
 
-    // 二つの窓から、外へ向けて弾を撃ち続ける
     private *stream() {
         for (let f = 0; f < FIRE_FRAMES; f += STREAM_INTERVAL) {
             const angle = this.ring.angle()
@@ -91,7 +84,6 @@ class EnemyPupil extends Enemy {
         }
     }
 
-    // 休んでいる間に、盾をすり抜けるゆっくりした輪を放つ
     private *burst() {
         yield* Array(FIRE_FRAMES + 20)
 

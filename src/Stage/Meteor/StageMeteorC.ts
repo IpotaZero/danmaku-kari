@@ -10,12 +10,6 @@ import { T } from "../../T"
 import { Part } from "../Part"
 import { Size } from "../Size"
 
-// ステージ「北斗七星」(流星道場・師範代)
-// 師範代(北極星)のまわりを、北斗七星の形に並んだ七つの星(子機)が、形を保ったまま回る。
-// 星は柄の先から枡の先へ順に瞬き、それぞれ星形に広がる弾を放つ。星形の弾は尖った所が速く、くぼんだ所が遅い。
-// 七つの星形が少しずつずれて重なり、あちこちから広がってくる。星を落とせば、その星形はなくなる。
-// 北極星は、一気に速くなる矢を自機へ撃つ。
-
 export default class extends Stage {
     *G() {
         const master = new EnemyPolaris(this.game)
@@ -28,7 +22,6 @@ export default class extends Stage {
 class EnemyPolaris extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.15, this.game.HEIGHT * 0.03, 1, 2)
 
-    // 北斗七星。柄の先(破軍星)から枡の先(貪狼星)まで。星の並びの重心が北極星から175px離れたところで、形ごと回る
     readonly stars = [
         vec(2.4, 0.05),
         vec(1.85, -0.15),
@@ -45,7 +38,6 @@ class EnemyPolaris extends Enemy {
     })
 
     constructor(game: Game) {
-        // 主機の体力は子機の総和くらい
         super(game, 1800, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.scripts.add(() => this.enter())
@@ -67,7 +59,6 @@ class EnemyPolaris extends Enemy {
         yield
     }
 
-    // 最初はゆっくり、一気に速くなる矢
     private *arrows() {
         yield* remodel(this)
             .format("arrow")
@@ -83,7 +74,6 @@ class EnemyPolaris extends Enemy {
     }
 }
 
-// 北斗七星の星。offset は星の並びの重心から見た位置
 class Star extends Part {
     constructor(
         game: Game,
@@ -99,7 +89,6 @@ class Star extends Part {
         return vec.arg(angle).scale(175).add(this.offset.rotate(angle))
     }
 
-    // 星の瞬き。i 番目の星は 10i フレーム待ってから、星形に広がる弾を放つ。一巡(300フレーム)ごとに休む
     protected *attack() {
         yield* Array(this.i * 10)
 
@@ -109,7 +98,7 @@ class Star extends Part {
             .p(this.p.clone())
             .radian(this.random() * T)
             .ex(10)
-            // 尖った所(偶数番)は速く、くぼんだ所(奇数番)は遅い
+
             .forEach((b, k) => {
                 b.speed = k % 2 === 0 ? 4.5 : 2.6
             })

@@ -10,8 +10,6 @@ import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Size } from "../Size"
 
-// cycle3の巣。画面全体を覆う大きさにする(はみ出した糸は置かれない)。
-// 糸を構成する弾の間隔は自機の当たり判定の8倍より狭いので、糸は抜けられない。網目の中で輪を避けることになる
 const WEB: SpiderWeb.Config = {
     spokes: 12,
     rings: 16,
@@ -21,7 +19,7 @@ const WEB: SpiderWeb.Config = {
     landFrames: 45,
     solidFrames: 300,
 }
-// cycle3の1周期の長さ
+
 const CYCLE3_FRAMES = 660
 
 export default class extends Stage {
@@ -93,7 +91,6 @@ class EnemyBoss extends Enemy {
     private *cycle0() {
         yield* this.randomMove(60)
 
-        // 牙
         yield* GenUtils.repeat(4, () =>
             GenUtils.all({
                 upper: remodel(this)
@@ -285,8 +282,6 @@ class EnemyBoss extends Enemy {
         yield* Array(120)
     }
 
-    // 画面全体に巣を張って自機を網目の中に閉じ込め、そこへ輪を撃ち込む。
-    // 巣が消えてから次の巣を張るまでが休憩
     private *cycle3() {
         yield* this.randomMove(60)
 
@@ -297,9 +292,6 @@ class EnemyBoss extends Enemy {
         })
     }
 
-    // 画面の真ん中あたりを中心に、画面全体へ巣を編む。
-    // 中心に近いほど網目が狭いので、編まれている間(提示)に、広い網目へ移っておく。
-    // 動くとcycle3_1の移動とぶつかるので、ここでは動かない
     private *cycle3_0() {
         const w = this.game.WIDTH
         const h = this.game.HEIGHT

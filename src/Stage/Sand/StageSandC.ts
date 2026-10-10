@@ -10,12 +10,6 @@ import { T } from "../../T"
 import { Part } from "../Part"
 import { Size } from "../Size"
 
-// ステージ「蟻の行進」(砂塵道場・師範代)
-// 画面の中ほどの高さに横長の楕円の道があり、六匹の蟻(子機)が等間隔の一列になって、その道をぐるぐる行進する。
-// 蟻は行進しながら、自機へ扇形に砂を投げてくる。
-// 蟻は砂袋を背負っていて、倒すとその場で砂が輪になって飛び散る。倒す場所とタイミングも考える。
-// 師範代は上から、止まってから散る砂の扇を浴びせてくる。
-
 export default class extends Stage {
     *G() {
         const master = new EnemyMaster(this.game)
@@ -31,7 +25,6 @@ class EnemyMaster extends Enemy {
     readonly ants = [0, 1, 2, 3, 4, 5].map((i) => new Ant(this.game, this, i))
 
     constructor(game: Game) {
-        // 主機の体力は子機の総和くらい
         super(game, 1800, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.scripts.add(() => this.enter())
@@ -54,7 +47,6 @@ class EnemyMaster extends Enemy {
         yield
     }
 
-    // 倒れた蟻の砂袋が破れて、砂が輪になって飛び散る
     private *watchAnts() {
         const alive = new Set(this.ants)
 
@@ -78,7 +70,6 @@ class EnemyMaster extends Enemy {
         }
     }
 
-    // 下へ向けて広く砂の扇を浴びせる。扇は一度止まってから散る
     private *shower() {
         yield* remodel(this)
             .format("diamond")
@@ -94,7 +85,6 @@ class EnemyMaster extends Enemy {
     }
 }
 
-// 蟻。横長の楕円の道を、等間隔の一列になって同じ速さで行進する
 class Ant extends Part {
     constructor(
         game: Game,
@@ -111,7 +101,6 @@ class Ant extends Part {
         ).sub(this.parent.p)
     }
 
-    // 蟻が自機へ投げる砂。ゆっくり出て、一気に速くなる
     protected *attack() {
         yield* remodel(this)
             .format("small-ball")

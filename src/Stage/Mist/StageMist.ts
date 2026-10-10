@@ -10,20 +10,11 @@ import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Part } from "../Part"
 import { Size } from "../Size"
 
-// ステージ「カゲロウ」(霧隠道場・道場主)
-// 道場主のまわりに子機が幾何学的に並ぶ。四枚の翅が胴を囲む正方形になってゆっくり回り、胴の下に三本の尾が横一列に並ぶ。
-// それぞれが別々の攻撃をする。翅と尾をすべて落とすまで、胴には攻撃が効かない。
-// 前翅: 外向きに扇を払う。正方形が回るので、扇の向きも少しずつ変わる。
-// 後翅: 鱗粉を撒く。鱗粉はその場に漂ってから、ばらばらに落ちてくる。
-// 尾: 細い霧の糸を垂らし、糸は左右に振れる。三本の糸が交差しながら画面を薙ぐ。
-// 胴: 部位が減るほど、輪が濃くなっていく。すべての部位を落とすと、胴に攻撃が効くようになり、輪は止まってから散るようになる。
-
 export default class extends Stage {
     *G() {
         const boss = new EnemyKagerou(this.game)
         this.game.enemies.push(boss, ...boss.parts)
 
-        // 翅と尾が残っている間は、胴に攻撃が効かない
         while (boss.life > 0) {
             boss.isInvincible = boss.frame < 120 || boss.parts.some((p) => p.life > 0)
             yield
@@ -69,7 +60,6 @@ class EnemyKagerou extends Enemy {
         yield
     }
 
-    // 胴の輪。部位が減るほど弾が増える。部位がなくなると、止まってから散る輪になり、間隔も短くなる
     private *ring() {
         const lost = this.parts.filter((p) => p.life <= 0).length
         const bare = lost === this.parts.length
@@ -89,7 +79,6 @@ class EnemyKagerou extends Enemy {
     }
 }
 
-// 前翅(二枚)。胴を囲む正方形の、向かい合う二つの角
 class ForeWing extends Part {
     constructor(
         game: Game,
@@ -103,7 +92,6 @@ class ForeWing extends Part {
         return vec.arg(this.frame / 200 + (this.side > 0 ? 0 : Math.PI)).scale(100)
     }
 
-    // 前翅の羽風。胴から見て外向きに、ゆっくり出て一気に速くなる扇を払う
     protected *attack() {
         yield* remodel(this)
             .format("diamond")
@@ -119,7 +107,6 @@ class ForeWing extends Part {
     }
 }
 
-// 後翅(二枚)。正方形の残りの二つの角
 class HindWing extends Part {
     constructor(
         game: Game,
@@ -133,7 +120,6 @@ class HindWing extends Part {
         return vec.arg(this.frame / 200 + (this.side > 0 ? T / 4 : -T / 4)).scale(100)
     }
 
-    // 後翅の鱗粉。まわりに撒かれた粉はその場に漂い、少ししてからばらばらに落ちる
     protected *attack() {
         yield* remodel(this)
             .format("small-ball")
@@ -155,7 +141,6 @@ class HindWing extends Part {
     }
 }
 
-// 尾(三本)。胴の下に横一列に並ぶ
 class Tail extends Part {
     constructor(
         game: Game,
@@ -169,7 +154,6 @@ class Tail extends Part {
         return vec(this.k * 70, 150)
     }
 
-    // 尾の霧の糸。左右へ振れながら、真下寄りに細い糸を垂らし続ける
     protected *attack() {
         for (let f = 0; f < 70; f += 4) {
             yield* remodel(this)

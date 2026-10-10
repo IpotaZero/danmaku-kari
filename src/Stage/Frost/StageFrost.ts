@@ -11,29 +11,19 @@ import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { EnemyRendererCore } from "../../Game/Actor/EnemyRendererCore"
 import { Size } from "../Size"
 
-// ステージ「霜」
-// 空から小さな雪(ball 4)が降り、画面のあちこちで止まって大きな雪玉(ball 24)に育つ。
-// 雪玉が画面を埋め尽くしたところで、一斉に下へ落ち始める。
-// 画面全体が上から押し寄せてくるので、「居場所」がどんどん削られていく。
-// 雪玉がそろうまでの間に、霜の核(ボス)がつららを撃ち込んでくる。
-//
-// 高速移動で雪玉を抜けても、抜けた先もまた雪玉の中である。弾を消さない限り居場所は増えない。
-// 障壁を張れば、落ちてくる雪玉が結界に触れたそばからスコアに変わっていく。
-// 「どこに結界を張るか」を、雪が降っている間(提示)に決めるステージ。
-
 const ENTRANCE_FRAMES = 150
-// 雪玉がすべて画面下へ抜けた後、約3秒の休憩が入る長さ
+
 const CYCLE_FRAMES = 900
-// 雪が降り始めてから降り終わるまで
+
 const SNOW_FRAMES = 150
-// 止まった雪が雪玉に育つまで
+
 const GROW_FRAMES = 30
-// 周期の開始から雪玉が一斉に落ち始めるまで
+
 const DROP_FRAMES = 420
-// 雪(小)が降る速さと、雪玉(大)が落ちる速さ
+
 const FALL_SPEED = 4
 const DROP_SPEED = 12
-// この面積(px²)につき雪を1つ降らせる。小さいほど多い
+
 const AREA_PER_SNOW = 9000
 
 export default class extends Stage {
@@ -132,8 +122,6 @@ class EnemyFrost extends Enemy {
         })
     }
 
-    // 画面上端から雪を降らせる。それぞれが画面のどこかで止まって雪玉に育ち、DROP_FRAMESで一斉に落ちる。
-    // 雪は画面の面積に比例した数だけ降るので、画面サイズが変わっても埋まり具合は変わらない
     private *snowfall() {
         const width = this.game.WIDTH
         const height = this.game.HEIGHT
@@ -161,15 +149,12 @@ class EnemyFrost extends Enemy {
 
                 yield* Array(Math.max(0, DROP_FRAMES - me.delay - fallFrames - stopFrames - GROW_FRAMES))
 
-                // 全員が同じフレームに落ち始めるので、雪玉の並びを保ったまま画面が押し下がってくる。
-                // 画面下に抜けた雪玉はBulletのboundaryで消える
                 me.radian = T / 4
                 yield* Behavior.accel(me, 360, DROP_SPEED)
             })
             .fire(this.game.bullets)
     }
 
-    // 氷がそろったところへ、つららを3回撃ち込む。氷の隙間を縫って避けるか、結界で受け止めるか
     private *icicles() {
         yield* Array(240)
 
@@ -190,7 +175,6 @@ class EnemyFrost extends Enemy {
         }
     }
 
-    // つららの合間に、ゆっくりした輪。自機狙いだけで終わらせないための混ぜもの
     private *ring() {
         yield* Array(270)
 

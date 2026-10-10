@@ -10,10 +10,8 @@ import { GenUtils } from "@ipota/functions"
 import { Curves } from "../../utils/Functions/Curves"
 import { Size } from "../Size"
 
-// ボスの登場演出にかかるフレーム数。衛星もこれだけ待ってから合わせて動き出す
 const ENTRANCE_FRAMES = 150
-// 一斉射撃の後の休憩フレーム数。ボスと衛星の両方がこの数値だけ待つことで、
-// お互いを一切参照せずとも常に同じフレームで発射できる
+
 const REST_FRAMES = 240
 
 export default class extends Stage {
@@ -51,7 +49,6 @@ class EnemyBoss extends Enemy {
         yield
     }
 
-    // 「弾を並べて溜める(提示) → 一斉に加速して襲いかかる → 何もない静寂」を1セットとする
     private *attack() {
         yield* GenUtils.all({
             attack: this.radialVolley(),
@@ -59,15 +56,11 @@ class EnemyBoss extends Enemy {
         })
     }
 
-    // ボスの全方位に近い扇
-    // reaccelで一旦飛び出してから減速・静止・再加速させることで、出現位置の一点に重ならず放射状に広がる
     private *radialVolley() {
         const stopFrames = 40
         const waitFrames = 20
         const accelFrames = 60
         const launchSpeed = 6
-
-        // delayByIndexを使うことでリボンスプレッドのような効果を生み出すことができる。
 
         yield* remodel(this)
             .p(this.p.clone())
@@ -94,9 +87,6 @@ class EnemySatellite extends Enemy {
     ) {
         super(game, 500, Size.S)
 
-        // 公転半径を大きくすることで、異なる方向からの攻撃を見せることができる。
-        // 異なる方向からの攻撃を実現するためには横幅が必要である。
-        // 極論、砲塔以外から攻撃してもよいのだ。
         const phase = (T * index) / count
         const orbitSpeed = T / 2400
         const radius = 250
@@ -106,7 +96,6 @@ class EnemySatellite extends Enemy {
         this.scripts.add(() => this.attack(), { margin: ENTRANCE_FRAMES, loop: Infinity })
     }
 
-    // ボスを一切見ず、ボスと全く同じフレーム数だけ待つことで結果的に同時発射になる
     private *attack() {
         yield* GenUtils.all({
             attack: this.fireAimed(5, T / 16, 10, 6),

@@ -9,21 +9,16 @@ import { Curves } from "../../utils/Functions/Curves"
 import { T } from "../../T"
 import { Size } from "../Size"
 
-// ステージ「花火」(修行場)
-// 画面の下から花火が打ち上がる。打ち上がる前には、打ち上がる筋に薄い線(当たり判定なし)が引かれる。
-// 花火は空高くで開き、火の粉は丸く広がってから、重さに引かれてしだれ柳のように垂れ下がってくる。
-// 打ち上げの筋から離れ、垂れてくる火の粉の間を抜ける。花火は少しずつ時間をずらして、色を変えて上がる。
-
 const ENTRANCE_FRAMES = 150
-// 1周期の長さ。最後の火の粉が消えた後、2秒ほど休憩が入る
+
 const CYCLE_FRAMES = 560
-// 1周期に上げる花火の数と間隔
+
 const ROCKETS = 4
 const ROCKET_INTERVAL = 45
-// 打ち上げの線を引いてから打ち上がるまで(提示)と、開くまでにかかる時間
+
 const PREVIEW_FRAMES = 45
 const RISE_FRAMES = 50
-// 開いた火の粉の数・広がる速さ・重さ・消え始めるまでの時間
+
 const SPARKS = 30
 const SPARK_SPEED = 2.6
 const GRAVITY = 0.025
@@ -63,7 +58,6 @@ class EnemyMaster extends Enemy {
         yield
     }
 
-    // 画面の幅を ROCKETS 個に分けたそれぞれのどこかから、順番をばらばらにして打ち上げる
     private *cycle() {
         const order = Array.from({ length: ROCKETS }, (_, k) => k).sort(() => this.random() - 0.5)
 
@@ -81,12 +75,10 @@ class EnemyMaster extends Enemy {
         })
     }
 
-    // 画面の下から burst の高さまで打ち上げ、開かせる
     private *launch(burst: Vec, color: Color) {
         const game = this.game
         const start = vec(burst.x, game.HEIGHT - 2)
 
-        // 打ち上げの筋の予告線
         yield* remodel(this)
             .appearance("laser")
             .collision("rect")
@@ -121,7 +113,6 @@ class EnemyMaster extends Enemy {
                     yield
                 }
 
-                // 開く。火の粉は丸く広がり、重さで垂れていく
                 yield* remodel(this)
                     .format("small-ball")
                     .color(color)

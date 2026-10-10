@@ -9,12 +9,6 @@ import { T } from "../../T"
 import { Part } from "../Part"
 import { Size } from "../Size"
 
-// ステージ「霧吹き」(霧隠道場・高弟)
-// 画面の左右の端に、四つの霧吹き(子機)が据えられている。霧吹きは首を振りながら、速い霧の筋を撒き散らす。
-// 筋は弾が詰まっていて抜けられないので、首振りに合わせて筋の来ない所へ回り込む。
-// 上の二つと下の二つは時間をずらして撒くので、上下から交互に筋が薙いでくる。
-// 高弟は、止まってから散る輪を放つ。霧吹きを壊せば、その筋はなくなる。
-
 export default class extends Stage {
     *G() {
         const master = new EnemyMaster(this.game)
@@ -27,7 +21,6 @@ export default class extends Stage {
 class EnemyMaster extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.06, 2, 3)
 
-    // 霧吹き。左上・右上・左下・右下
     readonly sprayers = [
         [-1, 0],
         [1, 0],
@@ -36,7 +29,6 @@ class EnemyMaster extends Enemy {
     ].map(([side, row]) => new Sprayer(this.game, this, side, row))
 
     constructor(game: Game) {
-        // 主機の体力は子機の総和くらい
         super(game, 1800, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.scripts.add(() => this.enter())
@@ -58,7 +50,6 @@ class EnemyMaster extends Enemy {
         yield
     }
 
-    // 止まってから散る輪
     private *ring() {
         yield* remodel(this)
             .format("small-ball")
@@ -75,7 +66,6 @@ class EnemyMaster extends Enemy {
     }
 }
 
-// 霧吹き。画面の端に据えられている
 class Sprayer extends Part {
     constructor(
         game: Game,
@@ -86,7 +76,6 @@ class Sprayer extends Part {
         super(game, parent, 450, Size.S, 150 + row * 120)
     }
 
-    // 画面の端の決まった高さで、少し上下に揺れる
     protected place() {
         return vec(
             this.game.WIDTH / 2 + this.side * this.game.WIDTH * 0.44,
@@ -96,7 +85,6 @@ class Sprayer extends Part {
             .sub(this.parent.p)
     }
 
-    // 霧吹きの首振り。画面の内側を向いて、上下に120フレームで一往復しながら、150フレーム撒き続け、210フレーム休む
     protected *attack() {
         const inward = this.side < 0 ? 0 : T / 2
         const tilt = this.row === 0 ? 0.55 : -0.1

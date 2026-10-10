@@ -11,20 +11,6 @@ import { Part } from "../Part"
 import { Charge } from "../Charge"
 import { Size } from "../Size"
 
-// ステージ「ウスバ」(砂塵道場・道場主)
-// 道場主のまわりに子機が幾何学的に並ぶ。胴の前に大顎の一対、胴の上に腹、胴の左右に脚の横一列。腹のまわりを三つの砂袋(孫機)が回る。
-// どの部位も一巡(330フレーム)の頭にまとめて攻撃し、残りの時間は静かになる。攻撃と休憩をはっきり分ける。
-// 大顎: 外へ向けて吐いた砂の流れが、内側へ巻き込むように曲がる。左右の流れは自機の前で交差する。
-// 脚: 砂をかき出す。速さのばらばらな砂粒が、散弾のように飛ぶ。
-// 腹: 砂を高く噴き上げる。噴き上げられた砂は放物線を描いて、画面のあちこちに降ってくる。砂袋が残っている間は、腹に攻撃が効かない。
-// 砂袋: 砂をこぼす。こぼれた砂は、だんだん速く真下へ落ちる。
-// 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ。
-// 一段目: 大顎と腹を落とすと次の段へ。胴はときどき輪を放つ。
-// 羽化: 胴はまわりの砂を吸い込んで力を溜め、胴を囲む正方形に四枚の翅を出す。
-// 二段目: 翅を落とすと次の段へ。翅は砂の塊を落とし、塊は少し落ちてから扇に割れる。
-//         胴は砂の帳を下ろす。左右に大きく広がった砂が止まり、そろって真下へ落ちる。二度目の砂は一度目の筋の間に落ちる。
-// 三段目: 砂嵐。胴に攻撃が効くようになり、六本腕の渦と砂の帳を同時に使う。
-
 export default class extends Stage {
     *G() {
         const boss = new EnemyUsuba(this.game)
@@ -50,7 +36,6 @@ class EnemyUsuba extends Enemy {
         [1, 1],
     ].map(([side, row]) => new Leg(this.game, this, side, row))
 
-    // 落とさないと胴に攻撃が効かない部位
     private readonly guards = [...this.jaws, this.abdomen]
     readonly parts = [...this.jaws, this.abdomen, ...this.sandbags, ...this.legs]
 
@@ -79,23 +64,19 @@ class EnemyUsuba extends Enemy {
         yield
     }
 
-    // 一巡(330フレーム)の頭まで待つ。胴の攻撃を部位の攻撃とそろえて、攻撃と休憩をはっきり分ける
     private *sync() {
         yield* Array((330 - ((this.frame - 150) % 330)) % 330)
     }
 
-    // 次の一巡の頭までのフレーム数。子機が広がり終わる(60フレーム)前には撃たないよう、近すぎるときはさらに次の巡の頭まで
     private untilNextCycle() {
         const rest = (330 - ((this.frame - 150) % 330)) % 330
         return rest < 60 ? rest + 330 : rest
     }
 
     private *phases() {
-        // 一段目: 大顎と腹を落とすと次の段へ
         this.scripts.add(() => this.ring(), { loop: Infinity, margin: 150, id: "body" })
         while (this.guards.some((p) => p.life > 0)) yield
 
-        // 羽化。砂を吸い込んで力を溜めてから、胴を囲む正方形に四枚の翅を出す
         this.scripts.remove("body")
         yield* Charge.gather(this, 150, "#ffd890")
 
@@ -107,19 +88,16 @@ class EnemyUsuba extends Enemy {
         ].map(([side, row]) => new Wing(this.game, this, side, row, this.untilNextCycle()))
         this.game.enemies.push(...wings)
 
-        // 二段目: 翅を落とすと次の段へ。胴は砂の帳を下ろす
         yield* this.sync()
         this.scripts.add(() => this.curtain(), { loop: Infinity, id: "body" })
         while (wings.some((p) => p.life > 0)) yield
 
-        // 三段目: 砂嵐。胴に攻撃が効くようになり、渦と砂の帳を同時に使う
         this.isInvincible = false
         this.game.camera.shake(8, 30)
         yield* this.sync()
         this.scripts.add(() => this.whirl(), { loop: Infinity, id: "whirl" })
     }
 
-    // 一段目の胴。ときどき輪を放つ
     private *ring() {
         yield* Array(100)
 
@@ -136,8 +114,6 @@ class EnemyUsuba extends Enemy {
         yield* Array(230)
     }
 
-    // 砂の帳。左右に大きく広がった砂が止まり、そろって真下へ落ちる。
-    // 二度目の砂は、一度目の筋と筋の間に落ちるようにずらして撒く。筋の間を抜けたら、半歩ずれてもう一度抜ける
     private *curtain() {
         const base = (this.random() - 0.5) * 0.3
 
@@ -163,7 +139,6 @@ class EnemyUsuba extends Enemy {
         yield* Array(270)
     }
 
-    // 羽化した胴の渦。六本の腕が、少しずつ向きを変えながら回る
     private *whirl() {
         const base = this.random() * T
         const turn = this.random() < 0.5 ? -1 : 1
@@ -184,7 +159,6 @@ class EnemyUsuba extends Enemy {
     }
 }
 
-// 大顎(左右)。胴の前に並ぶ
 class Jaw extends Part {
     constructor(
         game: Game,
@@ -198,7 +172,6 @@ class Jaw extends Part {
         return vec(this.side * 64, 88)
     }
 
-    // 大顎の砂の流れ。外の斜め下へ吐き、内側へ巻き込むように曲がっていく
     protected *attack() {
         yield* Array(this.side > 0 ? 20 : 0)
 
@@ -219,7 +192,6 @@ class Jaw extends Part {
     }
 }
 
-// 腹。胴の上にある。砂袋に守られている
 class Abdomen extends Part {
     constructor(game: Game, parent: Enemy) {
         super(game, parent, 600, Size.L, 150)
@@ -229,7 +201,6 @@ class Abdomen extends Part {
         return vec(0, -105)
     }
 
-    // 腹の噴水。上へ噴き上げた砂が、重さに引かれて放物線を描いて降る
     protected *attack() {
         yield* Array(40)
 
@@ -259,7 +230,6 @@ class Abdomen extends Part {
     }
 }
 
-// 砂袋(三つ)。腹のまわりの円を、等間隔のままゆっくり回る孫機
 class Sandbag extends Part {
     constructor(
         game: Game,
@@ -273,7 +243,6 @@ class Sandbag extends Part {
         return vec.arg(this.frame / 120 + (T * (this.k + 1)) / 3).scale(64)
     }
 
-    // 砂袋のこぼれ砂。k 番目の砂袋は少しずつ遅れて、だんだん速く真下へ落ちる砂をこぼす
     protected *attack() {
         yield* Array(60 + (this.k + 1) * 12)
 
@@ -294,7 +263,6 @@ class Sandbag extends Part {
     }
 }
 
-// 脚(四つ)。胴の左右に、横一列に並ぶ
 class Leg extends Part {
     constructor(
         game: Game,
@@ -309,7 +277,6 @@ class Leg extends Part {
         return vec(this.side * (105 + 65 * this.row), 20)
     }
 
-    // 脚の砂かき。外寄りの下へ、速さのばらばらな砂粒を散弾のように
     protected *attack() {
         yield* Array(30 + this.row * 30)
 
@@ -326,7 +293,6 @@ class Leg extends Part {
     }
 }
 
-// 翅(四枚)。羽化した胴を囲む正方形の角に出る。delay は胴の攻撃の一巡にそろえる
 class Wing extends Part {
     constructor(
         game: Game,
@@ -342,7 +308,6 @@ class Wing extends Part {
         return vec(this.side * 78, this.row === 0 ? -78 : 78)
     }
 
-    // 翅の砂の塊。外寄りの斜め下へ落とした塊が、少しして扇に割れる
     protected *attack() {
         yield* Array(this.row * 30)
 

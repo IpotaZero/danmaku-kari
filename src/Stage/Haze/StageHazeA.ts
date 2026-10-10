@@ -10,23 +10,17 @@ import { T } from "../../T"
 import { Mirage } from "./Mirage"
 import { Size } from "../Size"
 
-// ステージ「逃げ水」(陽炎道場・門下生)
-// 画面の真ん中に鏡の線があり、門下生の姿が画面の下の方に幻として映っている。
-// 門下生の撃つ弾は、すべて鏡の線を挟んで鏡写しの双子を持つ。上からの弾と、下の幻からの弾が、鏡の線で出会う。
-// 弾は陽炎のように揺らめきながら広がる。上下から来るので、鏡の線から少し離れた、上下の輪の間に収まる。
-// 幻は撃っても当たらない。本物の門下生を狙う。
-
 const ENTRANCE_FRAMES = 150
-// 登場してから鏡を引くのにかかる時間。引き終わってから撃ち始める
+
 const DRAW_FRAMES = 60
-// 1周期の長さ。輪が広がりきった後、2秒半ほど休憩が入る
+
 const CYCLE_FRAMES = 480
-// 1周期に広げる輪の数と間隔
+
 const RINGS = 3
 const RING_INTERVAL = 40
 const RING_COUNT = 20
 const RING_SPEED = 1.8
-// 揺らめきの大きさと速さ
+
 const SHIMMER = 0.35
 const SHIMMER_PERIOD = 20
 const COLOR: Color = "#ffb070"
@@ -74,7 +68,6 @@ class EnemyPupil extends Enemy {
         })
     }
 
-    // 揺らめく輪を広げる。輪ごとに揺らめく向きを逆にする
     private *rings() {
         for (let k = 0; k < RINGS; k++) {
             const sign = k % 2 === 0 ? 1 : -1

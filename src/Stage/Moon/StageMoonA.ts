@@ -10,11 +10,6 @@ import { T } from "../../T"
 import { Part } from "../Part"
 import { Size } from "../Size"
 
-// ステージ「月見」(月影道場・門下生)
-// 門下生のまわりを、四つの月(子機)が横長の楕円を描いて回る。月は順に、三日月の形に並んだ弾を自機へ飛ばしてくる。
-// 三日月は形を保ったまま、最初はゆっくり、だんだん速く飛んでくる。月があちこちを回っているので、三日月はいろいろな向きから来る。
-// 門下生は、一度止まってから散る輪を放つ。月を落とせば、その三日月はなくなる。
-
 export default class extends Stage {
     *G() {
         const pupil = new EnemyPupil(this.game)
@@ -30,7 +25,6 @@ class EnemyPupil extends Enemy {
     readonly moons = [0, 1, 2, 3].map((i) => new Moon(this.game, this, i))
 
     constructor(game: Game) {
-        // 主機の体力は子機の総和くらい
         super(game, 1400, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.scripts.add(() => this.enter())
@@ -52,7 +46,6 @@ class EnemyPupil extends Enemy {
         yield
     }
 
-    // 一度止まってから散る輪
     private *ring() {
         yield* remodel(this)
             .format("small-ball")
@@ -69,7 +62,6 @@ class EnemyPupil extends Enemy {
     }
 }
 
-// 月。門下生のまわりの横長の楕円を回る
 class Moon extends Part {
     constructor(
         game: Game,
@@ -84,7 +76,6 @@ class Moon extends Part {
         return vec(Math.cos(angle) * 190, Math.sin(angle) * 80)
     }
 
-    // 三日月。自機の方へ膨らんだ弧に九つの弾を並べ、形を保ったまま飛ばす。月ごとに色を変える
     protected *attack() {
         const aim = this.game.player.p.sub(this.p).radian()
 

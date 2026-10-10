@@ -10,12 +10,6 @@ import { T } from "../../T"
 import { Meteor } from "./Meteor"
 import { Size } from "../Size"
 
-// ステージ「流れ星」(流星道場・門下生)
-// 画面を斜めに横切る平行な予告線が、少しずつ時間をずらして何本も引かれ、引かれた線に沿って流れ星が駆け抜ける。
-// 流れ星の後には尾が残り、しばらく斜めの縞になって画面に留まる。縞は抜けられないので、予告線と予告線の間に立っておく。
-// 門下生のまわりを四つの星屑(子機)が回っていて、二つは自機へ扇を、二つは輪を撃ってくる。
-// 星屑を落とせば、その攻撃はなくなる。縞の間を移りながら、星屑の弾もかわす。
-
 export default class extends Stage {
     *G() {
         const pupil = new EnemyPupil(this.game)
@@ -29,7 +23,6 @@ class EnemyPupil extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.5, this.game.HEIGHT * 0.08, 2, 3)
 
     constructor(game: Game) {
-        // 主機の体力は子機の総和くらい
         super(game, 2000, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.scripts.add(() => this.enter())
@@ -51,7 +44,6 @@ class EnemyPupil extends Enemy {
         yield
     }
 
-    // 流星群を二回。二回目は斜めの向きが変わる。そのあと2秒半ほど休む
     private *cycle() {
         yield* GenUtils.all({
             first: this.shower(0),
@@ -60,7 +52,6 @@ class EnemyPupil extends Enemy {
         })
     }
 
-    // 斜めの向きを決め、平行な線(間隔70px)の6割ほどに予告線を引いて、流れ星を流す
     private *shower(wait: number) {
         yield* Array(wait)
 
@@ -94,7 +85,6 @@ class EnemyPupil extends Enemy {
     }
 }
 
-// 門下生のまわりを回る星屑。偶数番は自機へ扇を、奇数番は輪を撃つ
 class EnemyStardust extends Enemy {
     constructor(game: Game, parent: Enemy, index: number) {
         super(game, 500, Size.S)
@@ -108,7 +98,6 @@ class EnemyStardust extends Enemy {
         }
     }
 
-    // 最初はゆっくり、一気に速くなる扇
     private *fan() {
         yield* remodel(this)
             .format("diamond")
@@ -123,7 +112,6 @@ class EnemyStardust extends Enemy {
         yield* Array(55)
     }
 
-    // 少し止まってから散る輪
     private *ring() {
         yield* remodel(this)
             .format("small-ball")

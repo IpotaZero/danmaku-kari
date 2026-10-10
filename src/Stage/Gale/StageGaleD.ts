@@ -33,8 +33,6 @@ export default class extends Stage {
     }
 }
 
-// const loopTime = 680;
-
 class EnemyPhase1 extends Enemy {
     private parent: Enemy
     constructor(game: Game, parent: Enemy) {
@@ -50,11 +48,11 @@ class EnemyPhase1 extends Enemy {
             .color("#44aa44")
             .p(this.parent.p)
             .speed(8)
-            // .radian(T / 4)
+
             .nway(16, T / 16)
             .g(function* (me) {
                 yield* Behavior.stop(me, 30)
-                // yield* Behavior.aim(me, this.game.player.p, 30);
+
                 const startFrame = this.frame
                 const startRadian = me.radian
 
@@ -86,7 +84,7 @@ class EnemyPhase1 extends Enemy {
             .appear(20, 1)
             .g(function* (me) {
                 yield* Behavior.stop(me, 60)
-                // yield* Behavior.aim(me, this.game.player.p, 30);
+
                 const startFrame = this.frame
                 const startRadian = me.radian
                 yield* Array(60)
@@ -139,7 +137,7 @@ class EnemyPhase2 extends Enemy {
             .nway(num, T / num)
             .g(function* (me) {
                 yield* Behavior.stop(me, 40)
-                // yield* Behavior.aim(me, this.game.player.p, 30);
+
                 const startFrame = this.frame
                 const startRadian = me.radian
 
@@ -165,10 +163,10 @@ class EnemyPhase2 extends Enemy {
             .nway(10, T / 10)
             .appear(20, 2)
             .colorful(Math.random() * 100)
-            // .radian(T / 4)
+
             .g(function* (me) {
                 yield* Behavior.stop(me, 30)
-                // yield* Behavior.aim(me, this.game.player.p, 30);
+
                 const startFrame = this.frame
                 const startRadian = me.radian
 
@@ -246,10 +244,10 @@ class EnemyPhase3 extends Enemy {
             .nway(10, T / 10)
             .appear(20, 2)
             .colorful(Math.random() * 100)
-            // .radian(T / 4)
+
             .g(function* (me) {
                 yield* Behavior.stop(me, 30)
-                // yield* Behavior.aim(me, this.game.player.p, 30);
+
                 const startFrame = this.frame
                 const startRadian = me.radian
 

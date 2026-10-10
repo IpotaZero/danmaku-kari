@@ -67,10 +67,10 @@ class EnemyAim extends Enemy {
             .nway(10, T / 10)
             .appear(20, 2)
             .colorful(Math.random() * 100)
-            // .radian(T / 4)
+
             .g(function* (me) {
                 yield* Behavior.stop(me, 30)
-                // yield* Behavior.aim(me, this.game.player.p, 30);
+
                 const startFrame = this.frame
                 const startRadian = me.radian
 
@@ -118,7 +118,6 @@ class EnemyCore extends Enemy {
 
         this.scripts.add(() => this.move(), { loop: Infinity })
         this.scripts.add(() => this.attack(), { loop: Infinity })
-        // this.scripts.add(() => this.attack2(), { loop: Infinity });
     }
 
     private *move() {
@@ -236,7 +235,7 @@ class EnemyCore extends Enemy {
                     accel: Behavior.accel(me, 30, 3),
                 })
             })
-            // .scatter({ radian: [T / 2, (T * 3) / 2] })
+
             .fire(this.game.bullets)
     }
 

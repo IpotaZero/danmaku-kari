@@ -9,19 +9,13 @@ import { T } from "../../T"
 import { Mirage } from "../Haze/Mirage"
 import { Size } from "../Size"
 
-// ステージ「万華鏡」(修行場)
-// 画面の上の方に万華鏡の中心があり、修行相手はそのまわりをゆっくり回っている。まわりには六つに映った幻が並ぶ。
-// 修行相手の撃つ弾はすべて六つに映り、さらに縦の鏡にも映って、十二枚の花びらのような模様になる。
-// 一つ一つの弾の動きは単純なので、自分に近い花びらだけを見て避ける。
-// 幻からの矢は、自機を中心のまわりに回した場所を狙う。中心の真下にいると、幻の矢が自分のそばに集まってくる。
-
 const ENTRANCE_FRAMES = 150
-// 万華鏡の中心の高さと、修行相手が回る半径
+
 const CENTER_Y = 0.32
 const ORBIT = 140
-// 映す数
+
 const FOLD = 6
-// 1周期の長さ
+
 const CYCLE_FRAMES = 520
 const COLORS: Color[] = ["#ffb0e0", "#b0e0ff", "#e0ffb0"]
 
@@ -56,7 +50,6 @@ class EnemyKaleidoscope extends Enemy {
         this.scripts.add(() => this.cycle(), { loop: Infinity, margin: 30 })
     }
 
-    // 中心のまわりを回る位置。t はフレーム数
     private at(t: number) {
         return this.center.add(vec.arg(-T / 4 + t / 600).scale(ORBIT))
     }
@@ -74,7 +67,6 @@ class EnemyKaleidoscope extends Enemy {
         })
     }
 
-    // 曲がりながら飛ぶ弾を少しずつ向きを変えて撃ち、六つに映して縦の鏡にも映す。花びらの模様になる
     private *petals() {
         const color = COLORS[Math.floor(this.random() * COLORS.length)]
         const base = this.random() * T
@@ -96,7 +88,6 @@ class EnemyKaleidoscope extends Enemy {
         }
     }
 
-    // 自機へ向けた3本の矢を、六つに映す
     private *needles() {
         yield* Array(200)
 

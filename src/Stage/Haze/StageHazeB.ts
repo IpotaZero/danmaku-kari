@@ -10,17 +10,10 @@ import { T } from "../../T"
 import { Mirage } from "./Mirage"
 import { Size } from "../Size"
 
-// ステージ「合わせ鏡」(陽炎道場・高弟)
-// 画面を縦と横に二枚の鏡が仕切り、高弟(ボス)は左上に、その幻は右上・左下・右下に映っている。
-// 弾はすべて四つに映る。高弟のそばを回る火の粉(衛星)は自機を狙って矢を撃つが、幻の矢は自機を鏡に映した場所を狙う。
-// 鏡の線の近くにいると、自機の鏡像が自分のすぐそばにあるので、幻の矢までこちらへ飛んでくる。
-// 鏡の線から離れた、四つに仕切られた部屋の真ん中あたりで戦うのがよい。
-// 高弟自身は、揺らめきながら広がるゆっくりした輪を放つ。
-
 const ENTRANCE_FRAMES = 150
-// 登場してから鏡を引くのにかかる時間。引き終わってから撃ち始める
+
 const DRAW_FRAMES = 60
-// 1周期の長さ。2秒ほど休憩が入る
+
 const CYCLE_FRAMES = 420
 const COLOR: Color = "#ffb070"
 const ARROW_COLOR: Color = "#ffe0b0"
@@ -38,11 +31,10 @@ export default class extends Stage {
 
 class EnemyMaster extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.18, this.game.HEIGHT * 0.1, 2, 3)
-    // 画面を縦と横に仕切る二枚の鏡。火の粉も同じ鏡に映る
+
     readonly mirrors = Mirage.cross(this.game)
 
     constructor(game: Game) {
-        // 主機の体力は衛星の総和くらい
         super(game, FLAME_LIFE, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.scripts.add(() => this.enter())
@@ -57,7 +49,6 @@ class EnemyMaster extends Enemy {
         this.scripts.add(() => this.cycle(), { loop: Infinity, margin: DRAW_FRAMES + 30 })
     }
 
-    // 左上の部屋の真ん中
     private home() {
         return vec(this.game.WIDTH * 0.27, this.game.HEIGHT * 0.22)
     }
@@ -109,7 +100,7 @@ class EnemyFlame extends Enemy {
         super(game, FLAME_LIFE, Size.S)
 
         this.setParent(parent, () => vec.arg(this.frame / 90).scale(70))
-        // 幻は、高弟が登場して鏡を引き終わってから映る
+
         this.scripts.add(() => Mirage.ghosts(this, parent.mirrors, ENTRANCE_FRAMES + DRAW_FRAMES))
 
         this.scripts.add(() => this.cycle(), { margin: ENTRANCE_FRAMES + 180, loop: Infinity })

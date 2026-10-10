@@ -72,7 +72,6 @@ class EnemyCore extends Enemy {
 
         this.scripts.add(() => this.move(), { loop: Infinity })
         this.scripts.add(() => this.attack(), { loop: Infinity })
-        // this.scripts.add(() => this.attack2(), { loop: Infinity });
     }
 
     private *move() {

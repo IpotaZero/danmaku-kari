@@ -12,18 +12,6 @@ import { Meteor } from "./Meteor"
 import { Charge } from "../Charge"
 import { Size } from "../Size"
 
-// ステージ「ホタル」(流星道場・道場主)
-// 道場主のまわりに子機が幾何学的に並ぶ。胴の下に発光器、胴の左右に触角の一対、胴のまわりの円に八匹の子蛍。
-// 発光器: 自機へ向けて、発光器を通る三本の流れ星を流す。流れ星は画面の上の端から、発光器を抜けて駆け抜ける。
-// 触角: 自機へ向けて、針を一列に突き出す。
-// 子蛍: 胴のまわりの円を、そろってゆっくり回り、順に瞬く。瞬いた子蛍のまわりに光の粒が浮かび、一拍おいて輪になって散る。
-// 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ。
-// 一段目: 発光器を落とすと次の段へ。胴はときどき輪を放つ。
-// 蛍集め: 胴はまわりから光を集めて、胴の下に横一列に四匹の大蛍を呼ぶ。大蛍のまわりには二匹ずつ孫蛍(孫機)が回り、孫蛍を落とすまで大蛍に攻撃が効かない。
-// 二段目: 大蛍をすべて落とすと次の段へ。大蛍は横一列に光を灯して帯を作り、帯は少しして雨のように降る。孫蛍は小さな輪を放つ。
-//         胴そのものが光りだし、胴を通る四本の流れ星を扇のように流す。
-// 三段目: 最後の灯。胴に攻撃が効くようになり、自機を狙った三本の流れ星と、止まってから散る輪を交互に放つ。
-
 export default class extends Stage {
     *G() {
         const boss = new EnemyHotaru(this.game)
@@ -70,15 +58,12 @@ class EnemyHotaru extends Enemy {
     }
 
     private *phases() {
-        // 一段目: 発光器を落とすと次の段へ
         this.scripts.add(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
         while (this.lantern.life > 0) yield
 
-        // 蛍集め。光を集めてから、孫蛍(孫機)に守られた大蛍を呼ぶ
         this.scripts.remove("body")
         yield* Charge.gather(this, 150, "#d8ff90")
 
-        // 大蛍は胴の下に、横一列に並ぶ
         const bigs = [-165, -55, 55, 165].map((x, i) => {
             const big = new BigFirefly(this.game, this, x, i)
             const grandchildren = [0, 1].map((k) => new LittleFirefly(this.game, big, k))
@@ -87,18 +72,15 @@ class EnemyHotaru extends Enemy {
             return big
         })
 
-        // 二段目: 大蛍をすべて落とすと次の段へ。胴が光りだす
         this.scripts.add(() => this.meteorFan(), { loop: Infinity, margin: 60, id: "body" })
         while (bigs.some((p) => p.life > 0)) yield
 
-        // 三段目: 最後の灯。胴に攻撃が効くようになる
         this.scripts.remove("body")
         this.isInvincible = false
         this.game.camera.shake(8, 30)
         this.scripts.add(() => this.lastLight(), { loop: Infinity, margin: 30, id: "body" })
     }
 
-    // 一段目の胴。ときどき輪を放つ
     private *ring() {
         yield* remodel(this)
             .format("small-ball")
@@ -113,7 +95,6 @@ class EnemyHotaru extends Enemy {
         yield* Array(160)
     }
 
-    // 光る胴の流れ星。胴を通る四本の流れ星を、扇のように流す
     private *meteorFan() {
         const sway = (this.random() - 0.5) * 0.6
 
@@ -134,7 +115,6 @@ class EnemyHotaru extends Enemy {
         yield* Array(150)
     }
 
-    // 最後の灯。自機を狙った三本の流れ星と、止まってから散る輪を交互に
     private *lastLight() {
         const aim = this.game.player.p.sub(this.p).radian()
 
@@ -168,7 +148,6 @@ class EnemyHotaru extends Enemy {
     }
 }
 
-// 発光器。胴の下で光る
 class Lantern extends Part {
     constructor(game: Game, parent: Enemy) {
         super(game, parent, 900, Size.L, 150)
@@ -178,7 +157,6 @@ class Lantern extends Part {
         return vec(0, 80)
     }
 
-    // 発光器の流れ星。自機を狙った線と、その両脇の線の三本。どれも発光器を通る
     protected *attack() {
         const aim = this.game.player.p.sub(this.p).radian()
 
@@ -200,7 +178,6 @@ class Lantern extends Part {
     }
 }
 
-// 触角(左右一対)。胴の左右にある
 class Antenna extends Part {
     constructor(
         game: Game,
@@ -214,7 +191,6 @@ class Antenna extends Part {
         return vec(this.side * 100, 0)
     }
 
-    // 触角の針。自機へ向けて一列に、だんだん速く
     protected *attack() {
         yield* remodel(this)
             .format("line")
@@ -231,7 +207,6 @@ class Antenna extends Part {
     }
 }
 
-// 子蛍(八匹)。胴のまわりの円を、等間隔のまま、そろってゆっくり回る
 class Firefly extends Part {
     constructor(
         game: Game,
@@ -245,7 +220,6 @@ class Firefly extends Part {
         return vec.arg(this.frame / 120 + (T * this.i) / 8).scale(160)
     }
 
-    // 子蛍の瞬き。i 番目の子蛍は 10i フレーム待ってから瞬く。まわりに浮かんだ光の粒は、一拍おいて輪になって散る
     protected *attack() {
         yield* Array(this.i * 10)
 
@@ -271,7 +245,6 @@ class Firefly extends Part {
     }
 }
 
-// 大蛍(四匹)。蛍集めで胴が呼び、胴の下に横一列に並ぶ。孫蛍に守られている
 class BigFirefly extends Part {
     constructor(
         game: Game,
@@ -286,7 +259,6 @@ class BigFirefly extends Part {
         return vec(this.x, 200)
     }
 
-    // 大蛍の光の帯。左から右へ、横一列に一つずつ光を灯す。灯った光は少しして、そろって雨のように降る
     protected *attack() {
         for (let f = 0; f < 60; f += 4) {
             yield* remodel(this)
@@ -309,7 +281,6 @@ class BigFirefly extends Part {
     }
 }
 
-// 孫蛍(孫機、二匹)。大蛍のまわりを回る
 class LittleFirefly extends Part {
     constructor(
         game: Game,
@@ -323,7 +294,6 @@ class LittleFirefly extends Part {
         return vec.arg(this.frame / 30 + this.k * Math.PI).scale(56)
     }
 
-    // 孫蛍の火花。小さな輪
     protected *attack() {
         yield* remodel(this)
             .format("small-ball")
