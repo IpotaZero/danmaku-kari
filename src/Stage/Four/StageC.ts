@@ -13,11 +13,11 @@ import { Size } from "../Size"
 
 // 胴の左右に翼の一対、胴の下に五枚の尾羽の横一列が並ぶ。
 // 段は翼の一対を落とすと進む。翼を落とすたびに、胴は力を溜めて、もっと激しい翼の一対を出す。三対目を落とすと胴に攻撃が効くようになる。
-//   一対目の翼: 外側の斜め下へ、炎の羽の扇を二度払う。
-//   二対目の翼: 外から内へ、炎の帯を薙ぎ払う。左右の帯は胴の下で交差する。
-//   三対目の翼: 火の鳥を三羽放つ。火の鳥は外へ飛び出して止まり、自機のいた所へ急降下する。
+//   一対目の翼: 外側の斜め下へ、炎の羽の扇を三度払う。
+//   二対目の翼: 外から内へ、三筋の炎の帯を薙ぎ払う。左右の帯は胴の下で交差する。
+//   三対目の翼: 火の鳥を七羽放つ。火の鳥は外へ飛び出して止まり、自機のいた所へ急降下する。
 // 尾羽: 火の粉を高く舞い上げる。火の粉は放物線を描いて落ち、落ちたところで小さく弾ける。尾羽は出し直されない。
-// 胴: 翼があるうちは輪を放つ。段が進むほど輪は濃くなる。三対目の翼を落とすと、逆回りの炎の渦を撒く。
+// 胴: 翼があるうちは輪を放つ。段が進むほど輪は濃く、重なりも増える。三対目の翼を落とすと、逆回りの炎の渦を撒く。
 
 export default class extends Stage {
     *G() {
@@ -119,25 +119,25 @@ class EnemyBoss extends Enemy {
         this.addScript(() => this.spiral(), { loop: Infinity, id: "body" })
     }
 
-    // 一対目の翼。外側の斜め下へ、ゆっくり出て一気に速くなる炎の羽の扇を二度払う
+    // 一対目の翼。外側の斜め下へ、ゆっくり出て一気に速くなる炎の羽の扇を三度払う
     private *feathers(me: Part, side: number) {
-        for (let k = 0; k < 2; k++) {
+        for (let k = 0; k < 3; k++) {
             yield* remodel(me)
                 .format("diamond")
                 .color("#ff9a60")
                 .p(me.p.clone())
                 .speed(2)
                 .radian(T / 4 - side * (0.75 + k * 0.12))
-                .nway(7, T / 32)
+                .nway(11, T / 40)
                 .g((b) => Behavior.ease(b, "speed", 7, 35, Ease.In))
                 .fire(this.game.bullets)
             yield* Array(12)
         }
 
-        yield* Array(80)
+        yield* Array(60)
     }
 
-    // 二対目の翼。外から内へ、炎の帯を薙ぎ払う。帯は二筋
+    // 二対目の翼。外から内へ、炎の帯を薙ぎ払う。帯は三筋
     private *flameBand(me: Part, side: number) {
         for (let f = 0; f < 60; f += 3) {
             yield* remodel(me)
@@ -147,15 +147,15 @@ class EnemyBoss extends Enemy {
                 .p(me.p.clone())
                 .speed(5.5)
                 .radian(T / 4 - side * (1.1 - f * 0.025))
-                .nway(2, 0.3)
+                .nway(3, 0.25)
                 .fire(this.game.bullets)
             yield* Array(3)
         }
 
-        yield* Array(80)
+        yield* Array(60)
     }
 
-    // 三対目の翼。火の鳥を五羽放つ。外へ飛び出して止まり、自機のいた所へ急降下する
+    // 三対目の翼。火の鳥を七羽放つ。外へ飛び出して止まり、自機のいた所へ急降下する
     private *firebirds(me: Part, side: number) {
         yield* remodel(me)
             .format("arrow")
@@ -163,7 +163,7 @@ class EnemyBoss extends Enemy {
             .p(me.p.clone())
             .speed(5)
             .radian(-side * 0.3 + (side > 0 ? 0 : Math.PI))
-            .nway(5, 0.35)
+            .nway(7, 0.28)
             .g(function* (b) {
                 yield* Behavior.stop(b, 25)
                 yield* Array(10)
@@ -172,7 +172,7 @@ class EnemyBoss extends Enemy {
             })
             .fire(this.game.bullets)
 
-        yield* Array(90)
+        yield* Array(70)
     }
 
     // 尾羽の火の粉。高く舞い上がり、放物線を描いて落ち、落ちたところで小さく弾ける
@@ -186,7 +186,7 @@ class EnemyBoss extends Enemy {
             .p(me.p.clone())
             .speed(5)
             .radian(-T / 4 + (k - 2) * 0.35)
-            .nway(3, 0.15)
+            .nway(4, 0.13)
             .unbounded()
             .g(function* (b) {
                 let v = vec.arg(b.radian).scale(b.speed)
@@ -204,17 +204,17 @@ class EnemyBoss extends Enemy {
                     .p(b.p.clone())
                     .speed(3.5)
                     .radian(this.random() * T)
-                    .ex(6)
+                    .ex(8)
                     .fire(this.game.bullets)
 
                 b.life = 0
             })
             .fire(this.game.bullets)
 
-        yield* Array(210 - k * 15)
+        yield* Array(170 - k * 15)
     }
 
-    // 翼があるうちの胴の輪。段が進むほど濃くなり、二対目からは一度止まってから散る。三対目では二重になる
+    // 翼があるうちの胴の輪。段が進むほど濃く、重なりも増え(一重・二重・三重)、二対目からは一度止まってから散る
     private *ring(generation: number) {
         yield* remodel(this)
             .format("small-ball")
@@ -223,8 +223,8 @@ class EnemyBoss extends Enemy {
             .p(this.p.clone())
             .speed(3.5)
             .radian(this.random() * T)
-            .ex(18 + generation * 6)
-            .duplicate(generation === 2 ? 2 : 1, (b, k) => {
+            .ex(24 + generation * 8)
+            .duplicate(generation + 1, (b, k) => {
                 b.radian += (k * T) / 60
                 b.speed += k
                 return b
@@ -232,10 +232,10 @@ class EnemyBoss extends Enemy {
             .g((b) => (generation > 0 ? Behavior.reaccel(b, 20, 15, 30, 5) : Behavior.accel(b, 1, 3.5)))
             .fire(this.game.bullets)
 
-        yield* Array(160 - generation * 20)
+        yield* Array(140 - generation * 20)
     }
 
-    // 三対目を落とした胴の炎の渦。逆回りの二つの渦。腕は五本ずつ
+    // 三対目を落とした胴の炎の渦。逆回りの二つの渦。腕は七本ずつ
     private *spiral() {
         const base = this.random() * T
 
@@ -246,7 +246,7 @@ class EnemyBoss extends Enemy {
                 .p(this.p.clone())
                 .speed(5)
                 .radian(base + f * 0.04)
-                .ex(5)
+                .ex(7)
                 .fire(this.game.bullets)
             yield* remodel(this)
                 .format("diamond")
@@ -254,11 +254,11 @@ class EnemyBoss extends Enemy {
                 .p(this.p.clone())
                 .speed(5)
                 .radian(base - f * 0.04)
-                .ex(5)
+                .ex(7)
                 .fire(this.game.bullets)
             yield* Array(5)
         }
 
-        yield* Array(50)
+        yield* Array(40)
     }
 }
