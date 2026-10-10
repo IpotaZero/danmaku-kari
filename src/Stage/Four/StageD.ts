@@ -27,7 +27,7 @@ class EnemyBoss extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.06, 2, 3)
 
     private readonly shells = [0, 1, 2, 3, 4, 5].map((k) => new Shell(this.game, this, k))
-    private readonly snakeHead = new SnakeHead(this.game, this)
+    private readonly snakeHead = new Head(this.game, this)
     private readonly snakeBody = [0, 1, 2, 3, 4].map((j) => new SnakeBody(this.game, this, j))
 
     readonly parts = [...this.shells, this.snakeHead, ...this.snakeBody]
@@ -194,7 +194,7 @@ class Shell extends Part {
     }
 }
 
-class SnakeHead extends Part {
+class Head extends Part {
     constructor(game: Game, parent: Enemy) {
         super(game, parent, 600, Size.L, 170)
     }
