@@ -3,7 +3,7 @@ import { Enemy } from "../Game/Actor/Enemy"
 import { Game } from "../Game/Game"
 
 // ボスの部位(子機)。親について動き、決まった攻撃を一つだけくり返す。親が倒れると一緒に倒れる。
-// 部位を壊せば、その攻撃はなくなる。壊した瞬間、画面が少し揺れる。
+// 部位を壊せば、その攻撃はなくなる。
 // place は親から見た位置(毎フレーム呼ぶ)、attack は一回分の攻撃(終わるとまた始まる)、delay は最初の攻撃までのフレーム数
 export class Part extends Enemy {
     constructor(

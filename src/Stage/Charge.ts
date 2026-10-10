@@ -11,6 +11,8 @@ export namespace Charge {
     // frames の間、力を溜める。まわりから光の粒が渦を巻いて吸い込まれ、光の輪が何度も縮んでいき、画面がだんだん強く揺れる。
     // 溜め終わると、画面が光り、何重もの光の輪と火花が弾ける
     export function* gather(e: Enemy, frames: number, color: Color) {
+        e.game.se.bossDefeatPre.play()
+
         // 粒も輪も30フレームかけて吸い込まれるので、最後の粒が吸い込まれ終わる所で弾けるよう、少し早めに出し終える
         for (let f = 0; f < frames - 30; f += 2) {
             yield* particle(e, color)
@@ -25,6 +27,9 @@ export namespace Charge {
         }
 
         yield* Array(30)
+
+        // todo: 後で何か差し替える
+        e.game.se.charge.play()
         yield* burst(e, color)
     }
 

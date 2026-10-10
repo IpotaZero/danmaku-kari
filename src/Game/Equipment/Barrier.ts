@@ -16,7 +16,7 @@ const 半径倍率 = 12
 
 export const barrier: SubEquipment = {
     label: "障壁",
-    description: "その場に結界を張る。結界は2秒間その位置に留まり、中に入った敵弾を花粉に変える。",
+    description: "その場に結界を張る。中に入った敵弾を花粉に変える。",
     price: 1000,
     *action(player) {
         while (true) {
