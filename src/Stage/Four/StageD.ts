@@ -278,6 +278,7 @@ class EnemyBoss extends Enemy {
         yield* remodel(this)
             .color("#e8f4ff")
             .laser(40, 60, this.p.clone(), this.p.add(vec.arg(this.random() * T).scale(1500)))
+            .isScorable(false)
             .ex(4)
             .g(function* (b) {
                 // 予告(30+40フレーム)と実体になる間(30フレーム)は向きを変えず、実体になってから回る

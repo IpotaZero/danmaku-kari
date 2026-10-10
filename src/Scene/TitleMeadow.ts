@@ -23,16 +23,7 @@ export class TitleMeadow {
 
         const far = this.element.querySelector(".meadow-bugs-far")!
         const near = this.element.querySelector(".meadow-bugs-near")!
-        const kinds = [
-            "butterfly",
-            "dragonfly",
-            "bee",
-            "ladybug",
-            "butterfly",
-            "dragonfly",
-            "ladybug",
-            "butterfly",
-        ] as const
+        const kinds = ["butterfly", "dragonfly", "ladybug", "butterfly", "dragonfly", "ladybug", "butterfly"] as const
         kinds.forEach((kind, i) => {
             const isNear = i % 2 === 0
             const bug = document.createElement("div")
@@ -45,7 +36,8 @@ export class TitleMeadow {
             bug.innerHTML = `
                 <div class="meadow-bug-body">
                     <svg viewBox="-14 -14 28 28" fill="currentColor">${Silhouette.bugs[kind].content}</svg>
-                </div>`
+                </div>
+            `
             ;(isNear ? near : far).appendChild(bug)
         })
 
