@@ -7,26 +7,24 @@ import { Stage } from "../Stage"
 import { T } from "../../T"
 import { Curves } from "../../utils/Functions/Curves"
 import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
-import { Part } from "../Part"
 import { Charge } from "../Charge"
 import { Size } from "../Size"
 
-// 頭のうしろに十二の節が連なり、頭の通った道をそのままたどってうねる。
-// 頭は五つの動きを、休み(2秒)をはさみながら順にくり返す。動きによっては画面の外まで飛び出す。
-//   這う: ゆっくりうねってから、反対側へ素早く突進する。突進の間、通った跡に毒を残し、毒は突進が終わるとそろって弾ける。
-//   薙ぐ: 画面の外の左上から、画面の外の右へ、体ごと画面を斜めに薙ぐ。
-//   八の字: 画面いっぱいに大きな八の字を描く。
-//   噛む: 自機の方へ三度にじり寄り、そのたびに左右から顎(ビーム)を閉じて挟み込む。
-//   とぐろ: 渦を描いて巻き込み、またほどける。
-// 節: 速く動いている間は、通った所に大きな毒だまりを残す(現れて、少し残って、消える)。ゆっくりの間は、体の両脇へ脚の弾を払う。
-// 最後尾の節(尾)にしか攻撃が効かない(ほかの節は弾が素通りする)。尾を落とすと、一つ前の節が新しい尾になる。
-// 体は短くなるほど速く動き、脚の弾も多く速くなる。
-// 節をすべて落とすと、頭は力を溜めてから攻撃が効くようになる。節の毒を頭が受け継ぎ、ときどき大きな扇も吐くようになる。
+// 頭のうしろに十二の節が連なる。節は一つ前の節から一定の間をあけるように引っぱられ、縄を引くようになめらかにうねる。
+// 光の肋: どの節にも、体を横切る光の線(肋)が一本ずつ通っている。肋は節が速く動くほど長く伸びるので、うねる体そのものが画面を掻く。
+// 頭は四つの動きを、休み(2秒)をはさみながら順にくり返す。
+//   這う: 画面の上半分を大きくうねる。尾(頭だけになってからは頭)は毒の雫を垂らし続ける。
+//   脱皮: 画面を横切ってから立ち止まり、頭に近い節から順に抜け殻を残して離れる。
+//         抜け殻は体の形のまま薄く浮かび、少しして実体になり、やがて崩れて降ってくる。
+//   締め付け: 自機のいた所を薄い輪で示してから、そのまわりを回りながら輪を縮める。とぐろの隙間から外へ逃げる。
+//   潜る: 二本の薄い線で道を示してから、画面を縦に潜って、別の所から浮かび上がる。画面に縦の体が二本並ぶ。
+// 最後尾の節(尾)にしか攻撃が効かない(ほかの節は弾が素通りする)。尾を落とすと、一つ前の節が新しい尾になる。体は短くなるほど速く動く。
+// 節をすべて落とすと、頭は力を溜めてから攻撃が効くようになる。頭は動いた跡に肋の残像を残し、残像が失った体の代わりになる。
 
 export default class extends Stage {
     *G() {
         const boss = new EnemyBoss(this.game)
-        this.game.enemies.push(boss, ...boss.parts)
+        this.game.enemies.push(boss, ...boss.segments)
 
         yield* this.waitAllEnemiesDead()
         this.scorenizeAllBullets()
@@ -36,71 +34,52 @@ export default class extends Stage {
 }
 
 class EnemyBoss extends Enemy {
-    // 頭が通った道。頭が6px動くごとに一点ずつ、新しいものほど前に記録する。動く速さによらず、節の間隔が一定になる
-    private readonly trail: Vec[] = []
-
-    // 節(十二)。頭の通った道を、42pxずつ間をあけてたどる
-    private readonly segments: Part[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(
-        (k) =>
-            new Part(
-                this.game,
-                this,
-                150,
-                Size.M,
-                () => (this.trail[(k + 1) * 7] ?? this.trail[this.trail.length - 1] ?? this.p).sub(this.p),
-                (me) => this.poison(me),
-                140 + k * 5,
-            ),
-    )
-
-    readonly parts = this.segments
+    // 節(十二)。頭に近い順に並ぶ
+    readonly segments: Segment[] = []
 
     constructor(game: Game) {
         super(game, 1200, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
+        this.p = vec(this.game.WIDTH / 2, -200)
+
+        for (let k = 0; k < 12; k++) {
+            this.segments.push(new Segment(game, this.segments[k - 1] ?? this))
+        }
 
         this.addScript(() => this.enter())
         this.addScript(() => this.phases())
     }
 
     private *enter() {
-        this.p = vec(-200, -200)
-        yield* this.glide(this.home(), 120)
-
+        yield* this.glide(this.home(), 150)
         this.addScript(() => this.move(), { loop: Infinity })
     }
 
     private home() {
-        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.25)
+        return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.22)
     }
 
     // 落とされた節が多いほど速く動く。動きにかけるフレーム数をこれで割る
     private haste() {
-        return 1 + 0.06 * this.segments.filter((p) => p.life <= 0).length
+        return 1 + 0.05 * this.segments.filter((p) => p.life <= 0).length
     }
 
-    // 五つの動きを、休みをはさみながら順にくり返す
+    // いまの尾(生きている節のうち、いちばんうしろ)
+    private tail() {
+        const alive = this.segments.filter((p) => p.life > 0)
+        return alive[alive.length - 1]
+    }
+
+    // 四つの動きを、休みをはさみながら順にくり返す
     private *move() {
-        yield* this.creep()
+        yield* this.slither()
         yield* this.glide(this.home(), 120)
-        yield* this.sweep()
+        yield* this.shed()
         yield* this.glide(this.home(), 120)
-        yield* this.eight()
+        yield* this.constrict()
         yield* this.glide(this.home(), 120)
-        yield* this.bite()
+        yield* this.dive()
         yield* this.glide(this.home(), 120)
-        yield* this.coil()
-        yield* this.glide(this.home(), 120)
-    }
-
-    // 頭を p へ動かし、通った道を覚える
-    private crawl(p: Vec) {
-        this.p = p
-
-        if (this.trail.length === 0 || this.trail[0].sub(p).magnitude() >= 6) {
-            this.trail.unshift(p.clone())
-            this.trail.length = Math.min(this.trail.length, 120)
-        }
     }
 
     // frames フレームかけて、なめらかに end へ動く
@@ -108,52 +87,29 @@ class EnemyBoss extends Enemy {
         const start = this.p.clone()
 
         for (let f = 1; f <= frames; f++) {
-            this.crawl(start.add(end.sub(start).scale(Ease.InOut(f / frames))))
+            this.p = start.add(end.sub(start).scale(Ease.InOut(f / frames)))
             yield
         }
     }
 
-    // 這う。ゆっくりうねってから、反対側へ素早く突進する。突進の間、通った跡に毒を残す。毒は突進が終わるとそろって弾ける
-    private *creep() {
-        const path = Curves.lissajous(this.game.WIDTH * 0.6, this.game.HEIGHT * 0.2, 3, 2)
-        const center = this.p.clone()
-        const frames = Math.floor(200 / this.haste())
+    // 這う。画面の上半分を大きくうねる。尾(頭だけになってからは頭)は毒の雫を垂らし続ける
+    private *slither() {
+        const path = Curves.lissajous(this.game.WIDTH * 0.7, this.game.HEIGHT * 0.3, 3, 2)
+        const frames = Math.floor(600 / this.haste())
 
         for (let f = 0; f < frames; f++) {
-            this.crawl(path((f / frames) * T).add(center))
-            yield
-        }
+            this.p = path((f / frames) * T).add(this.home())
 
-        const start = this.p.clone()
-        const end = vec(this.game.WIDTH - start.x, this.game.HEIGHT * (0.35 + 0.15 * this.random()))
-
-        for (let f = 0; f < 40; f++) {
-            this.crawl(start.add(end.sub(start).scale(Ease.InOut(f / 40))))
-
-            if (f % 3 === 0) {
-                yield* remodel(this)
+            const tail = this.tail() ?? this
+            if (f % 8 === 0) {
+                yield* remodel(tail)
                     .format("small-ball")
                     .r(6)
                     .color("#e0ffc0")
-                    .p(this.p.clone())
-                    .speed(0)
-                    .appear(8)
-                    .g(function* (b) {
-                        yield* Array(60 - f)
-
-                        yield* remodel(this)
-                            .format("small-ball")
-                            .r(5)
-                            .color("#d0ffa0")
-                            .p(b.p.clone())
-                            .speed(2)
-                            .radian(this.random() * T)
-                            .ex(3)
-                            .g((c) => Behavior.ease(c, "speed", 5, 30, Ease.In))
-                            .fire(this.game.bullets)
-
-                        b.life = 0
-                    })
+                    .p(tail.p.clone())
+                    .speed(0.5)
+                    .radian(T / 4)
+                    .g((b) => Behavior.ease(b, "speed", 5, 60, Ease.In))
                     .fire(this.game.bullets)
             }
 
@@ -161,137 +117,212 @@ class EnemyBoss extends Enemy {
         }
     }
 
-    // 薙ぐ。画面の外の左上から、画面の外の右へ、体ごと画面を斜めに薙ぐ
-    private *sweep() {
-        const side = this.random() < 0.5 ? -1 : 1
+    // 脱皮。画面を波打ちながら横切ってから立ち止まり、頭に近い節から順に抜け殻を残す
+    private *shed() {
+        const side = this.p.x < this.game.WIDTH / 2 ? 1 : -1
+        const startX = this.game.WIDTH / 2 - side * this.game.WIDTH * 0.38
+        yield* this.glide(vec(startX, this.game.HEIGHT * 0.3), 80)
 
-        yield* this.glide(
-            vec(this.game.WIDTH / 2 - side * (this.game.WIDTH / 2 + 180), this.game.HEIGHT * 0.12),
-            Math.floor(140 / this.haste()),
-        )
-        yield* this.glide(
-            vec(this.game.WIDTH / 2 + side * (this.game.WIDTH / 2 + 180), this.game.HEIGHT * 0.5),
-            Math.floor(220 / this.haste()),
-        )
+        const frames = Math.floor(240 / this.haste())
+        for (let f = 0; f < frames; f++) {
+            this.p = vec(
+                startX + side * this.game.WIDTH * 0.76 * Ease.InOut(f / frames),
+                this.game.HEIGHT * 0.3 + 110 * Math.sin((f / frames) * T * 1.5),
+            )
+            yield
+        }
+
+        yield* Array(20)
+        this.segments.filter((p) => p.life > 0).forEach((p, k) => p.addScript(() => p.shed(), { margin: k * 4 }))
+        yield* Array(60)
     }
 
-    // 八の字。画面いっぱいに大きな八の字を描く
-    private *eight() {
-        const center = vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.35)
-        yield* this.glide(center, 80)
+    // 締め付け。自機のいた所を薄い輪で示してから、そのまわりを回りながら輪を縮める
+    private *constrict() {
+        const center = vec(
+            Math.min(Math.max(this.game.player.p.x, 130), this.game.WIDTH - 130),
+            Math.min(Math.max(this.game.player.p.y, this.game.HEIGHT * 0.3), this.game.HEIGHT * 0.75),
+        )
+        const start = this.p.sub(center).radian()
 
-        const frames = Math.floor(640 / this.haste())
+        // 予告の輪。これから締め付ける大きさ
+        yield* remodel(this)
+            .format("small-ball")
+            .r(4)
+            .type("neutral")
+            .isScorable(false)
+            .color("#d0ffa0")
+            .speed(0)
+            .duplicate(48, (b, i) => {
+                b.p = center.add(vec.arg((T * i) / 48).scale(260))
+                return b
+            })
+            .alpha(0)
+            .g(function* (b) {
+                yield* Behavior.ease(b, "alpha", 0.35, 20)
+                yield* Array(60)
+                yield* Behavior.fadeout(b, 20)
+            })
+            .fire(this.game.bullets)
+
+        yield* this.glide(center.add(vec.arg(start).scale(260)), 80)
+
+        const frames = Math.floor(360 / this.haste())
         for (let f = 0; f < frames; f++) {
-            const t = (f / frames) * T
-            this.crawl(center.add(vec(Math.sin(t) * this.game.WIDTH * 0.45, Math.sin(2 * t) * this.game.HEIGHT * 0.25)))
+            this.p = center.add(vec.arg(start + f * 0.03).scale(260 - 170 * Ease.InOut(f / frames)))
             yield
         }
     }
 
-    // 噛む。自機の方へ三度にじり寄り、そのたびに左右から顎(ビーム)を閉じて挟み込む
-    private *bite() {
-        for (let k = 0; k < 3; k++) {
-            const toward = this.p.add(this.game.player.p.sub(this.p).scale(0.6))
-            yield* this.glide(vec(toward.x, Math.min(toward.y, this.game.HEIGHT * 0.55)), 70)
+    // 潜る。二本の薄い線で道を示してから、画面を縦に潜り、画面の下の外で折り返して、別の所から浮かび上がる
+    private *dive() {
+        const down = this.game.WIDTH * (0.2 + 0.25 * this.random())
+        const up = this.game.WIDTH - down
 
-            const aim = this.game.player.p.sub(this.p).radian()
+        yield* remodel(this)
+            .appearance("laser")
+            .collision("rect")
+            .type("neutral")
+            .isScorable(false)
+            .color("#d0ffa0")
+            .r(2)
+            .speed(0)
+            .radian(T / 4)
+            .length(this.game.HEIGHT)
+            .alpha(0)
+            .duplicate(2, (b, i) => {
+                b.p = vec(i === 0 ? down : up, 0)
+                return b
+            })
+            .g(function* (b) {
+                yield* Behavior.ease(b, "alpha", 0.2, 15)
+                yield* Array(90)
+                yield* Behavior.fadeout(b, 15)
+            })
+            .fire(this.game.bullets)
 
-            yield* remodel(this)
-                .beam(0)
-                .color("#e0ffc0")
-                .radian(aim)
-                .nway(2, T / 5)
-                .g(function* (b) {
-                    yield* Behavior.ease(b, "length", 420, 36, Ease.Out)
-                    yield* Behavior.ease(b, "radian", aim, 16, Ease.In)
-                    yield* Behavior.fadeout(b, 30)
-                })
-                .fire(this.game.bullets)
-
-            yield* Array(80)
-        }
-    }
-
-    // とぐろ。渦を描いて巻き込み、またほどける
-    private *coil() {
-        const center = vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.3)
-        yield* this.glide(center.add(vec(230, 0)), 80)
-
-        const frames = Math.floor(600 / this.haste())
-        for (let f = 0; f < frames; f++) {
-            const radius = 60 + 170 * Math.abs(Math.cos((f / frames) * Math.PI))
-            this.crawl(center.add(vec(Math.cos(f * 0.025) * radius, Math.sin(f * 0.025) * radius * 0.7)))
-            yield
-        }
+        yield* this.glide(vec(down, -150), 90)
+        yield* this.glide(vec(down, this.game.HEIGHT + 250), Math.floor(110 / this.haste()))
+        yield* this.glide(vec(up, this.game.HEIGHT + 250), 40)
+        yield* this.glide(vec(up, -150), Math.floor(110 / this.haste()))
     }
 
     private *phases() {
         // 最後尾の節(尾)にしか攻撃が効かない。尾を落とすと、一つ前の節が新しい尾になる
         while (this.segments.some((p) => p.life > 0)) {
-            const alive = this.segments.filter((p) => p.life > 0)
-            this.segments.forEach((p) => (p.isInvincible = p !== alive[alive.length - 1]))
+            const tail = this.tail()
+            this.segments.forEach((p) => (p.isInvincible = p !== tail))
             yield
         }
 
-        // 頭だけになると、力を溜めてから攻撃が効くようになる。節の毒を頭が受け継ぎ、ときどき大きな扇も吐く
+        // 頭だけになると、力を溜めてから攻撃が効くようになる。動いた跡に肋の残像を残す
         yield* Charge.gather(this, 120, "#d0ffa0")
         this.isInvincible = false
-        this.addScript(() => this.poison(this), { loop: Infinity, id: "poison" })
-        this.addScript(() => this.roar(), { loop: Infinity, id: "roar" })
+        this.addScript(() => this.afterimage(), { loop: Infinity, id: "afterimage" })
     }
 
-    // 節(頭だけになってからは頭)の毒。速く動いている間は、通った所に大きな毒だまりを残す(現れて、少し残って、消える)。
-    // ゆっくりの間は、体の両脇へ三筋ずつ脚の弾を払う。落とされた節が多いほど、筋が増えて速くなる
-    private *poison(me: Enemy) {
-        const before = me.p.clone()
+    // 残像。動いた跡に、進む向きを横切る肋の形の光を残す。光はしばらくその場にとどまって消える。速く動くほど長い
+    private *afterimage() {
+        const before = this.p.clone()
         yield
 
-        if (me.p.sub(before).magnitude() > 1.5) {
-            yield* remodel(me)
-                .format("big-ball")
-                .r(28)
-                .color("#d0ffa0")
-                .p(me.p.clone())
-                .speed(0)
-                .appear(30)
-                .g(function* (b) {
-                    yield* Array(60)
-                    yield* Behavior.fadeout(b, 30)
-                })
-                .fire(this.game.bullets)
+        const velocity = this.p.sub(before)
+        if (velocity.magnitude() < 1) return
 
-            yield* Array(50)
-            return
-        }
+        const across = velocity.radian() + T / 4
+        const half = 40 + Math.min(velocity.magnitude() * 14, 90)
 
-        const lost = this.segments.filter((p) => p.life <= 0).length
-
-        yield* remodel(me)
-            .format("diamond")
+        yield* remodel(this)
+            .appearance("beam")
+            .collision("rect")
+            .isScorable(false)
             .color("#d0ffa0")
-            .p(me.p.clone())
-            .speed(1.5)
-            .radian(me.p.sub(before).radian())
-            .nway(2, T / 2)
-            .nway(3 + Math.floor(lost / 4), 0.22)
-            .g((b) => Behavior.ease(b, "speed", 6 + lost * 0.2, 40, Ease.In))
+            .r(4)
+            .speed(0)
+            .radian(across)
+            .length(half * 2)
+            .p(this.p.sub(vec.arg(across).scale(half)))
+            .appear(10)
+            .g(function* (b) {
+                yield* Array(90)
+                yield* Behavior.fadeout(b, 20)
+            })
             .fire(this.game.bullets)
 
-        yield* Array(110)
+        yield* Array(3)
+    }
+}
+
+// 節。一つ前の節(先頭の節は頭)から40pxの間をあけるように引っぱられてついていく。
+// 体を横切る光の肋を一本持ち、肋は速く動くほど長く伸びる
+class Segment extends Enemy {
+    constructor(game: Game, leader: Enemy) {
+        super(game, 150, Size.M)
+        this.p = leader.p.clone()
+
+        this.addScript(() => this.follow(leader), { loop: Infinity })
+        this.addScript(() => this.rib(leader))
     }
 
-    // 頭だけになってからの扇。下向きの大きな扇がゆっくり出て、だんだん速くなる
-    private *roar() {
-        yield* remodel(this)
-            .format("line")
-            .color("#a0ffd0")
-            .p(this.p.clone())
-            .speed(1.5)
-            .radian(T / 4)
-            .nway(15, 0.17)
-            .g((b) => Behavior.ease(b, "speed", 7.5, 45, Ease.In))
-            .fire(this.game.bullets)
+    // 一つ前の節から40pxより離れたら、その分だけ引き寄せられる
+    private *follow(leader: Enemy) {
+        const diff = this.p.sub(leader.p)
+        const distance = diff.magnitude()
+        if (distance > 40) this.p = leader.p.add(diff.scale(40 / distance))
+        yield
+    }
 
-        yield* Array(150)
+    // 光の肋。この節を体の向きと直角に横切る光の線。速く動くほど長く伸び、ゆっくりだと節の中に縮む。節が倒れると消える
+    private *rib(leader: Enemy) {
+        const me = this
+
+        yield* remodel(this)
+            .appearance("beam")
+            .collision("rect")
+            .isScorable(false)
+            .color("#d0ffa0")
+            .r(4)
+            .speed(0)
+            .length(this.r * 2)
+            // 節と一緒に画面の外へ出ても消えない
+            .unbounded()
+            .g(function* (b) {
+                let before = me.p.clone()
+                let half = me.r
+
+                while (me.life > 0) {
+                    const speed = me.p.sub(before).magnitude()
+                    before = me.p.clone()
+
+                    half += (me.r + Math.min(speed * 14, 70) - half) * 0.15
+                    b.radian = leader.p.sub(me.p).radian() + T / 4
+                    b.length = half * 2
+                    b.p = me.p.sub(vec.arg(b.radian).scale(half))
+                    yield
+                }
+
+                yield* Behavior.fadeout(b, 15)
+            })
+            .fire(this.game.bullets)
+    }
+
+    // 脱皮。この節の形の抜け殻を残す。抜け殻は薄く浮かび、少しして実体になり、やがてばらばらに崩れて降ってくる
+    *shed() {
+        yield* remodel(this)
+            .format("small-ball")
+            .r(6)
+            .color("#f0ffe0")
+            .speed(0)
+            .duplicate(10, (b, i) => {
+                b.p = this.p.add(vec.arg((T * i) / 10).scale(this.r + 4))
+                return b
+            })
+            .appear(40)
+            .g(function* (b) {
+                yield* Array(100)
+                b.radian = T / 4 + (this.random() - 0.5) * 0.6
+                yield* Behavior.accel(b, 60, 2 + this.random() * 1.5)
+            })
+            .fire(this.game.bullets)
     }
 }
