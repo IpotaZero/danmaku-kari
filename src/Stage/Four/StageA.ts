@@ -10,17 +10,6 @@ import { EnemyRendererBoss } from "../../Game/Actor/EnemyRendererBoss"
 import { Charge } from "../Charge"
 import { Size } from "../Size"
 
-// 頭のうしろに十二の節が連なる。節は一つ前の節から一定の間をあけるように引っぱられ、縄を引くようになめらかにうねる。
-// 光の肋: どの節にも、体を横切る光の線(肋)が一本ずつ通っている。肋は節が速く動くほど長く伸びるので、うねる体そのものが画面を掻く。
-// 頭は四つの動きを、休み(2秒)をはさみながら順にくり返す。
-//   這う: 画面の上半分を大きくうねる。尾(頭だけになってからは頭)は毒の雫を垂らし続ける。
-//   脱皮: 画面を横切ってから立ち止まり、頭に近い節から順に抜け殻を残して離れる。
-//         抜け殻は体の形のまま薄く浮かび、少しして実体になり、やがて崩れて降ってくる。
-//   締め付け: 自機のいた所を薄い輪で示してから、そのまわりを回りながら輪を縮める。とぐろの隙間から外へ逃げる。
-//   潜る: 二本の薄い線で道を示してから、画面を縦に潜って、別の所から浮かび上がる。画面に縦の体が二本並ぶ。
-// 最後尾の節(尾)にしか攻撃が効かない(ほかの節は弾が素通りする)。尾を落とすと、一つ前の節が新しい尾になる。体は短くなるほど速く動く。
-// 節をすべて落とすと、頭は力を溜めてから攻撃が効くようになる。頭は動いた跡に肋の残像を残し、残像が失った体の代わりになる。
-
 export default class extends Stage {
     *G() {
         const boss = new EnemyBoss(this.game)
@@ -34,7 +23,6 @@ export default class extends Stage {
 }
 
 class EnemyBoss extends Enemy {
-    // 節(十二)。頭に近い順に並ぶ
     readonly segments: Segment[] = []
 
     constructor(game: Game) {
@@ -59,18 +47,15 @@ class EnemyBoss extends Enemy {
         return vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.22)
     }
 
-    // 落とされた節が多いほど速く動く。動きにかけるフレーム数をこれで割る
     private haste() {
         return 1 + 0.05 * this.segments.filter((p) => p.life <= 0).length
     }
 
-    // いまの尾(生きている節のうち、いちばんうしろ)
     private tail() {
         const alive = this.segments.filter((p) => p.life > 0)
         return alive[alive.length - 1]
     }
 
-    // 四つの動きを、休みをはさみながら順にくり返す
     private *move() {
         yield* this.slither()
         yield* this.glide(this.home(), 120)
@@ -82,7 +67,6 @@ class EnemyBoss extends Enemy {
         yield* this.glide(this.home(), 120)
     }
 
-    // frames フレームかけて、なめらかに end へ動く
     private *glide(end: Vec, frames: number) {
         const start = this.p.clone()
 
@@ -92,7 +76,6 @@ class EnemyBoss extends Enemy {
         }
     }
 
-    // 這う。画面の上半分を大きくうねる。尾(頭だけになってからは頭)は毒の雫を垂らし続ける
     private *slither() {
         const path = Curves.lissajous(this.game.WIDTH * 0.7, this.game.HEIGHT * 0.3, 3, 2)
         const frames = Math.floor(600 / this.haste())
@@ -117,7 +100,6 @@ class EnemyBoss extends Enemy {
         }
     }
 
-    // 脱皮。画面を波打ちながら横切ってから立ち止まり、頭に近い節から順に抜け殻を残す
     private *shed() {
         const side = this.p.x < this.game.WIDTH / 2 ? 1 : -1
         const startX = this.game.WIDTH / 2 - side * this.game.WIDTH * 0.38
@@ -137,7 +119,6 @@ class EnemyBoss extends Enemy {
         yield* Array(60)
     }
 
-    // 締め付け。自機のいた所を薄い輪で示してから、そのまわりを回りながら輪を縮める
     private *constrict() {
         const center = vec(
             Math.min(Math.max(this.game.player.p.x, 130), this.game.WIDTH - 130),
@@ -145,7 +126,6 @@ class EnemyBoss extends Enemy {
         )
         const start = this.p.sub(center).radian()
 
-        // 予告の輪。これから締め付ける大きさ
         yield* remodel(this)
             .format("small-ball")
             .r(4)
@@ -174,7 +154,6 @@ class EnemyBoss extends Enemy {
         }
     }
 
-    // 潜る。二本の薄い線で道を示してから、画面を縦に潜り、画面の下の外で折り返して、別の所から浮かび上がる
     private *dive() {
         const down = this.game.WIDTH * (0.2 + 0.25 * this.random())
         const up = this.game.WIDTH - down
@@ -208,20 +187,17 @@ class EnemyBoss extends Enemy {
     }
 
     private *phases() {
-        // 最後尾の節(尾)にしか攻撃が効かない。尾を落とすと、一つ前の節が新しい尾になる
         while (this.segments.some((p) => p.life > 0)) {
             const tail = this.tail()
             this.segments.forEach((p) => (p.isInvincible = p !== tail))
             yield
         }
 
-        // 頭だけになると、力を溜めてから攻撃が効くようになる。動いた跡に肋の残像を残す
         yield* Charge.gather(this, 120, "#d0ffa0")
         this.isInvincible = false
         this.scripts.add(() => this.afterimage(), { loop: Infinity, id: "afterimage" })
     }
 
-    // 残像。動いた跡に、進む向きを横切る肋の形の光を残す。光はしばらくその場にとどまって消える。速く動くほど長い
     private *afterimage() {
         const before = this.p.clone()
         yield
@@ -253,8 +229,6 @@ class EnemyBoss extends Enemy {
     }
 }
 
-// 節。一つ前の節(先頭の節は頭)から40pxの間をあけるように引っぱられてついていく。
-// 体を横切る光の肋を一本持ち、肋は速く動くほど長く伸びる
 class Segment extends Enemy {
     constructor(game: Game, leader: Enemy) {
         super(game, 150, Size.M)
@@ -264,7 +238,6 @@ class Segment extends Enemy {
         this.scripts.add(() => this.rib(leader))
     }
 
-    // 一つ前の節から40pxより離れたら、その分だけ引き寄せられる
     private *follow(leader: Enemy) {
         const diff = this.p.sub(leader.p)
         const distance = diff.magnitude()
@@ -272,7 +245,6 @@ class Segment extends Enemy {
         yield
     }
 
-    // 光の肋。この節を体の向きと直角に横切る光の線。速く動くほど長く伸び、ゆっくりだと節の中に縮む。節が倒れると消える
     private *rib(leader: Enemy) {
         const me = this
 
@@ -284,7 +256,7 @@ class Segment extends Enemy {
             .r(4)
             .speed(0)
             .length(this.r * 2)
-            // 節と一緒に画面の外へ出ても消えない
+
             .unbounded()
             .g(function* (b) {
                 let before = me.p.clone()
@@ -306,7 +278,6 @@ class Segment extends Enemy {
             .fire(this.game.bullets)
     }
 
-    // 脱皮。この節の形の抜け殻を残す。抜け殻は薄く浮かび、少しして実体になり、やがてばらばらに崩れて降ってくる
     *shed() {
         yield* remodel(this)
             .format("small-ball")

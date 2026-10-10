@@ -27,22 +27,7 @@ export default class extends Stage {
 class EnemyPupil extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.05, 2, 3)
 
-    // 月。門下生のまわりの横長の楕円を回る
-    readonly moons = [0, 1, 2, 3].map(
-        (i) =>
-            new Part(
-                this.game,
-                this,
-                400,
-                Size.S,
-                (me) => {
-                    const angle = me.frame / 70 + (T * i) / 4
-                    return vec(Math.cos(angle) * 190, Math.sin(angle) * 80)
-                },
-                (me) => this.crescent(me, i),
-                140 + i * 30,
-            ),
-    )
+    readonly moons = [0, 1, 2, 3].map((i) => new Moon(this.game, this, i))
 
     constructor(game: Game) {
         // 主機の体力は子機の総和くらい
@@ -67,26 +52,6 @@ class EnemyPupil extends Enemy {
         yield
     }
 
-    // 三日月。自機の方へ膨らんだ弧に九つの弾を並べ、形を保ったまま飛ばす。月ごとに色を変える
-    private *crescent(me: Part, i: number) {
-        const aim = this.game.player.p.sub(me.p).radian()
-
-        yield* remodel(me)
-            .format("diamond")
-            .color((["#fff2c0", "#e0d8ff", "#c8e8ff", "#ffd8e8"] as Color[])[i])
-            .speed(1.5)
-            .radian(aim)
-            .duplicate(9, (b, k) => {
-                b.p = me.p.add(vec.arg(aim + (k - 4) * 0.28).scale(32))
-                return b
-            })
-            .appear(60)
-            .g((b) => Behavior.ease(b, "speed", 6.5, 50, Ease.In))
-            .fire(this.game.bullets)
-
-        yield* Array(120)
-    }
-
     // 一度止まってから散る輪
     private *ring() {
         yield* remodel(this)
@@ -101,5 +66,41 @@ class EnemyPupil extends Enemy {
             .fire(this.game.bullets)
 
         yield* Array(100)
+    }
+}
+
+// 月。門下生のまわりの横長の楕円を回る
+class Moon extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly i: number,
+    ) {
+        super(game, parent, 400, Size.S, 140 + i * 30)
+    }
+
+    protected place() {
+        const angle = this.frame / 70 + (T * this.i) / 4
+        return vec(Math.cos(angle) * 190, Math.sin(angle) * 80)
+    }
+
+    // 三日月。自機の方へ膨らんだ弧に九つの弾を並べ、形を保ったまま飛ばす。月ごとに色を変える
+    protected *attack() {
+        const aim = this.game.player.p.sub(this.p).radian()
+
+        yield* remodel(this)
+            .format("diamond")
+            .color((["#fff2c0", "#e0d8ff", "#c8e8ff", "#ffd8e8"] as Color[])[this.i])
+            .speed(1.5)
+            .radian(aim)
+            .duplicate(9, (b, k) => {
+                b.p = this.p.add(vec.arg(aim + (k - 4) * 0.28).scale(32))
+                return b
+            })
+            .appear(60)
+            .g((b) => Behavior.ease(b, "speed", 6.5, 50, Ease.In))
+            .fire(this.game.bullets)
+
+        yield* Array(120)
     }
 }

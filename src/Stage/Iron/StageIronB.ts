@@ -29,21 +29,7 @@ export default class extends Stage {
 class EnemyMaster extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.25, this.game.HEIGHT * 0.04, 1, 2)
 
-    // 鉄砲兵。前列(rank 0)と後列(rank 1)に四人ずつ。後列は前列の間に入るので、どの鉄砲兵も撃てる
-    readonly riflemen = [0, 1].flatMap((rank) =>
-        [0, 1, 2, 3].map(
-            (i) =>
-                new Part(
-                    this.game,
-                    this,
-                    220,
-                    Size.S,
-                    () => vec((i - 1.5) * 90 + (rank === 0 ? -22 : 22), 120 - rank * 45),
-                    (me) => this.shoot(me),
-                    150 + rank * 45,
-                ),
-        ),
-    )
+    readonly riflemen = [0, 1].flatMap((rank) => [0, 1, 2, 3].map((i) => new Rifleman(this.game, this, rank, i)))
 
     constructor(game: Game) {
         // 鉄砲兵が前に並んで攻撃を受け止めるので、高弟を撃てるのは鉄砲兵が減ってから。
@@ -67,46 +53,6 @@ class EnemyMaster extends Enemy {
     private *move() {
         this.p = this.path((this.frame - 120) / 200).add(this.home())
         yield
-    }
-
-    // 鉄砲兵の射撃。弾を込めてから、自機のいる所へ狙いの線を引き、線に沿って五発撃ち込む
-    private *shoot(me: Part) {
-        const start = me.p.clone()
-        const aim = this.game.player.p.sub(start).radian()
-
-        yield* remodel(me)
-            .appearance("laser")
-            .collision("rect")
-            .type("neutral")
-            .isScorable(false)
-            .color("#ffe0a0")
-            .r(2)
-            .speed(0)
-            .p(start)
-            .radian(aim)
-            .length(this.game.WIDTH + this.game.HEIGHT)
-            .alpha(0)
-            .g(function* (b) {
-                yield* Behavior.ease(b, "alpha", 0.1, 8)
-                yield* Array(20)
-                yield* Behavior.fadeout(b, 8)
-            })
-            .fire(this.game.bullets)
-
-        yield* Array(30)
-
-        yield* remodel(me)
-            .format("line")
-            .color("#ffe0a0")
-            .p(start)
-            .radian(aim)
-            .speed(12)
-            .duplicate(5)
-            .delayByIndex(3)
-            .fire(this.game.bullets)
-
-        // 撃ち終えた後の隙
-        yield* Array(70)
     }
 
     // 高弟の大筒。斜め下へ飛んだ玉が止まり、輪になって弾ける
@@ -135,5 +81,61 @@ class EnemyMaster extends Enemy {
             .fire(this.game.bullets)
 
         yield* Array(90)
+    }
+}
+
+// 鉄砲兵。前列(rank 0)と後列(rank 1)に四人ずつ。後列は前列の間に入るので、どの鉄砲兵も撃てる
+class Rifleman extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly rank: number,
+        private readonly i: number,
+    ) {
+        super(game, parent, 220, Size.S, 150 + rank * 45)
+    }
+
+    protected place() {
+        return vec((this.i - 1.5) * 90 + (this.rank === 0 ? -22 : 22), 120 - this.rank * 45)
+    }
+
+    // 鉄砲兵の射撃。弾を込めてから、自機のいる所へ狙いの線を引き、線に沿って五発撃ち込む
+    protected *attack() {
+        const start = this.p.clone()
+        const aim = this.game.player.p.sub(start).radian()
+
+        yield* remodel(this)
+            .appearance("laser")
+            .collision("rect")
+            .type("neutral")
+            .isScorable(false)
+            .color("#ffe0a0")
+            .r(2)
+            .speed(0)
+            .p(start)
+            .radian(aim)
+            .length(this.game.WIDTH + this.game.HEIGHT)
+            .alpha(0)
+            .g(function* (b) {
+                yield* Behavior.ease(b, "alpha", 0.1, 8)
+                yield* Array(20)
+                yield* Behavior.fadeout(b, 8)
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(30)
+
+        yield* remodel(this)
+            .format("line")
+            .color("#ffe0a0")
+            .p(start)
+            .radian(aim)
+            .speed(12)
+            .duplicate(5)
+            .delayByIndex(3)
+            .fire(this.game.bullets)
+
+        // 撃ち終えた後の隙
+        yield* Array(70)
     }
 }

@@ -109,19 +109,7 @@ class EnemyHornet extends Enemy {
         this.isInvincible = true
         this.p = from.clone()
 
-        // 大顎(左右一対)。胴の前の横一列の両端
-        const mandibles = [-1, 1].map(
-            (side) =>
-                new Part(
-                    this.game,
-                    this,
-                    500,
-                    Size.L,
-                    () => vec(side * 85, 150),
-                    (me) => this.bite(me, side, generation),
-                    140 + (side > 0 ? 60 : 0),
-                ),
-        )
+        const mandibles = [-1, 1].map((side) => new Mandible(this.game, this, side, generation))
 
         this.wings =
             generation === 0
@@ -130,71 +118,15 @@ class EnemyHornet extends Enemy {
                       [1, 0],
                       [-1, 1],
                       [1, 1],
-                  ].map(
-                      ([side, row]) =>
-                          new Part(
-                              this.game,
-                              this,
-                              300,
-                              Size.M,
-                              () => vec(side * 71, row === 0 ? -71 : 71),
-                              (me) => this.buzz(me, T / 4 - side * 0.5, generation),
-                              150 + row * 40 + (side > 0 ? 20 : 0),
-                          ),
-                  )
-                : [0, 1, 2, 3, 4, 5].map(
-                      (i) =>
-                          new Part(
-                              this.game,
-                              this,
-                              300,
-                              Size.M,
-                              (me) => vec.arg(me.frame / 200 + (T * i) / 6).scale(100),
-                              (me) => this.buzz(me, me.p.sub(this.p).radian(), generation),
-                              150 + i * 20,
-                          ),
-                  )
+                  ].map(([side, row]) => new SquareWing(this.game, this, side, row, generation))
+                : [0, 1, 2, 3, 4, 5].map((i) => new HexWing(this.game, this, i, generation))
 
-        // 脚(六つ)。胴の左右に、横一列に三つずつ並ぶ
-        const legs = [-3, -2, -1, 1, 2, 3].map(
-            (x, order) =>
-                new Part(
-                    this.game,
-                    this,
-                    150,
-                    Size.S,
-                    () => vec(Math.sign(x) * (60 + 50 * Math.abs(x)), 20),
-                    (me) => this.claws(me, order, generation),
-                    170,
-                ),
-        )
+        const legs = [-3, -2, -1, 1, 2, 3].map((x, order) => new Leg(this.game, this, x, order, generation))
+        const stinger = new Stinger(this.game, this, generation)
 
-        // 毒針。胴の前の横一列の真ん中
-        const stinger = new Part(
-            this.game,
-            this,
-            600,
-            Size.L,
-            () => vec(0, 150),
-            (me) => this.sting(me, generation),
-            200,
-        )
-
-        // 働き蜂。等間隔のまま、胴のまわりの大きな楕円をそろって回る。一代目は六匹、二代目は八匹
+        // 一代目は六匹、二代目は八匹
         const workers = Array.from({ length: generation === 0 ? 6 : 8 }, (_, i) => i).map(
-            (i, _, all) =>
-                new Part(
-                    this.game,
-                    this,
-                    180,
-                    Size.S,
-                    (me) => {
-                        const angle = me.frame / 40 + (T * i) / all.length
-                        return vec(Math.cos(angle) * 180, Math.sin(angle) * 110)
-                    },
-                    (me) => this.patrol(me, i, generation),
-                    130,
-                ),
+            (i, _, all) => new Worker(this.game, this, i, all.length, generation),
         )
 
         this.parts = [...mandibles, ...this.wings, ...legs, stinger, ...workers]
@@ -243,18 +175,7 @@ class EnemyHornet extends Enemy {
             this.scripts.remove("body")
             yield* Charge.gather(this, 150, "#ffd060")
 
-            const escorts = [0, 1, 2, 3, 4, 5].map(
-                (i) =>
-                    new Part(
-                        this.game,
-                        this,
-                        300,
-                        Size.M,
-                        (me) => vec.arg(-me.frame / 90 + (T * i) / 6).scale(120),
-                        (me) => this.escort(me, i),
-                        60 + i * 10,
-                    ),
-            )
+            const escorts = [0, 1, 2, 3, 4, 5].map((i) => new Escort(this.game, this, i))
             this.game.enemies.push(...escorts)
             this.scripts.add(() => this.ring(generation), { loop: Infinity, margin: 60, id: "body" })
 
@@ -267,145 +188,6 @@ class EnemyHornet extends Enemy {
         this.isInvincible = false
         this.scripts.add(() => this.fury(generation), { loop: Infinity, id: "body" })
         if (generation > 0) this.scripts.add(() => this.lightWings(), { loop: Infinity, margin: 60, id: "wings" })
-    }
-
-    // 大顎の噛みつき。横へ開いた弾が一度止まり、少しして自機のいた所へ一斉に飛びかかる
-    private *bite(me: Part, side: number, generation: number) {
-        yield* remodel(me)
-            .format("diamond")
-            .color("#ffd060")
-            .p(me.p.clone())
-            .speed(4)
-            .radian(side > 0 ? 0.35 : Math.PI - 0.35)
-            .nway(6 + generation * 2, 0.22)
-            .g(function* (b) {
-                yield* Behavior.stop(b, 22)
-                yield* Array(10)
-                yield* Behavior.aim(b, this.game.player.p, 6)
-                yield* Behavior.accel(b, 15, 8 + generation)
-            })
-            .fire(this.game.bullets)
-
-        yield* Array(120 - generation * 20)
-    }
-
-    // 翅の羽音。くねくね揺れながら進む弾の列を、radian の向きへ流す
-    private *buzz(me: Part, radian: number, generation: number) {
-        for (let k = 0; k < 10 + generation * 2; k++) {
-            yield* remodel(me)
-                .format("small-ball")
-                .r(5)
-                .color("#e8f0ff")
-                .p(me.p.clone())
-                .speed(4.5)
-                .radian(radian)
-                .g(function* (b) {
-                    const base = b.radian
-                    for (let f = 0; ; f++) {
-                        b.radian = base + 0.6 * Math.sin(f / 5)
-                        yield
-                    }
-                })
-                .fire(this.game.bullets)
-            yield* Array(4)
-        }
-
-        yield* Array(130)
-    }
-
-    // 脚の爪。左の脚から順に、だんだん速くなる爪を落とす
-    private *claws(me: Part, order: number, generation: number) {
-        yield* Array(order * 6)
-
-        yield* remodel(me)
-            .format("line")
-            .color("#ffe0a0")
-            .p(me.p.clone())
-            .speed(3)
-            .radian(T / 4)
-            .nway(4 + generation, 0.16)
-            .g((b) => Behavior.ease(b, "speed", 7.5 + generation, 30, Ease.In))
-            .fire(this.game.bullets)
-
-        yield* Array(140 - order * 6)
-    }
-
-    // 毒針。扇のように線を薄く見せてから、端から順に線に沿って針を撃ち込む。一代目は五本、二代目は七本
-    private *sting(me: Part, generation: number) {
-        const start = me.p.clone()
-        const aim = this.game.player.p.sub(start).radian()
-
-        yield* remodel(me)
-            .appearance("laser")
-            .collision("rect")
-            .type("neutral")
-            .isScorable(false)
-            .color("#ff9060")
-            .r(2)
-            .speed(0)
-            .p(start)
-            .radian(aim)
-            .length(this.game.WIDTH + this.game.HEIGHT)
-            .alpha(0)
-            .nway(5 + generation * 2, 0.26)
-            .g(function* (b, k) {
-                yield* Behavior.ease(b, "alpha", 0.2, 8)
-                yield* Array(22 + k * 10)
-                yield* Behavior.fadeout(b, 8)
-            })
-            .fire(this.game.bullets)
-
-        yield* Array(30)
-
-        for (let k = 0; k < 5 + generation * 2; k++) {
-            yield* remodel(me)
-                .format("line")
-                .color("#ff9060")
-                .p(start)
-                .radian(aim + (k - (4 + generation * 2) / 2) * 0.26)
-                .speed(13 + generation)
-                .duplicate(6)
-                .delayByIndex(2)
-                .fire(this.game.bullets)
-        }
-
-        yield* Array(130)
-    }
-
-    // 働き蜂の見回り。i 番目の働き蜂は 8i フレーム待ってから、進む向きへ短い弾の列を撃つ
-    private *patrol(me: Part, i: number, generation: number) {
-        yield* Array(i * 8)
-
-        const before = me.p.clone()
-        yield
-
-        yield* remodel(me)
-            .format("small-ball")
-            .r(5)
-            .color("#ffe890")
-            .p(me.p.clone())
-            .speed(5)
-            .radian(me.p.sub(before).radian())
-            .duplicate(4 + generation)
-            .delayByIndex(4)
-            .fire(this.game.bullets)
-
-        yield* Array(70 - i * 8)
-    }
-
-    // 親衛隊。胴のまわりを回りながら、順に外向きの三方向の弾を撃つ。弾はゆっくり出て一気に速くなる
-    private *escort(me: Part, i: number) {
-        yield* remodel(me)
-            .format("diamond")
-            .color("#ffd060")
-            .p(me.p.clone())
-            .speed(1.5)
-            .radian(me.p.sub(this.p).radian())
-            .nway(3, 0.25)
-            .g((b) => Behavior.ease(b, "speed", 6.5, 35, Ease.In))
-            .fire(this.game.bullets)
-
-        yield* Array(90 + (i % 2) * 10)
     }
 
     // 翅があるうちの胴の輪。二代目は一度止まってから散る、濃い輪になる
@@ -530,5 +312,269 @@ class EnemyHornet extends Enemy {
             .fire(this.game.bullets)
 
         yield* Array(18)
+    }
+}
+
+// 女王蜂の攻撃のうち、いくつかの部位が使うもの
+namespace Hornet {
+    // 翅の羽音。くねくね揺れながら進む弾の列を、radian の向きへ流す
+    export function* buzz(me: Enemy, radian: number, generation: number) {
+        for (let k = 0; k < 10 + generation * 2; k++) {
+            yield* remodel(me)
+                .format("small-ball")
+                .r(5)
+                .color("#e8f0ff")
+                .p(me.p.clone())
+                .speed(4.5)
+                .radian(radian)
+                .g(function* (b) {
+                    const base = b.radian
+                    for (let f = 0; ; f++) {
+                        b.radian = base + 0.6 * Math.sin(f / 5)
+                        yield
+                    }
+                })
+                .fire(me.game.bullets)
+            yield* Array(4)
+        }
+
+        yield* Array(130)
+    }
+}
+
+// 大顎(左右一対)。胴の前の横一列の両端
+class Mandible extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly side: number,
+        private readonly generation: number,
+    ) {
+        super(game, parent, 500, Size.L, 140 + (side > 0 ? 60 : 0))
+    }
+
+    protected place() {
+        return vec(this.side * 85, 150)
+    }
+
+    // 大顎の噛みつき。横へ開いた弾が一度止まり、少しして自機のいた所へ一斉に飛びかかる
+    protected *attack() {
+        yield* remodel(this)
+            .format("diamond")
+            .color("#ffd060")
+            .p(this.p.clone())
+            .speed(4)
+            .radian(this.side > 0 ? 0.35 : Math.PI - 0.35)
+            .nway(6 + this.generation * 2, 0.22)
+            .g(function* (b) {
+                yield* Behavior.stop(b, 22)
+                yield* Array(10)
+                yield* Behavior.aim(b, this.game.player.p, 6)
+                yield* Behavior.accel(b, 15, 8 + this.generation)
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(120 - this.generation * 20)
+    }
+}
+
+// 一代目の翅(四枚)。胴を囲む正方形の角にあり、外寄りの斜め下へ羽音を流す
+class SquareWing extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly side: number,
+        private readonly row: number,
+        private readonly generation: number,
+    ) {
+        super(game, parent, 300, Size.M, 150 + row * 40 + (side > 0 ? 20 : 0))
+    }
+
+    protected place() {
+        return vec(this.side * 71, this.row === 0 ? -71 : 71)
+    }
+
+    protected *attack() {
+        yield* Hornet.buzz(this, T / 4 - this.side * 0.5, this.generation)
+    }
+}
+
+// 二代目の翅(六枚)。胴を囲んで回る正六角形の角にあり、胴から見て外向きに羽音を流す
+class HexWing extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly i: number,
+        private readonly generation: number,
+    ) {
+        super(game, parent, 300, Size.M, 150 + i * 20)
+    }
+
+    protected place() {
+        return vec.arg(this.frame / 200 + (T * this.i) / 6).scale(100)
+    }
+
+    protected *attack() {
+        yield* Hornet.buzz(this, this.p.sub(this.parent.p).radian(), this.generation)
+    }
+}
+
+// 脚(六つ)。胴の左右に、横一列に三つずつ並ぶ。order は左からの順番
+class Leg extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly x: number,
+        private readonly order: number,
+        private readonly generation: number,
+    ) {
+        super(game, parent, 150, Size.S, 170)
+    }
+
+    protected place() {
+        return vec(Math.sign(this.x) * (60 + 50 * Math.abs(this.x)), 20)
+    }
+
+    // 脚の爪。左の脚から順に、だんだん速くなる爪を落とす
+    protected *attack() {
+        yield* Array(this.order * 6)
+
+        yield* remodel(this)
+            .format("line")
+            .color("#ffe0a0")
+            .p(this.p.clone())
+            .speed(3)
+            .radian(T / 4)
+            .nway(4 + this.generation, 0.16)
+            .g((b) => Behavior.ease(b, "speed", 7.5 + this.generation, 30, Ease.In))
+            .fire(this.game.bullets)
+
+        yield* Array(140 - this.order * 6)
+    }
+}
+
+// 毒針。胴の前の横一列の真ん中
+class Stinger extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly generation: number,
+    ) {
+        super(game, parent, 600, Size.L, 200)
+    }
+
+    protected place() {
+        return vec(0, 150)
+    }
+
+    // 毒針。扇のように線を薄く見せてから、端から順に線に沿って針を撃ち込む。一代目は五本、二代目は七本
+    protected *attack() {
+        const start = this.p.clone()
+        const aim = this.game.player.p.sub(start).radian()
+
+        yield* remodel(this)
+            .appearance("laser")
+            .collision("rect")
+            .type("neutral")
+            .isScorable(false)
+            .color("#ff9060")
+            .r(2)
+            .speed(0)
+            .p(start)
+            .radian(aim)
+            .length(this.game.WIDTH + this.game.HEIGHT)
+            .alpha(0)
+            .nway(5 + this.generation * 2, 0.26)
+            .g(function* (b, k) {
+                yield* Behavior.ease(b, "alpha", 0.2, 8)
+                yield* Array(22 + k * 10)
+                yield* Behavior.fadeout(b, 8)
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(30)
+
+        for (let k = 0; k < 5 + this.generation * 2; k++) {
+            yield* remodel(this)
+                .format("line")
+                .color("#ff9060")
+                .p(start)
+                .radian(aim + (k - (4 + this.generation * 2) / 2) * 0.26)
+                .speed(13 + this.generation)
+                .duplicate(6)
+                .delayByIndex(2)
+                .fire(this.game.bullets)
+        }
+
+        yield* Array(130)
+    }
+}
+
+// 働き蜂。等間隔のまま、胴のまわりの大きな楕円をそろって回る。count は働き蜂の数
+class Worker extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly i: number,
+        private readonly count: number,
+        private readonly generation: number,
+    ) {
+        super(game, parent, 180, Size.S, 130)
+    }
+
+    protected place() {
+        const angle = this.frame / 40 + (T * this.i) / this.count
+        return vec(Math.cos(angle) * 180, Math.sin(angle) * 110)
+    }
+
+    // 働き蜂の見回り。i 番目の働き蜂は 8i フレーム待ってから、進む向きへ短い弾の列を撃つ
+    protected *attack() {
+        yield* Array(this.i * 8)
+
+        const before = this.p.clone()
+        yield
+
+        yield* remodel(this)
+            .format("small-ball")
+            .r(5)
+            .color("#ffe890")
+            .p(this.p.clone())
+            .speed(5)
+            .radian(this.p.sub(before).radian())
+            .duplicate(4 + this.generation)
+            .delayByIndex(4)
+            .fire(this.game.bullets)
+
+        yield* Array(70 - this.i * 8)
+    }
+}
+
+// 親衛隊(六つ)。二代目が翅を落とされると呼ぶ。胴のまわりを逆向きに回る
+class Escort extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly i: number,
+    ) {
+        super(game, parent, 300, Size.M, 60 + i * 10)
+    }
+
+    protected place() {
+        return vec.arg(-this.frame / 90 + (T * this.i) / 6).scale(120)
+    }
+
+    // 親衛隊。胴のまわりを回りながら、順に外向きの三方向の弾を撃つ。弾はゆっくり出て一気に速くなる
+    protected *attack() {
+        yield* remodel(this)
+            .format("diamond")
+            .color("#ffd060")
+            .p(this.p.clone())
+            .speed(1.5)
+            .radian(this.p.sub(this.parent.p).radian())
+            .nway(3, 0.25)
+            .g((b) => Behavior.ease(b, "speed", 6.5, 35, Ease.In))
+            .fire(this.game.bullets)
+
+        yield* Array(90 + (this.i % 2) * 10)
     }
 }

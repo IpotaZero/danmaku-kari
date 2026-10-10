@@ -26,19 +26,7 @@ export default class extends Stage {
 class EnemyMaster extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.04, 1, 2)
 
-    // 盾持ち。師範代の下に、半径120pxの弧の上に並ぶ。陣はシーソーのように左右へ振れる
-    readonly guards = [0, 1, 2, 3, 4].map(
-        (i) =>
-            new Part(
-                this.game,
-                this,
-                500,
-                Size.S,
-                (me) => vec.arg(T / 4 + (i - 2) * 0.42 + 0.35 * Math.sin(me.frame / 70)).scale(120),
-                (me) => this.bash(me),
-                150 + i * 18,
-            ),
-    )
+    readonly guards = [0, 1, 2, 3, 4].map((i) => new ShieldBearer(this.game, this, i))
 
     constructor(game: Game) {
         // 盾持ちが先に攻撃をすべて受け止めるので、師範代を撃てるのは盾持ちが減ってから。
@@ -64,22 +52,6 @@ class EnemyMaster extends Enemy {
         yield
     }
 
-    // 盾突き。一度止まってから散る小さな輪
-    private *bash(me: Part) {
-        yield* remodel(me)
-            .format("small-ball")
-            .r(6)
-            .color("#c8d4e8")
-            .p(me.p.clone())
-            .speed(4)
-            .radian(this.random() * T)
-            .ex(12)
-            .g((b) => Behavior.reaccel(b, 15, 20, 30, 5))
-            .fire(this.game.bullets)
-
-        yield* Array(90)
-    }
-
     // 盾の上から、下へ向けて大きな扇。一度止まってから一気に速くなる
     private *fan() {
         yield* remodel(this)
@@ -93,5 +65,36 @@ class EnemyMaster extends Enemy {
             .fire(this.game.bullets)
 
         yield* Array(75)
+    }
+}
+
+// 盾持ち。師範代の下に、半径120pxの弧の上に並ぶ。陣はシーソーのように左右へ振れる
+class ShieldBearer extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly i: number,
+    ) {
+        super(game, parent, 500, Size.S, 150 + i * 18)
+    }
+
+    protected place() {
+        return vec.arg(T / 4 + (this.i - 2) * 0.42 + 0.35 * Math.sin(this.frame / 70)).scale(120)
+    }
+
+    // 盾突き。一度止まってから散る小さな輪
+    protected *attack() {
+        yield* remodel(this)
+            .format("small-ball")
+            .r(6)
+            .color("#c8d4e8")
+            .p(this.p.clone())
+            .speed(4)
+            .radian(this.random() * T)
+            .ex(12)
+            .g((b) => Behavior.reaccel(b, 15, 20, 30, 5))
+            .fire(this.game.bullets)
+
+        yield* Array(90)
     }
 }

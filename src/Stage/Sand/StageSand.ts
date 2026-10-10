@@ -40,63 +40,15 @@ export default class extends Stage {
 class EnemyUsuba extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.3, this.game.HEIGHT * 0.06, 2, 3)
 
-    // 大顎(左右)。胴の前に並ぶ
-    private readonly jaws = [-1, 1].map(
-        (side) =>
-            new Part(
-                this.game,
-                this,
-                500,
-                Size.L,
-                () => vec(side * 64, 88),
-                (me) => this.pincer(me, side),
-                150,
-            ),
-    )
-
-    // 腹。胴の上にある
-    private readonly abdomen = new Part(
-        this.game,
-        this,
-        600,
-        Size.L,
-        () => vec(0, -105),
-        (me) => this.fountain(me),
-        150,
-    )
-
-    // 砂袋(三つ)。腹のまわりの円を、等間隔のままゆっくり回る孫機
-    private readonly sandbags = [-1, 0, 1].map(
-        (k) =>
-            new Part(
-                this.game,
-                this.abdomen,
-                150,
-                Size.S,
-                (me) => vec.arg(me.frame / 120 + (T * (k + 1)) / 3).scale(64),
-                (me) => this.spill(me, k),
-                150,
-            ),
-    )
-
-    // 脚(四つ)。胴の左右に、横一列に並ぶ
+    private readonly jaws = [-1, 1].map((side) => new Jaw(this.game, this, side))
+    private readonly abdomen = new Abdomen(this.game, this)
+    private readonly sandbags = [-1, 0, 1].map((k) => new Sandbag(this.game, this.abdomen, k))
     private readonly legs = [
         [-1, 0],
         [1, 0],
         [-1, 1],
         [1, 1],
-    ].map(
-        ([side, row]) =>
-            new Part(
-                this.game,
-                this,
-                260,
-                Size.M,
-                () => vec(side * (105 + 65 * row), 20),
-                (me) => this.kick(me, side, row),
-                150,
-            ),
-    )
+    ].map(([side, row]) => new Leg(this.game, this, side, row))
 
     // 落とさないと胴に攻撃が効かない部位
     private readonly guards = [...this.jaws, this.abdomen]
@@ -152,18 +104,7 @@ class EnemyUsuba extends Enemy {
             [1, 0],
             [-1, 1],
             [1, 1],
-        ].map(
-            ([side, row]) =>
-                new Part(
-                    this.game,
-                    this,
-                    250,
-                    Size.M,
-                    () => vec(side * 78, row === 0 ? -78 : 78),
-                    (me) => this.clods(me, side, row),
-                    this.untilNextCycle(),
-                ),
-        )
+        ].map(([side, row]) => new Wing(this.game, this, side, row, this.untilNextCycle()))
         this.game.enemies.push(...wings)
 
         // 二段目: 翅を落とすと次の段へ。胴は砂の帳を下ろす
@@ -176,91 +117,6 @@ class EnemyUsuba extends Enemy {
         this.game.camera.shake(8, 30)
         yield* this.sync()
         this.scripts.add(() => this.whirl(), { loop: Infinity, id: "whirl" })
-    }
-
-    // 大顎の砂の流れ。外の斜め下へ吐き、内側へ巻き込むように曲がっていく
-    private *pincer(me: Part, side: number) {
-        yield* Array(side > 0 ? 20 : 0)
-
-        for (let f = 0; f < 60; f += 3) {
-            yield* remodel(me)
-                .format("small-ball")
-                .r(6)
-                .color("#ffd890")
-                .p(me.p.clone())
-                .speed(5)
-                .radian(T / 4 + side * 0.9)
-                .g((b) => Behavior.rotating(b, -side * 0.02, 80))
-                .fire(this.game.bullets)
-            yield* Array(3)
-        }
-
-        yield* Array(270 - (side > 0 ? 20 : 0))
-    }
-
-    // 腹の噴水。上へ噴き上げた砂が、重さに引かれて放物線を描いて降る
-    private *fountain(me: Part) {
-        yield* Array(40)
-
-        yield* remodel(me)
-            .format("diamond")
-            .color("#ffe8b8")
-            .p(me.p.clone())
-            .speed(5)
-            .duplicate(16)
-            .scatter({ radian: [-T / 4 - 0.7, -T / 4 + 0.7], speed: [3.5, 6.5] })
-            .unbounded()
-            .g(function* (b) {
-                let v = vec.arg(b.radian).scale(b.speed)
-
-                while (b.p.y < b.game.HEIGHT + 20) {
-                    v = v.add(vec(0, 0.13))
-                    b.radian = v.radian()
-                    b.speed = v.magnitude()
-                    yield
-                }
-
-                b.life = 0
-            })
-            .fire(this.game.bullets)
-
-        yield* Array(290)
-    }
-
-    // 砂袋のこぼれ砂。k 番目の砂袋は少しずつ遅れて、だんだん速く真下へ落ちる砂をこぼす
-    private *spill(me: Part, k: number) {
-        yield* Array(60 + (k + 1) * 12)
-
-        yield* remodel(me)
-            .format("small-ball")
-            .r(5)
-            .color("#fff0c0")
-            .p(me.p.clone())
-            .speed(0.5)
-            .radian(T / 4)
-            .duplicate(3)
-            .delayByIndex(6)
-            .nway(3, 0.25)
-            .g((b) => Behavior.ease(b, "speed", 6, 60, Ease.In))
-            .fire(this.game.bullets)
-
-        yield* Array(330 - 60 - (k + 1) * 12 - 12)
-    }
-
-    // 脚の砂かき。外寄りの下へ、速さのばらばらな砂粒を散弾のように
-    private *kick(me: Part, side: number, row: number) {
-        yield* Array(30 + row * 30)
-
-        yield* remodel(me)
-            .format("small-ball")
-            .r(5)
-            .color("#f0c878")
-            .p(me.p.clone())
-            .duplicate(10)
-            .scatter({ radian: [T / 4 + side * 0.15 - 0.35, T / 4 + side * 0.15 + 0.35], speed: [3.5, 7] })
-            .fire(this.game.bullets)
-
-        yield* Array(300 - row * 30)
     }
 
     // 一段目の胴。ときどき輪を放つ
@@ -326,17 +182,176 @@ class EnemyUsuba extends Enemy {
 
         yield* Array(240)
     }
+}
+
+// 大顎(左右)。胴の前に並ぶ
+class Jaw extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly side: number,
+    ) {
+        super(game, parent, 500, Size.L, 150)
+    }
+
+    protected place() {
+        return vec(this.side * 64, 88)
+    }
+
+    // 大顎の砂の流れ。外の斜め下へ吐き、内側へ巻き込むように曲がっていく
+    protected *attack() {
+        yield* Array(this.side > 0 ? 20 : 0)
+
+        for (let f = 0; f < 60; f += 3) {
+            yield* remodel(this)
+                .format("small-ball")
+                .r(6)
+                .color("#ffd890")
+                .p(this.p.clone())
+                .speed(5)
+                .radian(T / 4 + this.side * 0.9)
+                .g((b) => Behavior.rotating(b, -this.side * 0.02, 80))
+                .fire(this.game.bullets)
+            yield* Array(3)
+        }
+
+        yield* Array(270 - (this.side > 0 ? 20 : 0))
+    }
+}
+
+// 腹。胴の上にある。砂袋に守られている
+class Abdomen extends Part {
+    constructor(game: Game, parent: Enemy) {
+        super(game, parent, 600, Size.L, 150)
+    }
+
+    protected place() {
+        return vec(0, -105)
+    }
+
+    // 腹の噴水。上へ噴き上げた砂が、重さに引かれて放物線を描いて降る
+    protected *attack() {
+        yield* Array(40)
+
+        yield* remodel(this)
+            .format("diamond")
+            .color("#ffe8b8")
+            .p(this.p.clone())
+            .speed(5)
+            .duplicate(16)
+            .scatter({ radian: [-T / 4 - 0.7, -T / 4 + 0.7], speed: [3.5, 6.5] })
+            .unbounded()
+            .g(function* (b) {
+                let v = vec.arg(b.radian).scale(b.speed)
+
+                while (b.p.y < b.game.HEIGHT + 20) {
+                    v = v.add(vec(0, 0.13))
+                    b.radian = v.radian()
+                    b.speed = v.magnitude()
+                    yield
+                }
+
+                b.life = 0
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(290)
+    }
+}
+
+// 砂袋(三つ)。腹のまわりの円を、等間隔のままゆっくり回る孫機
+class Sandbag extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly k: number,
+    ) {
+        super(game, parent, 150, Size.S, 150)
+    }
+
+    protected place() {
+        return vec.arg(this.frame / 120 + (T * (this.k + 1)) / 3).scale(64)
+    }
+
+    // 砂袋のこぼれ砂。k 番目の砂袋は少しずつ遅れて、だんだん速く真下へ落ちる砂をこぼす
+    protected *attack() {
+        yield* Array(60 + (this.k + 1) * 12)
+
+        yield* remodel(this)
+            .format("small-ball")
+            .r(5)
+            .color("#fff0c0")
+            .p(this.p.clone())
+            .speed(0.5)
+            .radian(T / 4)
+            .duplicate(3)
+            .delayByIndex(6)
+            .nway(3, 0.25)
+            .g((b) => Behavior.ease(b, "speed", 6, 60, Ease.In))
+            .fire(this.game.bullets)
+
+        yield* Array(330 - 60 - (this.k + 1) * 12 - 12)
+    }
+}
+
+// 脚(四つ)。胴の左右に、横一列に並ぶ
+class Leg extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly side: number,
+        private readonly row: number,
+    ) {
+        super(game, parent, 260, Size.M, 150)
+    }
+
+    protected place() {
+        return vec(this.side * (105 + 65 * this.row), 20)
+    }
+
+    // 脚の砂かき。外寄りの下へ、速さのばらばらな砂粒を散弾のように
+    protected *attack() {
+        yield* Array(30 + this.row * 30)
+
+        yield* remodel(this)
+            .format("small-ball")
+            .r(5)
+            .color("#f0c878")
+            .p(this.p.clone())
+            .duplicate(10)
+            .scatter({ radian: [T / 4 + this.side * 0.15 - 0.35, T / 4 + this.side * 0.15 + 0.35], speed: [3.5, 7] })
+            .fire(this.game.bullets)
+
+        yield* Array(300 - this.row * 30)
+    }
+}
+
+// 翅(四枚)。羽化した胴を囲む正方形の角に出る。delay は胴の攻撃の一巡にそろえる
+class Wing extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly side: number,
+        private readonly row: number,
+        delay: number,
+    ) {
+        super(game, parent, 250, Size.M, delay)
+    }
+
+    protected place() {
+        return vec(this.side * 78, this.row === 0 ? -78 : 78)
+    }
 
     // 翅の砂の塊。外寄りの斜め下へ落とした塊が、少しして扇に割れる
-    private *clods(me: Part, side: number, row: number) {
-        yield* Array(row * 30)
+    protected *attack() {
+        yield* Array(this.row * 30)
 
-        yield* remodel(me)
+        yield* remodel(this)
             .format("big-ball")
             .color("#ffe0a0")
-            .p(me.p.clone())
+            .p(this.p.clone())
             .speed(3)
-            .radian(T / 4 + side * 0.5)
+            .radian(T / 4 + this.side * 0.5)
             .g(function* (b) {
                 yield* Array(35)
 
@@ -354,6 +369,6 @@ class EnemyUsuba extends Enemy {
             })
             .fire(this.game.bullets)
 
-        yield* Array(330 - row * 30)
+        yield* Array(330 - this.row * 30)
     }
 }

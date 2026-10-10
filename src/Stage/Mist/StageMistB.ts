@@ -33,22 +33,7 @@ class EnemyMaster extends Enemy {
         [1, 0],
         [-1, 1],
         [1, 1],
-    ].map(
-        ([side, row]) =>
-            new Part(
-                this.game,
-                this,
-                450,
-                Size.S,
-                // 画面の端の決まった高さで、少し上下に揺れる
-                (me) =>
-                    vec(this.game.WIDTH / 2 + side * this.game.WIDTH * 0.44, this.game.HEIGHT * (0.26 + 0.22 * row))
-                        .add(vec(0, 20 * Math.sin(me.frame / 40)))
-                        .sub(this.p),
-                (me) => this.spray(me, side, row),
-                150 + row * 120,
-            ),
-    )
+    ].map(([side, row]) => new Sprayer(this.game, this, side, row))
 
     constructor(game: Game) {
         // 主機の体力は子機の総和くらい
@@ -73,28 +58,6 @@ class EnemyMaster extends Enemy {
         yield
     }
 
-    // 霧吹きの首振り。画面の内側を向いて、上下に120フレームで一往復しながら、150フレーム撒き続け、210フレーム休む
-    private *spray(me: Part, side: number, row: number) {
-        const inward = side < 0 ? 0 : T / 2
-        const tilt = row === 0 ? 0.55 : -0.1
-
-        for (let f = 0; f < 150; f += 4) {
-            const swing = Math.sin((T * f) / 120) * 0.75
-
-            yield* remodel(me)
-                .format("diamond")
-                .color("#d8e0ff")
-                .p(me.p.clone())
-                .speed(6)
-                .radian(inward - side * (tilt + swing))
-                .fire(this.game.bullets)
-
-            yield* Array(4)
-        }
-
-        yield* Array(210)
-    }
-
     // 止まってから散る輪
     private *ring() {
         yield* remodel(this)
@@ -109,5 +72,49 @@ class EnemyMaster extends Enemy {
             .fire(this.game.bullets)
 
         yield* Array(110)
+    }
+}
+
+// 霧吹き。画面の端に据えられている
+class Sprayer extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly side: number,
+        private readonly row: number,
+    ) {
+        super(game, parent, 450, Size.S, 150 + row * 120)
+    }
+
+    // 画面の端の決まった高さで、少し上下に揺れる
+    protected place() {
+        return vec(
+            this.game.WIDTH / 2 + this.side * this.game.WIDTH * 0.44,
+            this.game.HEIGHT * (0.26 + 0.22 * this.row),
+        )
+            .add(vec(0, 20 * Math.sin(this.frame / 40)))
+            .sub(this.parent.p)
+    }
+
+    // 霧吹きの首振り。画面の内側を向いて、上下に120フレームで一往復しながら、150フレーム撒き続け、210フレーム休む
+    protected *attack() {
+        const inward = this.side < 0 ? 0 : T / 2
+        const tilt = this.row === 0 ? 0.55 : -0.1
+
+        for (let f = 0; f < 150; f += 4) {
+            const swing = Math.sin((T * f) / 120) * 0.75
+
+            yield* remodel(this)
+                .format("diamond")
+                .color("#d8e0ff")
+                .p(this.p.clone())
+                .speed(6)
+                .radian(inward - this.side * (tilt + swing))
+                .fire(this.game.bullets)
+
+            yield* Array(4)
+        }
+
+        yield* Array(210)
     }
 }

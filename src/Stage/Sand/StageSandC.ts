@@ -28,23 +28,7 @@ export default class extends Stage {
 class EnemyMaster extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.4, this.game.HEIGHT * 0.05, 2, 3)
 
-    // 蟻。横長の楕円の道を、等間隔の一列になって同じ速さで行進する
-    readonly ants = [0, 1, 2, 3, 4, 5].map(
-        (i) =>
-            new Part(
-                this.game,
-                this,
-                300,
-                Size.S,
-                (me) =>
-                    vec(
-                        this.game.WIDTH / 2 + this.game.WIDTH * 0.4 * Math.cos(me.frame / 110 + (T * i) / 6),
-                        this.game.HEIGHT * 0.45 + this.game.HEIGHT * 0.07 * Math.sin(me.frame / 110 + (T * i) / 6),
-                    ).sub(this.p),
-                (me) => this.throwSand(me),
-                140 + i * 13,
-            ),
-    )
+    readonly ants = [0, 1, 2, 3, 4, 5].map((i) => new Ant(this.game, this, i))
 
     constructor(game: Game) {
         // 主機の体力は子機の総和くらい
@@ -68,22 +52,6 @@ class EnemyMaster extends Enemy {
     private *move() {
         this.p = this.path((this.frame - 120) / 250).add(this.home())
         yield
-    }
-
-    // 蟻が自機へ投げる砂。ゆっくり出て、一気に速くなる
-    private *throwSand(me: Part) {
-        yield* remodel(me)
-            .format("small-ball")
-            .r(6)
-            .color("#ffd890")
-            .p(me.p.clone())
-            .speed(1.2)
-            .aim(this.game.player)
-            .nway(3, T / 16)
-            .g((b) => Behavior.ease(b, "speed", 6, 40, Ease.In))
-            .fire(this.game.bullets)
-
-        yield* Array(85)
     }
 
     // 倒れた蟻の砂袋が破れて、砂が輪になって飛び散る
@@ -123,5 +91,39 @@ class EnemyMaster extends Enemy {
             .fire(this.game.bullets)
 
         yield* Array(130)
+    }
+}
+
+// 蟻。横長の楕円の道を、等間隔の一列になって同じ速さで行進する
+class Ant extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly i: number,
+    ) {
+        super(game, parent, 300, Size.S, 140 + i * 13)
+    }
+
+    protected place() {
+        return vec(
+            this.game.WIDTH / 2 + this.game.WIDTH * 0.4 * Math.cos(this.frame / 110 + (T * this.i) / 6),
+            this.game.HEIGHT * 0.45 + this.game.HEIGHT * 0.07 * Math.sin(this.frame / 110 + (T * this.i) / 6),
+        ).sub(this.parent.p)
+    }
+
+    // 蟻が自機へ投げる砂。ゆっくり出て、一気に速くなる
+    protected *attack() {
+        yield* remodel(this)
+            .format("small-ball")
+            .r(6)
+            .color("#ffd890")
+            .p(this.p.clone())
+            .speed(1.2)
+            .aim(this.game.player)
+            .nway(3, T / 16)
+            .g((b) => Behavior.ease(b, "speed", 6, 40, Ease.In))
+            .fire(this.game.bullets)
+
+        yield* Array(85)
     }
 }

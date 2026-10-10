@@ -39,44 +39,9 @@ export default class extends Stage {
 class EnemyHotaru extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.25, this.game.HEIGHT * 0.08, 2, 3)
 
-    // 発光器。胴の下で光る
-    private readonly lantern = new Part(
-        this.game,
-        this,
-        900,
-        Size.L,
-        () => vec(0, 80),
-        (me) => this.glow(me),
-        150,
-    )
-
-    // 触角(左右一対)。胴の左右にある
-    private readonly antennae = [-1, 1].map(
-        (side) =>
-            new Part(
-                this.game,
-                this,
-                350,
-                Size.M,
-                () => vec(side * 100, 0),
-                (me) => this.needles(me),
-                130 + (side > 0 ? 30 : 0),
-            ),
-    )
-
-    // 子蛍(八匹)。胴のまわりの円を、等間隔のまま、そろってゆっくり回る
-    private readonly fireflies = [0, 1, 2, 3, 4, 5, 6, 7].map(
-        (i) =>
-            new Part(
-                this.game,
-                this,
-                200,
-                Size.S,
-                (me) => vec.arg(me.frame / 120 + (T * i) / 8).scale(160),
-                (me) => this.blink(me, i),
-                160,
-            ),
-    )
+    private readonly lantern = new Lantern(this.game, this)
+    private readonly antennae = [-1, 1].map((side) => new Antenna(this.game, this, side))
+    private readonly fireflies = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => new Firefly(this.game, this, i))
 
     readonly parts = [this.lantern, ...this.antennae, ...this.fireflies]
 
@@ -115,27 +80,8 @@ class EnemyHotaru extends Enemy {
 
         // 大蛍は胴の下に、横一列に並ぶ
         const bigs = [-165, -55, 55, 165].map((x, i) => {
-            const big = new Part(
-                this.game,
-                this,
-                280,
-                Size.M,
-                () => vec(x, 200),
-                (me) => this.trail(me),
-                60 + i * 20,
-            )
-            const grandchildren = [0, 1].map(
-                (k) =>
-                    new Part(
-                        this.game,
-                        big,
-                        90,
-                        Size.S,
-                        (me) => vec.arg(me.frame / 30 + k * Math.PI).scale(56),
-                        (me) => this.spark(me),
-                        70 + k * 50,
-                    ),
-            )
+            const big = new BigFirefly(this.game, this, x, i)
+            const grandchildren = [0, 1].map((k) => new LittleFirefly(this.game, big, k))
             big.guardedBy(grandchildren)
             this.game.enemies.push(big, ...grandchildren)
             return big
@@ -150,105 +96,6 @@ class EnemyHotaru extends Enemy {
         this.isInvincible = false
         this.game.camera.shake(8, 30)
         this.scripts.add(() => this.lastLight(), { loop: Infinity, margin: 30, id: "body" })
-    }
-
-    // 発光器の流れ星。自機を狙った線と、その両脇の線の三本。どれも発光器を通る
-    private *glow(me: Part) {
-        const aim = this.game.player.p.sub(me.p).radian()
-
-        for (const k of [0, -1, 1]) {
-            me.scripts.add(
-                () =>
-                    Meteor.fall(me, me.p.clone(), aim + k * 0.45, {
-                        preview: 45,
-                        speed: 16,
-                        tailInterval: 2,
-                        tailLife: 36,
-                        color: "#d8ff90",
-                    }),
-                { margin: (k + 1) * 8 },
-            )
-        }
-
-        yield* Array(170)
-    }
-
-    // 触角の針。自機へ向けて一列に、だんだん速く
-    private *needles(me: Part) {
-        yield* remodel(me)
-            .format("line")
-            .color("#f0ffc0")
-            .p(me.p.clone())
-            .speed(2)
-            .aim(this.game.player)
-            .duplicate(5)
-            .delayByIndex(4)
-            .g((b) => Behavior.ease(b, "speed", 8, 30, Ease.In))
-            .fire(this.game.bullets)
-
-        yield* Array(60)
-    }
-
-    // 子蛍の瞬き。i 番目の子蛍は 10i フレーム待ってから瞬く。まわりに浮かんだ光の粒は、一拍おいて輪になって散る
-    private *blink(me: Part, i: number) {
-        yield* Array(i * 10)
-
-        yield* remodel(me)
-            .format("small-ball")
-            .r(6)
-            .color("#d8ff90")
-            .p(me.p.clone())
-            .speed(0)
-            .radian(this.random() * T)
-            .ex(7)
-            .forEach((b) => {
-                b.p = b.p.add(vec.arg(b.radian).scale(14))
-            })
-            .appear(10)
-            .g(function* (b) {
-                yield* Array(25)
-                yield* Behavior.accel(b, 20, 5.5)
-            })
-            .fire(this.game.bullets)
-
-        yield* Array(240 - i * 10)
-    }
-
-    // 大蛍の光の帯。左から右へ、横一列に一つずつ光を灯す。灯った光は少しして、そろって雨のように降る
-    private *trail(me: Part) {
-        for (let f = 0; f < 60; f += 4) {
-            yield* remodel(me)
-                .format("small-ball")
-                .r(5)
-                .color("#e8ffb0")
-                .p(me.p.add(vec(-42 + f * 1.4, 0)))
-                .speed(0)
-                .radian(T / 4)
-                .appear(10)
-                .g(function* (b) {
-                    yield* Array(80 - f)
-                    yield* Behavior.accel(b, 30, 4.5)
-                })
-                .fire(this.game.bullets)
-            yield* Array(4)
-        }
-
-        yield* Array(160)
-    }
-
-    // 孫蛍の火花。小さな輪
-    private *spark(me: Part) {
-        yield* remodel(me)
-            .format("small-ball")
-            .r(4)
-            .color("#f0ffd0")
-            .p(me.p.clone())
-            .speed(3)
-            .radian(this.random() * T)
-            .ex(6)
-            .fire(this.game.bullets)
-
-        yield* Array(120)
     }
 
     // 一段目の胴。ときどき輪を放つ
@@ -318,5 +165,176 @@ class EnemyHotaru extends Enemy {
             .fire(this.game.bullets)
 
         yield* Array(100)
+    }
+}
+
+// 発光器。胴の下で光る
+class Lantern extends Part {
+    constructor(game: Game, parent: Enemy) {
+        super(game, parent, 900, Size.L, 150)
+    }
+
+    protected place() {
+        return vec(0, 80)
+    }
+
+    // 発光器の流れ星。自機を狙った線と、その両脇の線の三本。どれも発光器を通る
+    protected *attack() {
+        const aim = this.game.player.p.sub(this.p).radian()
+
+        for (const k of [0, -1, 1]) {
+            this.scripts.add(
+                () =>
+                    Meteor.fall(this, this.p.clone(), aim + k * 0.45, {
+                        preview: 45,
+                        speed: 16,
+                        tailInterval: 2,
+                        tailLife: 36,
+                        color: "#d8ff90",
+                    }),
+                { margin: (k + 1) * 8 },
+            )
+        }
+
+        yield* Array(170)
+    }
+}
+
+// 触角(左右一対)。胴の左右にある
+class Antenna extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly side: number,
+    ) {
+        super(game, parent, 350, Size.M, 130 + (side > 0 ? 30 : 0))
+    }
+
+    protected place() {
+        return vec(this.side * 100, 0)
+    }
+
+    // 触角の針。自機へ向けて一列に、だんだん速く
+    protected *attack() {
+        yield* remodel(this)
+            .format("line")
+            .color("#f0ffc0")
+            .p(this.p.clone())
+            .speed(2)
+            .aim(this.game.player)
+            .duplicate(5)
+            .delayByIndex(4)
+            .g((b) => Behavior.ease(b, "speed", 8, 30, Ease.In))
+            .fire(this.game.bullets)
+
+        yield* Array(60)
+    }
+}
+
+// 子蛍(八匹)。胴のまわりの円を、等間隔のまま、そろってゆっくり回る
+class Firefly extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly i: number,
+    ) {
+        super(game, parent, 200, Size.S, 160)
+    }
+
+    protected place() {
+        return vec.arg(this.frame / 120 + (T * this.i) / 8).scale(160)
+    }
+
+    // 子蛍の瞬き。i 番目の子蛍は 10i フレーム待ってから瞬く。まわりに浮かんだ光の粒は、一拍おいて輪になって散る
+    protected *attack() {
+        yield* Array(this.i * 10)
+
+        yield* remodel(this)
+            .format("small-ball")
+            .r(6)
+            .color("#d8ff90")
+            .p(this.p.clone())
+            .speed(0)
+            .radian(this.random() * T)
+            .ex(7)
+            .forEach((b) => {
+                b.p = b.p.add(vec.arg(b.radian).scale(14))
+            })
+            .appear(10)
+            .g(function* (b) {
+                yield* Array(25)
+                yield* Behavior.accel(b, 20, 5.5)
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(240 - this.i * 10)
+    }
+}
+
+// 大蛍(四匹)。蛍集めで胴が呼び、胴の下に横一列に並ぶ。孫蛍に守られている
+class BigFirefly extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly x: number,
+        i: number,
+    ) {
+        super(game, parent, 280, Size.M, 60 + i * 20)
+    }
+
+    protected place() {
+        return vec(this.x, 200)
+    }
+
+    // 大蛍の光の帯。左から右へ、横一列に一つずつ光を灯す。灯った光は少しして、そろって雨のように降る
+    protected *attack() {
+        for (let f = 0; f < 60; f += 4) {
+            yield* remodel(this)
+                .format("small-ball")
+                .r(5)
+                .color("#e8ffb0")
+                .p(this.p.add(vec(-42 + f * 1.4, 0)))
+                .speed(0)
+                .radian(T / 4)
+                .appear(10)
+                .g(function* (b) {
+                    yield* Array(80 - f)
+                    yield* Behavior.accel(b, 30, 4.5)
+                })
+                .fire(this.game.bullets)
+            yield* Array(4)
+        }
+
+        yield* Array(160)
+    }
+}
+
+// 孫蛍(孫機、二匹)。大蛍のまわりを回る
+class LittleFirefly extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly k: number,
+    ) {
+        super(game, parent, 90, Size.S, 70 + k * 50)
+    }
+
+    protected place() {
+        return vec.arg(this.frame / 30 + this.k * Math.PI).scale(56)
+    }
+
+    // 孫蛍の火花。小さな輪
+    protected *attack() {
+        yield* remodel(this)
+            .format("small-ball")
+            .r(4)
+            .color("#f0ffd0")
+            .p(this.p.clone())
+            .speed(3)
+            .radian(this.random() * T)
+            .ex(6)
+            .fire(this.game.bullets)
+
+        yield* Array(120)
     }
 }

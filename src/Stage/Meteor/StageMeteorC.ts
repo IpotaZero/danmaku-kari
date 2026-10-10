@@ -1,4 +1,4 @@
-import { vec } from "@ipota/vec"
+import { vec, Vec } from "@ipota/vec"
 import { Ease } from "@ipota/functions"
 import { Enemy } from "../../Game/Actor/Enemy"
 import { Game } from "../../Game/Game"
@@ -41,18 +41,7 @@ class EnemyPolaris extends Enemy {
         const center = all.reduce((sum, q) => sum.add(q), vec(0, 0)).scale(1 / all.length)
         const offset = p.sub(center).scale(100)
 
-        return new Part(
-            this.game,
-            this,
-            260,
-            Size.S,
-            (me) => {
-                const angle = me.frame / 95
-                return vec.arg(angle).scale(175).add(offset.rotate(angle))
-            },
-            (me) => this.twinkle(me, i),
-            150,
-        )
+        return new Star(this.game, this, offset, i)
     })
 
     constructor(game: Game) {
@@ -78,26 +67,6 @@ class EnemyPolaris extends Enemy {
         yield
     }
 
-    // 星の瞬き。i 番目の星は 10i フレーム待ってから、星形に広がる弾を放つ。一巡(300フレーム)ごとに休む
-    private *twinkle(me: Part, i: number) {
-        yield* Array(i * 10)
-
-        yield* remodel(me)
-            .format("diamond")
-            .color(i % 2 === 0 ? "#fff4b0" : "#b8e0ff")
-            .p(me.p.clone())
-            .radian(this.random() * T)
-            .ex(10)
-            // 尖った所(偶数番)は速く、くぼんだ所(奇数番)は遅い
-            .forEach((b, k) => {
-                b.speed = k % 2 === 0 ? 4.5 : 2.6
-            })
-            .g((b) => Behavior.ease(b, "speed", b.speed * 1.4, 60, Ease.In))
-            .fire(this.game.bullets)
-
-        yield* Array(300 - i * 10)
-    }
-
     // 最初はゆっくり、一気に速くなる矢
     private *arrows() {
         yield* remodel(this)
@@ -111,5 +80,42 @@ class EnemyPolaris extends Enemy {
             .fire(this.game.bullets)
 
         yield* Array(70)
+    }
+}
+
+// 北斗七星の星。offset は星の並びの重心から見た位置
+class Star extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly offset: Vec,
+        private readonly i: number,
+    ) {
+        super(game, parent, 260, Size.S, 150)
+    }
+
+    protected place() {
+        const angle = this.frame / 95
+        return vec.arg(angle).scale(175).add(this.offset.rotate(angle))
+    }
+
+    // 星の瞬き。i 番目の星は 10i フレーム待ってから、星形に広がる弾を放つ。一巡(300フレーム)ごとに休む
+    protected *attack() {
+        yield* Array(this.i * 10)
+
+        yield* remodel(this)
+            .format("diamond")
+            .color(this.i % 2 === 0 ? "#fff4b0" : "#b8e0ff")
+            .p(this.p.clone())
+            .radian(this.random() * T)
+            .ex(10)
+            // 尖った所(偶数番)は速く、くぼんだ所(奇数番)は遅い
+            .forEach((b, k) => {
+                b.speed = k % 2 === 0 ? 4.5 : 2.6
+            })
+            .g((b) => Behavior.ease(b, "speed", b.speed * 1.4, 60, Ease.In))
+            .fire(this.game.bullets)
+
+        yield* Array(300 - this.i * 10)
     }
 }

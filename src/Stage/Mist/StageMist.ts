@@ -39,47 +39,9 @@ export default class extends Stage {
 class EnemyKagerou extends Enemy {
     private readonly path = Curves.lissajous(this.game.WIDTH * 0.5, this.game.HEIGHT * 0.08, 2, 3)
 
-    // 前翅(二枚)。胴を囲む正方形の、向かい合う二つの角
-    private readonly foreWings = [-1, 1].map(
-        (side) =>
-            new Part(
-                this.game,
-                this,
-                380,
-                Size.M,
-                (me) => vec.arg(me.frame / 200 + (side > 0 ? 0 : Math.PI)).scale(100),
-                (me) => this.gust(me),
-                150 + (side > 0 ? 35 : 0),
-            ),
-    )
-
-    // 後翅(二枚)。正方形の残りの二つの角
-    private readonly hindWings = [-1, 1].map(
-        (side) =>
-            new Part(
-                this.game,
-                this,
-                380,
-                Size.M,
-                (me) => vec.arg(me.frame / 200 + (side > 0 ? T / 4 : -T / 4)).scale(100),
-                (me) => this.scales(me),
-                180 + (side > 0 ? 30 : 0),
-            ),
-    )
-
-    // 尾(三本)。胴の下に横一列に並ぶ
-    private readonly tails = [-1, 0, 1].map(
-        (k) =>
-            new Part(
-                this.game,
-                this,
-                300,
-                Size.M,
-                () => vec(k * 70, 150),
-                (me) => this.thread(me, k),
-                160 + (k + 1) * 25,
-            ),
-    )
+    private readonly foreWings = [-1, 1].map((side) => new ForeWing(this.game, this, side))
+    private readonly hindWings = [-1, 1].map((side) => new HindWing(this.game, this, side))
+    private readonly tails = [-1, 0, 1].map((k) => new Tail(this.game, this, k))
 
     readonly parts = [...this.foreWings, ...this.hindWings, ...this.tails]
 
@@ -107,59 +69,6 @@ class EnemyKagerou extends Enemy {
         yield
     }
 
-    // 前翅の羽風。胴から見て外向きに、ゆっくり出て一気に速くなる扇を払う
-    private *gust(me: Part) {
-        yield* remodel(me)
-            .format("diamond")
-            .color("#e0e8ff")
-            .p(me.p.clone())
-            .speed(1.5)
-            .radian(me.p.sub(this.p).radian())
-            .nway(7, T / 30)
-            .g((b) => Behavior.ease(b, "speed", 7, 40, Ease.In))
-            .fire(this.game.bullets)
-
-        yield* Array(70)
-    }
-
-    // 後翅の鱗粉。まわりに撒かれた粉はその場に漂い、少ししてからばらばらに落ちる
-    private *scales(me: Part) {
-        yield* remodel(me)
-            .format("small-ball")
-            .r(5)
-            .color("#fff0d0")
-            .p(me.p.clone())
-            .speed(0)
-            .duplicate(10)
-            .scatter({ p: 40 })
-            .appear(15)
-            .g(function* (b) {
-                yield* Array(30)
-                b.radian = T / 4 + (this.random() - 0.5) * 0.8
-                yield* Behavior.accel(b, 40, 2.5 + this.random() * 2)
-            })
-            .fire(this.game.bullets)
-
-        yield* Array(60)
-    }
-
-    // 尾の霧の糸。左右へ振れながら、真下寄りに細い糸を垂らし続ける
-    private *thread(me: Part, k: number) {
-        for (let f = 0; f < 70; f += 4) {
-            yield* remodel(me)
-                .format("small-ball")
-                .r(5)
-                .color("#c8d0f0")
-                .p(me.p.clone())
-                .speed(5.5)
-                .radian(T / 4 + 0.6 * Math.sin(me.frame / 20 + k))
-                .fire(this.game.bullets)
-            yield* Array(4)
-        }
-
-        yield* Array(110)
-    }
-
     // 胴の輪。部位が減るほど弾が増える。部位がなくなると、止まってから散る輪になり、間隔も短くなる
     private *ring() {
         const lost = this.parts.filter((p) => p.life <= 0).length
@@ -177,5 +86,103 @@ class EnemyKagerou extends Enemy {
             .fire(this.game.bullets)
 
         yield* Array(bare ? 60 : 120)
+    }
+}
+
+// 前翅(二枚)。胴を囲む正方形の、向かい合う二つの角
+class ForeWing extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly side: number,
+    ) {
+        super(game, parent, 380, Size.M, 150 + (side > 0 ? 35 : 0))
+    }
+
+    protected place() {
+        return vec.arg(this.frame / 200 + (this.side > 0 ? 0 : Math.PI)).scale(100)
+    }
+
+    // 前翅の羽風。胴から見て外向きに、ゆっくり出て一気に速くなる扇を払う
+    protected *attack() {
+        yield* remodel(this)
+            .format("diamond")
+            .color("#e0e8ff")
+            .p(this.p.clone())
+            .speed(1.5)
+            .radian(this.p.sub(this.parent.p).radian())
+            .nway(7, T / 30)
+            .g((b) => Behavior.ease(b, "speed", 7, 40, Ease.In))
+            .fire(this.game.bullets)
+
+        yield* Array(70)
+    }
+}
+
+// 後翅(二枚)。正方形の残りの二つの角
+class HindWing extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly side: number,
+    ) {
+        super(game, parent, 380, Size.M, 180 + (side > 0 ? 30 : 0))
+    }
+
+    protected place() {
+        return vec.arg(this.frame / 200 + (this.side > 0 ? T / 4 : -T / 4)).scale(100)
+    }
+
+    // 後翅の鱗粉。まわりに撒かれた粉はその場に漂い、少ししてからばらばらに落ちる
+    protected *attack() {
+        yield* remodel(this)
+            .format("small-ball")
+            .r(5)
+            .color("#fff0d0")
+            .p(this.p.clone())
+            .speed(0)
+            .duplicate(10)
+            .scatter({ p: 40 })
+            .appear(15)
+            .g(function* (b) {
+                yield* Array(30)
+                b.radian = T / 4 + (this.random() - 0.5) * 0.8
+                yield* Behavior.accel(b, 40, 2.5 + this.random() * 2)
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(60)
+    }
+}
+
+// 尾(三本)。胴の下に横一列に並ぶ
+class Tail extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly k: number,
+    ) {
+        super(game, parent, 300, Size.M, 160 + (k + 1) * 25)
+    }
+
+    protected place() {
+        return vec(this.k * 70, 150)
+    }
+
+    // 尾の霧の糸。左右へ振れながら、真下寄りに細い糸を垂らし続ける
+    protected *attack() {
+        for (let f = 0; f < 70; f += 4) {
+            yield* remodel(this)
+                .format("small-ball")
+                .r(5)
+                .color("#c8d0f0")
+                .p(this.p.clone())
+                .speed(5.5)
+                .radian(T / 4 + 0.6 * Math.sin(this.frame / 20 + this.k))
+                .fire(this.game.bullets)
+            yield* Array(4)
+        }
+
+        yield* Array(110)
     }
 }

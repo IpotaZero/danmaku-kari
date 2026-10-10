@@ -36,44 +36,9 @@ export default class extends Stage {
 }
 
 class EnemyKabuto extends Enemy {
-    // 角。胴の真下にある
-    private readonly horn = new Part(
-        this.game,
-        this,
-        700,
-        Size.L,
-        () => vec(0, 100),
-        (me) => this.thrust(me),
-        160,
-    )
-
-    // 鞘翅(左右一対)。胴の前にある
-    readonly elytra = [-1, 1].map(
-        (side) =>
-            new Part(
-                this.game,
-                this,
-                700,
-                Size.L,
-                () => vec(side * 54, 38),
-                (me) => this.boulders(me),
-                200 + (side > 0 ? 75 : 0),
-            ),
-    )
-
-    // 脚(六つ)。胴のまわりに正六角形に並び、形を保ったままゆっくり回る
-    private readonly legs = [0, 1, 2, 3, 4, 5].map(
-        (i) =>
-            new Part(
-                this.game,
-                this,
-                220,
-                Size.S,
-                (me) => vec.arg(me.frame / 240 + (T * i) / 6).scale(165),
-                (me) => this.step(me, i),
-                150,
-            ),
-    )
+    private readonly horn = new Horn(this.game, this)
+    readonly elytra = [-1, 1].map((side) => new Elytron(this.game, this, side))
+    private readonly legs = [0, 1, 2, 3, 4, 5].map((i) => new Leg(this.game, this, i))
 
     readonly parts = [this.horn, ...this.elytra, ...this.legs]
 
@@ -128,106 +93,10 @@ class EnemyKabuto extends Enemy {
         this.scripts.add(() => this.fly(), { id: "move" })
 
         // 後翅は胴の前の左右一対(胴の後ろだと、胴にさえぎられて撃てない)
-        const wings = [-1, 1].map(
-            (side) =>
-                new Part(
-                    this.game,
-                    this,
-                    450,
-                    Size.M,
-                    () => vec(side * 80, 112),
-                    (me) => this.flap(me, side),
-                    70 + (side > 0 ? 30 : 0),
-                ),
-        )
+        const wings = [-1, 1].map((side) => new HindWing(this.game, this, side))
         this.game.enemies.push(...wings)
 
         this.scripts.add(() => this.whirl(), { loop: Infinity, margin: 60 })
-    }
-
-    // 角突き。自機へ向けて予告の線を引き、少しして線に沿って針の列を突き出す
-    private *thrust(me: Part) {
-        const start = me.p.clone()
-        const radian = this.game.player.p.sub(start).radian()
-
-        yield* remodel(me)
-            .appearance("laser")
-            .collision("rect")
-            .type("neutral")
-            .isScorable(false)
-            .color("#ffe0a0")
-            .r(2)
-            .speed(0)
-            .p(start)
-            .radian(radian)
-            .length(this.game.WIDTH + this.game.HEIGHT)
-            .alpha(0)
-            .g(function* (b) {
-                yield* Behavior.ease(b, "alpha", 0.1, 10)
-                yield* Array(25)
-                yield* Behavior.fadeout(b, 8)
-            })
-            .fire(this.game.bullets)
-
-        yield* Array(35)
-
-        yield* remodel(me)
-            .format("line")
-            .color("#ffe0a0")
-            .p(start)
-            .radian(radian)
-            .speed(11)
-            .duplicate(10)
-            .delayByIndex(2)
-            .fire(this.game.bullets)
-
-        yield* Array(90)
-    }
-
-    // 鞘翅の大玉。ゆっくり出て、少しずつ速くなる
-    private *boulders(me: Part) {
-        yield* remodel(me)
-            .format("big-ball")
-            .color("#c8d4e8")
-            .p(me.p.clone())
-            .speed(1.5)
-            .radian(this.random() * T)
-            .ex(10)
-            .g((b) => Behavior.accel(b, 60, 4))
-            .fire(this.game.bullets)
-
-        yield* Array(150)
-    }
-
-    // 脚の扇。輪の順に外向きの扇を撃つので、波が輪をひと回りする。一巡(220フレーム)ごとに休む
-    private *step(me: Part, i: number) {
-        yield* Array(i * 15)
-
-        yield* remodel(me)
-            .format("diamond")
-            .color("#9ab8ff")
-            .p(me.p.clone())
-            .speed(2)
-            .radian(me.p.sub(this.p).radian())
-            .nway(3, T / 20)
-            .g((b) => Behavior.ease(b, "speed", 6.5, 35, Ease.In))
-            .fire(this.game.bullets)
-
-        yield* Array(220 - i * 15)
-    }
-
-    // 後翅の扇。外寄りの下へ、速い扇を払う
-    private *flap(me: Part, side: number) {
-        yield* remodel(me)
-            .format("diamond")
-            .color("#d8e8ff")
-            .p(me.p.clone())
-            .speed(6)
-            .radian(T / 4 + side * 0.7)
-            .nway(9, T / 28)
-            .fire(this.game.bullets)
-
-        yield* Array(60)
     }
 
     // 飛び立った胴の渦。四本の腕がまわる
@@ -250,5 +119,146 @@ class EnemyKabuto extends Enemy {
         }
 
         yield* Array(80)
+    }
+}
+
+// 角。胴の真下にある
+class Horn extends Part {
+    constructor(game: Game, parent: Enemy) {
+        super(game, parent, 700, Size.L, 160)
+    }
+
+    protected place() {
+        return vec(0, 100)
+    }
+
+    // 角突き。自機へ向けて予告の線を引き、少しして線に沿って針の列を突き出す
+    protected *attack() {
+        const start = this.p.clone()
+        const radian = this.game.player.p.sub(start).radian()
+
+        yield* remodel(this)
+            .appearance("laser")
+            .collision("rect")
+            .type("neutral")
+            .isScorable(false)
+            .color("#ffe0a0")
+            .r(2)
+            .speed(0)
+            .p(start)
+            .radian(radian)
+            .length(this.game.WIDTH + this.game.HEIGHT)
+            .alpha(0)
+            .g(function* (b) {
+                yield* Behavior.ease(b, "alpha", 0.1, 10)
+                yield* Array(25)
+                yield* Behavior.fadeout(b, 8)
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(35)
+
+        yield* remodel(this)
+            .format("line")
+            .color("#ffe0a0")
+            .p(start)
+            .radian(radian)
+            .speed(11)
+            .duplicate(10)
+            .delayByIndex(2)
+            .fire(this.game.bullets)
+
+        yield* Array(90)
+    }
+}
+
+// 鞘翅(左右一対)。胴の前にある
+class Elytron extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly side: number,
+    ) {
+        super(game, parent, 700, Size.L, 200 + (side > 0 ? 75 : 0))
+    }
+
+    protected place() {
+        return vec(this.side * 54, 38)
+    }
+
+    // 鞘翅の大玉。ゆっくり出て、少しずつ速くなる
+    protected *attack() {
+        yield* remodel(this)
+            .format("big-ball")
+            .color("#c8d4e8")
+            .p(this.p.clone())
+            .speed(1.5)
+            .radian(this.random() * T)
+            .ex(10)
+            .g((b) => Behavior.accel(b, 60, 4))
+            .fire(this.game.bullets)
+
+        yield* Array(150)
+    }
+}
+
+// 脚(六つ)。胴のまわりに正六角形に並び、形を保ったままゆっくり回る
+class Leg extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly i: number,
+    ) {
+        super(game, parent, 220, Size.S, 150)
+    }
+
+    protected place() {
+        return vec.arg(this.frame / 240 + (T * this.i) / 6).scale(165)
+    }
+
+    // 脚の扇。輪の順に外向きの扇を撃つので、波が輪をひと回りする。一巡(220フレーム)ごとに休む
+    protected *attack() {
+        yield* Array(this.i * 15)
+
+        yield* remodel(this)
+            .format("diamond")
+            .color("#9ab8ff")
+            .p(this.p.clone())
+            .speed(2)
+            .radian(this.p.sub(this.parent.p).radian())
+            .nway(3, T / 20)
+            .g((b) => Behavior.ease(b, "speed", 6.5, 35, Ease.In))
+            .fire(this.game.bullets)
+
+        yield* Array(220 - this.i * 15)
+    }
+}
+
+// 後翅(左右一対)。飛び立つときに広げる。胴の前にある(胴の後ろだと、胴にさえぎられて撃てない)
+class HindWing extends Part {
+    constructor(
+        game: Game,
+        parent: Enemy,
+        private readonly side: number,
+    ) {
+        super(game, parent, 450, Size.M, 70 + (side > 0 ? 30 : 0))
+    }
+
+    protected place() {
+        return vec(this.side * 80, 112)
+    }
+
+    // 後翅の扇。外寄りの下へ、速い扇を払う
+    protected *attack() {
+        yield* remodel(this)
+            .format("diamond")
+            .color("#d8e8ff")
+            .p(this.p.clone())
+            .speed(6)
+            .radian(T / 4 + this.side * 0.7)
+            .nway(9, T / 28)
+            .fire(this.game.bullets)
+
+        yield* Array(60)
     }
 }
