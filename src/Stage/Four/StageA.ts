@@ -167,20 +167,20 @@ class EnemyBoss extends Enemy {
 
         yield* this.glide(
             vec(this.game.WIDTH / 2 - side * (this.game.WIDTH / 2 + 180), this.game.HEIGHT * 0.12),
-            Math.floor(70 / this.haste()),
+            Math.floor(140 / this.haste()),
         )
         yield* this.glide(
             vec(this.game.WIDTH / 2 + side * (this.game.WIDTH / 2 + 180), this.game.HEIGHT * 0.5),
-            Math.floor(110 / this.haste()),
+            Math.floor(220 / this.haste()),
         )
     }
 
     // 八の字。画面いっぱいに大きな八の字を描く
     private *eight() {
         const center = vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.35)
-        yield* this.glide(center, 50)
+        yield* this.glide(center, 80)
 
-        const frames = Math.floor(320 / this.haste())
+        const frames = Math.floor(640 / this.haste())
         for (let f = 0; f < frames; f++) {
             const t = (f / frames) * T
             this.crawl(center.add(vec(Math.sin(t) * this.game.WIDTH * 0.45, Math.sin(2 * t) * this.game.HEIGHT * 0.25)))
@@ -192,7 +192,7 @@ class EnemyBoss extends Enemy {
     private *bite() {
         for (let k = 0; k < 3; k++) {
             const toward = this.p.add(this.game.player.p.sub(this.p).scale(0.6))
-            yield* this.glide(vec(toward.x, Math.min(toward.y, this.game.HEIGHT * 0.55)), 35)
+            yield* this.glide(vec(toward.x, Math.min(toward.y, this.game.HEIGHT * 0.55)), 70)
 
             const aim = this.game.player.p.sub(this.p).radian()
 
@@ -202,25 +202,25 @@ class EnemyBoss extends Enemy {
                 .radian(aim)
                 .nway(2, T / 5)
                 .g(function* (b) {
-                    yield* Behavior.ease(b, "length", 420, 18, Ease.Out)
-                    yield* Behavior.ease(b, "radian", aim, 8, Ease.In)
-                    yield* Behavior.fadeout(b, 15)
+                    yield* Behavior.ease(b, "length", 420, 36, Ease.Out)
+                    yield* Behavior.ease(b, "radian", aim, 16, Ease.In)
+                    yield* Behavior.fadeout(b, 30)
                 })
                 .fire(this.game.bullets)
 
-            yield* Array(40)
+            yield* Array(80)
         }
     }
 
     // とぐろ。渦を描いて巻き込み、またほどける
     private *coil() {
         const center = vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.3)
-        yield* this.glide(center.add(vec(230, 0)), 50)
+        yield* this.glide(center.add(vec(230, 0)), 80)
 
-        const frames = Math.floor(300 / this.haste())
+        const frames = Math.floor(600 / this.haste())
         for (let f = 0; f < frames; f++) {
             const radius = 60 + 170 * Math.abs(Math.cos((f / frames) * Math.PI))
-            this.crawl(center.add(vec(Math.cos(f * 0.05) * radius, Math.sin(f * 0.05) * radius * 0.7)))
+            this.crawl(center.add(vec(Math.cos(f * 0.025) * radius, Math.sin(f * 0.025) * radius * 0.7)))
             yield
         }
     }
@@ -246,21 +246,21 @@ class EnemyBoss extends Enemy {
         const before = me.p.clone()
         yield
 
-        if (me.p.sub(before).magnitude() > 3) {
+        if (me.p.sub(before).magnitude() > 1.5) {
             yield* remodel(me)
                 .format("big-ball")
                 .r(28)
                 .color("#d0ffa0")
                 .p(me.p.clone())
                 .speed(0)
-                .appear(15)
+                .appear(30)
                 .g(function* (b) {
-                    yield* Array(30)
-                    yield* Behavior.fadeout(b, 15)
+                    yield* Array(60)
+                    yield* Behavior.fadeout(b, 30)
                 })
                 .fire(this.game.bullets)
 
-            yield* Array(25)
+            yield* Array(50)
             return
         }
 

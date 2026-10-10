@@ -456,7 +456,7 @@ class EnemyHornet extends Enemy {
     }
 
     // 光の翅。胴の左右から光の線が薄く伸びて上下二段の翅の形を見せ、実体になってから羽ばたく。
-    // 上の翅(左右四本ずつ)と下の翅(左右三本ずつ)は互い違いに羽ばたく。羽ばたき終えると消え、少し休んでからまた広げる
+    // 上の翅(左右四本ずつ)と下の翅(左右三本ずつ)は互い違いに、ゆっくり二度羽ばたく(一度に約5秒)。羽ばたき終えると消え、少し休んでからまた広げる
     private *lightWings() {
         // 上の翅。水平より少し上に広がり、水平のあたりまで振り下ろす
         yield* remodel(this)
@@ -472,16 +472,16 @@ class EnemyHornet extends Enemy {
 
                 b.type = "neutral"
                 b.alpha = 0.25
-                yield* Behavior.ease(b, "length", 700, 40, Ease.Out)
+                yield* Behavior.ease(b, "length", 700, 60, Ease.Out)
                 b.type = "enemy"
                 b.alpha = 1
 
-                for (let f = 0; f < 360; f++) {
-                    b.radian = base + side * 0.4 * Math.sin(f / 16)
+                for (let f = 0; f < 630; f++) {
+                    b.radian = base + side * 0.4 * Math.sin(f / 50)
                     yield
                 }
 
-                yield* Behavior.fadeout(b, 20)
+                yield* Behavior.fadeout(b, 30)
             })
             .fire(this.game.bullets)
 
@@ -499,20 +499,21 @@ class EnemyHornet extends Enemy {
 
                 b.type = "neutral"
                 b.alpha = 0.25
-                yield* Behavior.ease(b, "length", 700, 40, Ease.Out)
+                yield* Behavior.ease(b, "length", 700, 60, Ease.Out)
                 b.type = "enemy"
                 b.alpha = 1
 
-                for (let f = 0; f < 360; f++) {
-                    b.radian = base - side * 0.3 * Math.sin(f / 16)
+                for (let f = 0; f < 630; f++) {
+                    b.radian = base - side * 0.3 * Math.sin(f / 50)
                     yield
                 }
 
-                yield* Behavior.fadeout(b, 20)
+                yield* Behavior.fadeout(b, 30)
             })
             .fire(this.game.bullets)
 
-        yield* Array(540)
+        // 伸びる(60) + 羽ばたく(630) + 消える(30) のあと、3秒休む
+        yield* Array(900)
     }
 
     // 初雪。画面の上から、ゆっくり左右に揺れながら雪が降りはじめ、倒れるまで降り続ける
