@@ -10,6 +10,12 @@ import { Part } from "../Part"
 import { Charge } from "../Charge"
 import { Size } from "../Size"
 
+// 胴を囲む正五角形に前脚の一対・後脚の一対・尾、胴の下の横一列に三つの子機。胴は少し構えては素早く跳びまわる。
+// 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ。
+// 一段目: 前脚と尾を落とすと次の段へ。
+// 二段目: 胴は力を溜めて、爪(孫機)に守られた左右一対の子機を呼ぶ。子機を落とすと次の段へ。胴は三重の輪を放つ。
+// 三段目: 発狂。胴だけになると、怒りを溜めてから、着地の衝撃の輪・前脚の爪・尾の縞・三重の輪を同時に使って暴れる。
+
 export default class extends Stage {
     *G() {
         const boss = new EnemyBoss(this.game)
@@ -134,11 +140,16 @@ class EnemyBoss extends Enemy {
         this.addScript(() => this.roar(), { loop: Infinity, margin: 90, id: "body" })
         while (youngs.some((p) => p.life > 0)) yield
 
-        // 三段目: 疾風。胴に攻撃が効くようになり、着地するたびに衝撃の輪を放つ
+        // 三段目: 発狂。胴だけになると、怒りを溜めてから攻撃が効くようになり、四つの攻撃を同時に使って暴れる。
+        // 短く構えては素早く跳び、着地のたびに衝撃の輪を放ちながら、落とした前脚の爪・尾の縞と、咆哮を自分で使う
         this.removeScript("body")
+        this.removeScript("move")
+        yield* Charge.gather(this, 120, "#ff7070")
         this.isInvincible = false
-        this.game.camera.shake(8, 30)
         this.addScript(() => this.gale(), { loop: Infinity, id: "move" })
+        this.addScript(() => this.claw(this), { loop: Infinity, margin: 30, id: "claw" })
+        this.addScript(() => this.stripes(this), { loop: Infinity, margin: 90, id: "stripes" })
+        this.addScript(() => this.roar(), { loop: Infinity, margin: 60, id: "body" })
     }
 
     // 少し構えてから、画面の上の方の別の場所へ素早く跳ぶ
@@ -152,10 +163,10 @@ class EnemyBoss extends Enemy {
 
     // 疾風。短く構えて素早く跳び、着地するたびに衝撃の輪を放つ
     private *gale() {
-        yield* Array(30)
+        yield* Array(20)
         yield* this.moveTo(
             vec(this.game.WIDTH * (0.32 + 0.36 * this.random()), this.game.HEIGHT * (0.1 + 0.14 * this.random())),
-            16,
+            12,
         )
 
         yield* remodel(this)
@@ -164,13 +175,13 @@ class EnemyBoss extends Enemy {
             .p(this.p.clone())
             .speed(2)
             .radian(this.random() * T)
-            .ex(32)
+            .ex(40)
             .g((b) => Behavior.ease(b, "speed", 6.5, 30, Ease.In))
             .fire(this.game.bullets)
     }
 
     // 前脚の爪。自機へ向けて四本の爪痕を薄く見せてから、爪痕に沿って速い爪を走らせる
-    private *claw(me: Part) {
+    private *claw(me: Enemy) {
         const start = me.p.clone()
         const aim = this.game.player.p.sub(start).radian()
 
@@ -237,7 +248,7 @@ class EnemyBoss extends Enemy {
     }
 
     // 尾の縞。弾の間の狭い帯を、少しずつ向きを変えながら五本続けて振り下ろす
-    private *stripes(me: Part) {
+    private *stripes(me: Enemy) {
         const sway = (this.random() - 0.5) * 0.6
 
         for (let k = 0; k < 5; k++) {
