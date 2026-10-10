@@ -500,7 +500,7 @@
         padding-top: 0.5em;
     }
 
-    /* まだ習得していない技に添える、習得に払う蜜の量 */
+    /* まだ習得していない技に添える、習得に払う花粉の量 */
     .equip-price {
         font-size: 0.8em;
         color: var(--gold);
@@ -584,7 +584,7 @@
                 box-shadow: 0 0.25em 0 -0.15em var(--gold);
             }
 
-            /* 蜜が足りない技は行ごと薄くする。menu.cssの既定はspanごとに重ねて薄くなり、値段まで読めなくなる */
+            /* 花粉が足りない技は行ごと薄くする。menu.cssの既定はspanごとに重ねて薄くなり、値段まで読めなくなる */
             &.disabled {
                 opacity: 0.4;
 

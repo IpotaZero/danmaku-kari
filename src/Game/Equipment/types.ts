@@ -11,7 +11,7 @@ export type MainEquipment = {
 export type SubEquipment = {
     readonly label: string
     readonly description: string
-    // 習得に払う蜜。初めから持っている技は0
+    // 習得に払う花粉。初めから持っている技は0
     readonly price: number
     action(player: Player): Generator<void, void, void>
 }

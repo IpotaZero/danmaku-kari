@@ -396,7 +396,7 @@ export class SceneMap extends Scene {
         ]
     }
 
-    // 持っている技は選べばそのまま装備する。まだ持っていない技は、蜜を払って習得するかを尋ねる
+    // 持っている技は選べばそのまま装備する。まだ持っていない技は、花粉を払って習得するかを尋ねる
     private buildSubEquipmentOption(id: EquipmentId): MenuOption {
         const equipment = subEquipments[id]!
         const equip = () => {
@@ -415,7 +415,7 @@ export class SceneMap extends Scene {
 
         return {
             type: "submenu",
-            label: `${equipment.label}　<span class="equip-price">蜜 ${equipment.price.toLocaleString()}</span>`,
+            label: `${equipment.label}　<span class="equip-price">花粉 ${equipment.price.toLocaleString()}</span>`,
             hides: ["equip-sub-options"],
             disabled: () => playerData.getTotalScore() < equipment.price,
             onFocus: () => this.showEquipDescription(equipment.description),
@@ -431,7 +431,7 @@ export class SceneMap extends Scene {
                         title: "--:: 習得する? ::--",
                         elementId: "equip-learn",
                         // 題に値段まで入れるとスマホの幅からはみ出すので、払う量は「はい」の側に添える
-                        confirmLabel: `はい　<span class="equip-price">蜜 ${equipment.price.toLocaleString()}</span>`,
+                        confirmLabel: `はい　<span class="equip-price">花粉 ${equipment.price.toLocaleString()}</span>`,
                     },
                 ),
             }),
@@ -457,10 +457,10 @@ export class SceneMap extends Scene {
         return subEquipments[subId]?.label ?? "なし"
     }
 
-    // 蜜はステージで稼ぐか技の習得で払ったときにだけ変わるので、毎フレームではなくその都度表示し直す
+    // 花粉はステージで稼ぐか技の習得で払ったときにだけ変わるので、毎フレームではなくその都度表示し直す
     private updateScoreDisplay() {
         this.root.querySelector<HTMLElement>(".map-score")!.textContent =
-            `蜜 ${playerData.getTotalScore().toLocaleString()}`
+            `花粉 ${playerData.getTotalScore().toLocaleString()}`
     }
 
     private updateLivesDisplay() {

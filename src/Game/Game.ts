@@ -307,9 +307,9 @@ export class Game extends IteratorQueue {
         this.enemies.push(...aliveEnemies)
     }
 
-    // 倒れた敵が撃って画面に残っている弾を、すべて蜜に変える。
+    // 倒れた敵が撃って画面に残っている弾を、すべて花粉に変える。
     // 部位を壊せば、その部位の弾がその場で消えるので、今いちばん邪魔な弾を撃っている部位を狙う理由になる。
-    // 障壁と同じく、まだ当たり判定のない(現れかけの)弾も変える。レーザーなど蜜にならない弾は、撃ち手が倒れたときの消え方を自分で持っている
+    // 障壁と同じく、まだ当たり判定のない(現れかけの)弾も変える。レーザーなど花粉にならない弾は、撃ち手が倒れたときの消え方を自分で持っている
     private cancelBulletsOf(e: Enemy) {
         this.bullets.forEach((b) => {
             if (b.owner !== e || !b.isScorable) return

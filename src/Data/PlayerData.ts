@@ -58,7 +58,7 @@ export class PlayerData {
     // 残機回復の経過計算の基準時刻(ms epoch)。recoverLivesOverTimeを呼ぶたびに進める
     private lastLivesSyncedAt = Date.now()
 
-    // 手元にある蜜。各ステージで獲得したscoreが加わり(ステージを跨いで引き継がれる)、技の習得で減る
+    // 手元にある花粉。各ステージで獲得したscoreが加わり(ステージを跨いで引き継がれる)、技の習得で減る
     private totalScore = 0
 
     // 授かった免状
@@ -158,9 +158,9 @@ export class PlayerData {
         this.save()
     }
 
-    // 蜜を払って副装備(技)を習得する
+    // 花粉を払って副装備(技)を習得する
     learnSubEquipment(id: EquipmentId, price: number) {
-        if (this.totalScore < price) throw new Error(`蜜が足りません: ${id}`)
+        if (this.totalScore < price) throw new Error(`花粉が足りません: ${id}`)
 
         this.totalScore -= price
         this.ownedSubEquipmentIds.add(id)

@@ -41,7 +41,7 @@ export default class extends Stage {
 
         yield* this.waitAllEnemiesDead()
 
-        // 一代目が完全に倒れると、初雪が降りはじめる。一年が冬へ戻っていく。画面の弾を蜜に変えて、一息つかせる
+        // 一代目が完全に倒れると、初雪が降りはじめる。一年が冬へ戻っていく。画面の弾を花粉に変えて、一息つかせる
         this.scorenizeAllBullets()
         this.flash("#eef6ffc0", 40)
         this.addScript(() => this.quietSnow(), { loop: Infinity })

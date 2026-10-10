@@ -89,7 +89,7 @@ function* stab(player: Player, tip: Vec, radian: number): Generator<void, void, 
     const maxRadius = player.GRAZE_R * 衝撃半径倍率
     const forward = vec.arg(radian)
     const across = vec.arg(radian + T / 4)
-    // 筋は針の向きを中心に前へ大きく開く。白い太い筋と、蜜の色の細い筋を交互に混ぜる
+    // 筋は針の向きを中心に前へ大きく開く。白い太い筋と、花粉の色の細い筋を交互に混ぜる
     const shards = Array.from({ length: 破片数 }, (_, i) => ({
         radian: radian + (i / (破片数 - 1) - 0.5) * (T / 2) + (Math.random() - 0.5) * 0.1,
         length: maxRadius * (0.5 + Math.random() * 0.8),

@@ -21,7 +21,7 @@
     --mote-period: 6s;
 }
 
-/* 巣。蜜の色の暗がりに、花粉が立ちのぼる */
+/* 巣。花粉の色の暗がりに、花粉が立ちのぼる */
 .scene-game.scenery-hive {
     --field: #0b0804;
     --sky: var(--gold);

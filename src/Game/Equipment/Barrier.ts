@@ -8,7 +8,7 @@ import type { SubEquipment } from "./types"
 // 展開した場所に固定された結界を長く張り、入ってくる敵弾をすべてスコアに変える。
 // 自機は無敵にならないので、結界の中に留まる必要がある。
 // 高速移動(一瞬・頻繁・場所を移る)とは対照的に、長く・稀に・場所を作る。
-const 持続フレーム = 120
+const 持続フレーム = 300
 const 展開フレーム = 8
 const 消滅フレーム = 20
 const クールダウンフレーム = 720
@@ -16,7 +16,7 @@ const 半径倍率 = 12
 
 export const barrier: SubEquipment = {
     label: "障壁",
-    description: "その場に結界を張る。結界は2秒間その位置に留まり、中に入った敵弾を蜜に変える。",
+    description: "その場に結界を張る。結界は2秒間その位置に留まり、中に入った敵弾を花粉に変える。",
     price: 1000,
     *action(player) {
         while (true) {

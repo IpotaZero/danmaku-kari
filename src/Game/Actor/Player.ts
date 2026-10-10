@@ -496,7 +496,7 @@ export class Player extends Actor {
         Ctx.arc(ctx, this.p, this.GRAZE_R, "#ffffff60", { lineWidth: 2 })
     }
 
-    // 残機は、まわりを回る蜜の部屋(六角形)の数で見せる
+    // 残機は、まわりを回る花粉の部屋(六角形)の数で見せる
     private drawLife(ctx: CanvasRenderingContext2D) {
         for (let i = 0; i < this.life; i++) {
             const center = this.p.add(
