@@ -1,4 +1,4 @@
-import type { ConfigString } from "@ipota/input"
+import type { Source } from "@ipota/input"
 
 // e.codeのままだと長い/分かりにくいものだけ、表示用の名前を決めておく
 const SPECIAL_LABELS: Partial<Record<string, string>> = {
@@ -16,24 +16,22 @@ const SPECIAL_LABELS: Partial<Record<string, string>> = {
     Backspace: "BS",
 }
 
-/** DigitalInputに割り当てる入力(キーボードのe.code / ゲームパッドのボタン・軸)を扱う */
+/** Di/** DigitalInputに割り当てる入力(キーボードのe.code / ゲームパッドのボタン・軸)を扱う */
 export namespace InputCode {
-    export function isGamepad(code: ConfigString): boolean {
-        return code.startsWith("gamepad-")
+    export function isGamepad(code: Source): boolean {
+        return code.type !== "keyboard"
     }
 
-    // 画面に出す短い名前。例: "KeyZ" -> "Z", "gamepad-button-0" -> "Pad0", "gamepad-axis-1-negative" -> "Axis1-"
-    export function label(code: ConfigString): string {
-        const special = SPECIAL_LABELS[code]
-        if (special) return special
-
-        const button = code.match(/^gamepad-button-(\d+)$/)
-        if (button) return `Pad${button[1]}`
-
-        const axis = code.match(/^gamepad-axis-(\d+)-(positive|negative)$/)
-        if (axis) return `Axis${axis[1]}${axis[2] === "positive" ? "+" : "-"}`
-
-        return code.replace(/^(Key|Digit)/, "")
+    // 画面に出す短い名前。例: KeyZ -> "Z", ゲームパッドのボタン0 -> "Pad0", 軸1の負方向 -> "Axis1-"
+    export function label(code: Source): string {
+        switch (code.type) {
+            case "keyboard":
+                return SPECIAL_LABELS[code.code] ?? code.code.replace(/^(Key|Digit)/, "")
+            case "gamepad-button":
+                return `Pad${code.index}`
+            case "gamepad-axis":
+                return `Axis${code.index}${code.direction === "positive" ? "+" : "-"}`
+        }
     }
 
     /**
@@ -41,9 +39,9 @@ export namespace InputCode {
      * ゲーム側の入力として拾われないよう、離されてから再開するために使う。
      * (ゲームパッドは押されている間ずっと押下として読めてしまい、キーボードも長押しでキーリピートが来る)
      */
-    export function waitForRelease(code: ConfigString): Promise<void> {
+    export function waitForRelease(code: Source): Promise<void> {
         return new Promise((resolve) => {
-            if (isGamepad(code)) {
+            if (code.type !== "keyboard") {
                 const poll = () => {
                     if (!isGamepadHeld(code)) {
                         resolve()
@@ -60,29 +58,25 @@ export namespace InputCode {
                 listeners.abort()
                 resolve()
             }
-            window.addEventListener("keyup", (e) => e.code === code && done(), { signal: listeners.signal })
+            window.addEventListener("keyup", (e) => e.code === code.code && done(), { signal: listeners.signal })
             // ウィンドウの外で離されるなどしてkeyupが届かなくても、待ち続けないようにする
             window.addEventListener("blur", done, { signal: listeners.signal })
         })
     }
 
     // 判定はDigitalInputに合わせる(ボタンはpressed、軸は0.5を超えたら押下)
-    function isGamepadHeld(code: ConfigString): boolean {
-        const button = code.match(/^gamepad-button-(\d+)$/)
-        const axis = code.match(/^gamepad-axis-(\d+)-(positive|negative)$/)
-
+    function isGamepadHeld(code: Exclude<Source, { type: "keyboard" }>): boolean {
         return navigator.getGamepads().some((gamepad) => {
             if (!gamepad) return false
-            if (button) return gamepad.buttons[Number(button[1])]?.pressed ?? false
-            if (!axis) return false
+            if (code.type === "gamepad-button") return gamepad.buttons[code.index]?.pressed ?? false
 
-            const value = gamepad.axes[Number(axis[1])] ?? 0
-            return axis[2] === "positive" ? value > 0.5 : value < -0.5
+            const value = gamepad.axes[code.index] ?? 0
+            return code.direction === "positive" ? value > 0.5 : value < -0.5
         })
     }
 
     // 操作説明用に、割り当てのうち最初のキーボード入力の名前を返す(キーボードが無ければ最初の入力)
-    export function primaryLabel(codes: readonly ConfigString[]): string {
+    export function primaryLabel(codes: readonly Source[]): string {
         const code = codes.find((c) => !isGamepad(c)) ?? codes[0]
         return code ? label(code) : "-"
     }

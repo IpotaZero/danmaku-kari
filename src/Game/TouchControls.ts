@@ -113,4 +113,11 @@ export class TouchControls implements DigitalInput.Reader<GameAction> {
     isRepeatPushed(action: GameAction, intervalMs: number, initialDelayMs?: number): boolean {
         return this.base.isRepeatPushed(action, intervalMs, initialDelayMs)
     }
+
+    // タッチ由来のこのフレームの押下も一緒に忘れる。指の本数(prevTouchCount)は残し、触れたままでも再発火しないようにする
+    clear() {
+        this.actionPushed = false
+        this.suicidePushed = false
+        this.base.clear()
+    }
 }

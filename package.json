@@ -2,7 +2,7 @@
     "dependencies": {
         "@ipota/bgm-manager": "^1.0.3",
         "@ipota/functions": "^1.0.7",
-        "@ipota/input": "^1.0.1",
+        "@ipota/input": "^1.0.19",
         "@ipota/my-utils": "^1.0.27",
         "@ipota/vec": "^1.0.2",
         "vite": "^8.1.2"

@@ -1,4 +1,4 @@
-import { ConfigString, KeyConfig } from "@ipota/input"
+import { KeyConfig, type Source } from "@ipota/input"
 import { App } from "../App"
 import { playerData } from "../Data/PlayerData"
 import { InputAction, VOLUME_MAX_LEVEL, VolumeKind } from "../Data/Settings"
@@ -279,7 +279,7 @@ export class SettingsMenu {
         }
     }
 
-    private keyBindLabel(code: ConfigString): HTMLElement {
+    private keyBindLabel(code: Source): HTMLElement {
         const el = document.createElement("span")
         el.className = "settings-row"
         el.innerHTML = `

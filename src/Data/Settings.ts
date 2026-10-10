@@ -1,4 +1,4 @@
-import type { ConfigString, DigitalInput } from "@ipota/input"
+import { SourceKey, type DigitalInput, type Source } from "@ipota/input"
 import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 
 export type InputAction = "up" | "down" | "left" | "right" | "slow" | "action" | "suicide" | "ok" | "cancel"
@@ -11,16 +11,51 @@ export const VOLUME_MAX_LEVEL = 10
 const DEFAULT_VOLUME_LEVEL = 8
 
 export const DEFAULT_KEY_CONFIG: KeyConfigMap = {
-    up: ["ArrowUp", "KeyW", "gamepad-axis-1-negative"],
-    down: ["ArrowDown", "KeyS", "gamepad-axis-1-positive"],
-    left: ["ArrowLeft", "KeyA", "gamepad-axis-0-negative"],
-    right: ["ArrowRight", "KeyD", "gamepad-axis-0-positive"],
-    slow: ["ShiftLeft", "gamepad-button-2"],
-    suicide: ["Escape", "gamepad-button-9"],
-    action: ["ControlLeft", "gamepad-button-3"],
+    up: [
+        { type: "keyboard", code: "ArrowUp" },
+        { type: "keyboard", code: "KeyW" },
+        { type: "gamepad-axis", index: 1, direction: "negative", threshold: 0.1 },
+    ],
+    down: [
+        { type: "keyboard", code: "ArrowDown" },
+        { type: "keyboard", code: "KeyS" },
+        { type: "gamepad-axis", index: 1, direction: "positive", threshold: 0.1 },
+    ],
+    left: [
+        { type: "keyboard", code: "ArrowLeft" },
+        { type: "keyboard", code: "KeyA" },
+        { type: "gamepad-axis", index: 0, direction: "negative", threshold: 0.1 },
+    ],
+    right: [
+        { type: "keyboard", code: "ArrowRight" },
+        { type: "keyboard", code: "KeyD" },
+        { type: "gamepad-axis", index: 0, direction: "positive", threshold: 0.1 },
+    ],
+    slow: [
+        { type: "keyboard", code: "ShiftLeft" },
+        { type: "gamepad-button", index: 2 },
+    ],
+    suicide: [
+        { type: "keyboard", code: "Escape" },
+        { type: "gamepad-button", index: 9 },
+    ],
+    action: [
+        { type: "keyboard", code: "ControlLeft" },
+        { type: "gamepad-button", index: 3 },
+    ],
 
-    ok: ["Enter", "KeyZ", "Space", "gamepad-button-0"],
-    cancel: ["KeyX", "Escape", "Backspace", "gamepad-button-1"],
+    ok: [
+        { type: "keyboard", code: "Enter" },
+        { type: "keyboard", code: "KeyZ" },
+        { type: "keyboard", code: "Space" },
+        { type: "gamepad-button", index: 0 },
+    ],
+    cancel: [
+        { type: "keyboard", code: "KeyX" },
+        { type: "keyboard", code: "Escape" },
+        { type: "keyboard", code: "Backspace" },
+        { type: "gamepad-button", index: 1 },
+    ],
 }
 
 // 描画のfps。ゲームの更新は常に60fpsで、描画だけを間引く
@@ -86,8 +121,8 @@ export class Settings {
     }
 
     // 割り当てられる数に上限は無い。既にそのアクションに割り当て済みなら何もせずfalseを返す
-    addKey(action: InputAction, code: ConfigString): boolean {
-        if (this.keyConfig[action].includes(code)) return false
+    addKey(action: InputAction, code: Source): boolean {
+        if (this.keyConfig[action].some((c) => SourceKey.equals(c, code))) return false
 
         this.updateKeyConfig({ ...this.keyConfig, [action]: [...this.keyConfig[action], code] })
         return true
@@ -98,10 +133,13 @@ export class Settings {
         return this.keyConfig[action].length > 1
     }
 
-    removeKey(action: InputAction, code: ConfigString) {
+    removeKey(action: InputAction, code: Source) {
         if (!this.canRemoveKey(action)) return
 
-        this.updateKeyConfig({ ...this.keyConfig, [action]: this.keyConfig[action].filter((c) => c !== code) })
+        this.updateKeyConfig({
+            ...this.keyConfig,
+            [action]: this.keyConfig[action].filter((c) => !SourceKey.equals(c, code)),
+        })
     }
 
     resetKeyConfig() {
@@ -133,8 +171,15 @@ export class Settings {
             if (data.drawFps === 60 || data.drawFps === 30) this.drawFps = data.drawFps
             if (typeof data.showFps === "boolean") this.showFps = data.showFps
 
-            // 保存後にアクションが増えても、欠けているアクションはデフォルトで補う
-            this.keyConfig = { ...DEFAULT_KEY_CONFIG, ...data.keyConfig }
+            // 保存後にアクションが増えても、欠けているアクションはデフォルトで補う。
+            // 旧形式(@ipota/inputのSourceが文字列だった頃)で保存されたアクションもデフォルトに戻す
+            const keyConfig = { ...DEFAULT_KEY_CONFIG }
+            for (const action of Object.keys(DEFAULT_KEY_CONFIG) as InputAction[]) {
+                const sources = data.keyConfig?.[action]
+                if (sources && sources.length > 0 && sources.every((c) => typeof c === "object"))
+                    keyConfig[action] = sources
+            }
+            this.keyConfig = keyConfig
         } catch {
             // 保存データが壊れている場合は初期値のまま進める
         }
