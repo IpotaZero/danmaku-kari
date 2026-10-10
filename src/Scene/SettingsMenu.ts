@@ -316,6 +316,10 @@ export class SettingsMenu {
             } else {
                 App.se.menu.playCancel()
             }
+
+            // 押したまますぐ入力を再開すると、そのキーが決定などに割り当てられていた場合に
+            // メニューの操作として拾われ、「追加」がもう一度選ばれてしまう。離されるまで止めたままにする
+            await InputCode.waitForRelease(code)
         } catch {
             // 中止された(waitForAnyInputはabort以外でrejectしない)
             App.se.menu.playCancel()

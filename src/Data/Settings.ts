@@ -15,9 +15,9 @@ export const DEFAULT_KEY_CONFIG: KeyConfigMap = {
     down: ["ArrowDown", "KeyS", "gamepad-axis-1-positive"],
     left: ["ArrowLeft", "KeyA", "gamepad-axis-0-negative"],
     right: ["ArrowRight", "KeyD", "gamepad-axis-0-positive"],
-    slow: ["ShiftLeft"],
-    suicide: ["Escape"],
-    action: ["ControlLeft"],
+    slow: ["ShiftLeft", "gamepad-button-2"],
+    suicide: ["Escape", "gamepad-button-9"],
+    action: ["ControlLeft", "gamepad-button-3"],
 
     ok: ["Enter", "KeyZ", "Space", "gamepad-button-0"],
     cancel: ["KeyX", "Escape", "Backspace", "gamepad-button-1"],
@@ -37,7 +37,7 @@ type SerializedSettings = {
 
 // 設定の反映先。音量はBgmManager/SEのマスター、キーコンフィグはDigitalInput、描画fpsはFrameLimiter、fps表示はFpsMeterへ渡す
 type SettingsTarget = Record<VolumeKind, { setVolume(volume: number): void }> & {
-    input: { updateConfig(config: KeyConfigMap): void; clear(): void }
+    input: { updateConfig(config: KeyConfigMap): void }
     drawLimiter: { setFPS(fps: number): void }
     fpsMeter: { show(visible: boolean): void }
 }
@@ -111,9 +111,6 @@ export class Settings {
     private updateKeyConfig(keyConfig: KeyConfigMap) {
         this.keyConfig = keyConfig
         this.target.input.updateConfig(this.keyConfig)
-        // 外したキーを押しっぱなしにしていると、そのkeyupが無視されて押されたままの記録が残る。
-        // 後でそのキーを割り当て直したときに押しっぱなし扱いにならないよう、押下状態を忘れさせる
-        this.target.input.clear()
         this.save()
     }
 
