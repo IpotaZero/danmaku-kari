@@ -32,6 +32,8 @@ export class Bullet extends Actor {
 
     // 双子(ほかの弾の姿を写し取っている弾)かどうか
     private isTwin = false
+    // 自分の姿を写し取っている双子。自分がスコアに変わるとき、双子も一緒にスコアに変える
+    private twins: Bullet[] = []
 
     private scriptReservations: [
         g: (me: Bullet) => Generator<unknown, unknown, void>,
@@ -53,6 +55,7 @@ export class Bullet extends Actor {
         b.p = this.p.clone()
         b.scriptReservations = [...this.scriptReservations]
         b.scripts = new Map()
+        b.twins = []
 
         return b
     }
@@ -116,6 +119,7 @@ export class Bullet extends Actor {
         twin.speed = 0
         twin.p = point(this.p)
         twin.radian = direction(this.radian)
+        this.twins.push(twin)
 
         // 画面の端で消す見張り(id "boundary")を、center からの距離で消す見張りに置き換える。
         // 自分が双子なら、見張りの代わりに元の弾を写し取る処理が同じidで動いていて、元の弾と一緒に消えるので、置き換えない。
@@ -194,8 +198,32 @@ export class Bullet extends Actor {
         this.scriptReservations.push([g, { loop, margin, id }])
     }
 
-    // scoreタイプに変え、自機へのホーミングを開始する
+    // scoreタイプに変え、自機へのホーミングを開始する。双子も一緒に、それぞれの場所からホーミングさせる
     scorenize() {
+        if (this.type === "score") return
+        this.becomeScore()
+
+        this.addScript(() => this.homing(this), { id: "score-homing" })
+        this.addScript(() => this.move(this), { id: "move" })
+
+        this.twins.forEach((t) => t.scorenize())
+    }
+
+    // scoreタイプに変え、下へ落ちていく。自機が近くに寄ればホーミングして回収され、取りに行かなければ画面の外へ消える。
+    // 双子も一緒に、それぞれの場所から落とす
+    scorenizeToFall() {
+        if (this.type === "score") return
+        this.becomeScore()
+
+        this.addScript(() => this.fall(this), { id: "score-fall" })
+        this.addScript(() => this.boundary(this), { id: "boundary" })
+
+        this.twins.forEach((t) => t.scorenizeToFall())
+    }
+
+    // 双子は元の弾の位置と色だけを写し取っていて、見た目は写さない。
+    // 元の弾がスコアに変わったときは、写し取るのをやめて自分もスコアになる(scorenize / scorenizeToFall が双子にも伝える)
+    private becomeScore() {
         this.type = "score"
         this.appearance = "score"
         this.r = 8
@@ -204,9 +232,22 @@ export class Bullet extends Actor {
         this.isScorable = false
 
         this.clearScripts()
+    }
 
-        this.addScript(() => this.homing(this), { id: "score-homing" })
-        this.addScript(() => this.move(this), { id: "move" })
+    // 少し跳ね上がってから、ゆっくり加速して落ちる。自機が近くに来たら、そこからホーミングして回収される
+    private *fall(me: Bullet) {
+        let vy = -2
+
+        while (me.game.player.p.sub(me.p).magnitude() > me.game.player.GRAZE_R * 4) {
+            vy = Math.min(vy + 0.2, 4)
+            me.p.y += vy
+            yield
+        }
+
+        // ホーミング中は自機を追い続けて画面の外へは出ないので、画面の端で消す見張りは外す
+        me.removeScript("boundary")
+        me.addScript(() => me.move(me), { id: "move" })
+        yield* me.homing(me)
     }
 
     // move/boundary/homingは全弾が毎フレーム回すので、loop: Infinityで毎フレームジェネレータを作り直すと

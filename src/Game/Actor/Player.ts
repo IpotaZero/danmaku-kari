@@ -197,6 +197,7 @@ export class Player extends Actor {
     }
 
     // 被弾した瞬間に自機を中心としたリングを広げ、触れた敵弾をスコアに変える。
+    // このスコアは自機へ寄ってこず落ちていくので、拾うには取りに行く必要がある。
     // 無敵時間と同じくaddScript任せで進行させ、見た目もこの中で完結させて描いてしまう
     // (Playerに専用フィールドを持たせない)
     private *hitField() {
@@ -211,7 +212,7 @@ export class Player extends Actor {
                 .filter((b) => b.type === "enemy")
                 .filter((b) => b.isScorable)
                 .filter((b) => b.p.sub(center).magnitude() <= radius)
-                .forEach((b) => b.scorenize())
+                .forEach((b) => b.scorenizeToFall())
 
             this.game.drawInWorld((ctx) =>
                 Ctx.arc(ctx, center, radius, `rgba(255, 255, 255, ${alpha})`, { lineWidth: 2 }),
