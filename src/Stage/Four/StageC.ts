@@ -11,14 +11,6 @@ import { Part } from "../Part"
 import { Charge } from "../Charge"
 import { Size } from "../Size"
 
-// 胴の左右に翼の一対、胴の下に五枚の尾羽の横一列が並ぶ。
-// 段は翼の一対を落とすと進む。翼を落とすたびに、胴は力を溜めて、もっと激しい翼の一対を出す。三対目を落とすと胴に攻撃が効くようになる。
-//   一対目の翼: 外側の斜め下へ、炎の羽の扇を三度払う。
-//   二対目の翼: 外から内へ、三筋の炎の帯を薙ぎ払う。左右の帯は胴の下で交差する。
-//   三対目の翼: 火の鳥を七羽放つ。火の鳥は外へ飛び出して止まり、自機のいた所へ急降下する。
-// 尾羽: 火の粉を高く舞い上げる。火の粉は放物線を描いて落ち、落ちたところで小さく弾ける。尾羽は出し直されない。
-// 胴: 翼があるうちは輪を放つ。段が進むほど輪は濃く、重なりも増える。三対目の翼を落とすと、逆回りの炎の渦を撒く。
-
 export default class extends Stage {
     *G() {
         const boss = new EnemyBoss(this.game)
@@ -155,7 +147,6 @@ class EnemyBoss extends Enemy {
         yield* Array(60)
     }
 
-    // 三対目の翼。火の鳥を七羽放つ。外へ飛び出して止まり、自機のいた所へ急降下する
     private *firebirds(me: Part, side: number) {
         yield* remodel(me)
             .format("arrow")
@@ -248,6 +239,7 @@ class EnemyBoss extends Enemy {
                 .radian(base + f * 0.04)
                 .ex(7)
                 .fire(this.game.bullets)
+
             yield* remodel(this)
                 .format("diamond")
                 .color("#ffb050")

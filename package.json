@@ -9,6 +9,7 @@
     },
     "scripts": {
         "build": "npx vite build",
-        "build:watch": "npx vite build --watch"
+        "build:watch": "npx vite build --watch",
+        "map": "node scripts/map.mjs"
     }
 }

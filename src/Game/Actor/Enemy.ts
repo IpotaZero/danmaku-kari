@@ -14,7 +14,10 @@ export abstract class Enemy extends Actor {
     frame = 0
     damaged = false
 
-    // 攻撃の前に yield* this.battery.charge(frame) と書くと、充電が満ちるまで待つ
+    // yield* this.battery.charge(frame) と書くと、充電が満ちるまで待つ。
+    // 攻撃を受けると充電が早まる。
+    // 充電が満ちるまで何もしてはいけない。
+    // 演出には使うな
     readonly battery = new Battery()
 
     isInvincible = false
