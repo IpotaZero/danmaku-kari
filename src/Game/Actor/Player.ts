@@ -147,7 +147,6 @@ export class Player extends Actor {
         this.life = Math.max(-1, this.life - damage)
         this.onLifeChange(this.life)
         this.game.se.hit.play()
-        this.game.se.u.play()
         this.game.camera.shake(HIT_SHAKE_INTENSITY, HIT_SHAKE_FRAME)
 
         this.addScript(

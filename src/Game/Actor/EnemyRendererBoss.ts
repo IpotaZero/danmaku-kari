@@ -1,6 +1,7 @@
 import { Enemy } from "./Enemy"
 import { IEnemyRenderer } from "./IEnemyRenderer"
 import { DeathEffect } from "./DeathEffect"
+import { InsectWings } from "./InsectWings"
 import { Ctx } from "../../utils/Functions/Ctx"
 import { vec } from "@ipota/vec"
 import { T } from "../../T"
