@@ -25,6 +25,8 @@ import { Size } from "../Size"
 //         撃つほど早く温まる。孵る瞬間、画面が光り、生まれた二代目は輪を放ちながら舞い上がる。
 //   二代目: どの部位の攻撃も一段激しくなる。翅は胴を囲む正六角形の六枚になって回る。
 //           翅を落とすと、胴は力を溜めて、まわりを回る六つの親衛隊を呼ぶ。親衛隊を落とすと、胴に攻撃が効くようになる。
+//           最後の段では、胴の左右から光の線(ビーム)が伸びて上下二段の光の翅になり、上の翅と下の翅が互い違いに羽ばたく。
+//           翅は薄く伸びて形を見せてから実体になる。羽ばたき終えると消え、少し休んでからまた広げる。
 //           二代目は初雪の中で戦う。雪は当たり判定のある、ゆっくり揺れながら落ちる弾。精密に避けている最中に、ばらばらな雪が混ざってくる。
 
 export default class extends Stage {
@@ -270,11 +272,12 @@ class EnemyHornet extends Enemy {
             while (escorts.some((p) => p.life > 0)) yield
         }
 
-        // 胴に攻撃が効くようになり、女王の怒りを撒く
+        // 胴に攻撃が効くようになり、女王の怒りを撒く。二代目は光の翅も広げる
         this.removeScript("body")
         yield* Charge.gather(this, 120, "#ffb040")
         this.isInvincible = false
         this.addScript(() => this.fury(generation), { loop: Infinity, id: "body" })
+        if (generation > 0) this.addScript(() => this.lightWings(), { loop: Infinity, margin: 60, id: "wings" })
     }
 
     // 大顎の噛みつき。横へ開いた弾が一度止まり、少しして自機のいた所へ一斉に飛びかかる
@@ -450,6 +453,66 @@ class EnemyHornet extends Enemy {
         }
 
         yield* Array(70 - generation * 10)
+    }
+
+    // 光の翅。胴の左右から光の線が薄く伸びて上下二段の翅の形を見せ、実体になってから羽ばたく。
+    // 上の翅(左右四本ずつ)と下の翅(左右三本ずつ)は互い違いに羽ばたく。羽ばたき終えると消え、少し休んでからまた広げる
+    private *lightWings() {
+        // 上の翅。水平より少し上に広がり、水平のあたりまで振り下ろす
+        yield* remodel(this)
+            .beam(0)
+            .color("#e8f0ff")
+            .duplicate(8, (b, i) => {
+                b.radian = i < 4 ? -0.35 + (i - 1.5) * 0.1 : Math.PI + 0.35 - (i - 5.5) * 0.1
+                return b
+            })
+            .g(function* (b) {
+                const base = b.radian
+                const side = Math.cos(base) > 0 ? 1 : -1
+
+                b.type = "neutral"
+                b.alpha = 0.25
+                yield* Behavior.ease(b, "length", 700, 40, Ease.Out)
+                b.type = "enemy"
+                b.alpha = 1
+
+                for (let f = 0; f < 360; f++) {
+                    b.radian = base + side * 0.4 * Math.sin(f / 16)
+                    yield
+                }
+
+                yield* Behavior.fadeout(b, 20)
+            })
+            .fire(this.game.bullets)
+
+        // 下の翅。水平より下に広がり、上の翅と互い違いに羽ばたく
+        yield* remodel(this)
+            .beam(0)
+            .color("#ffd060")
+            .duplicate(6, (b, i) => {
+                b.radian = i < 3 ? 0.55 + (i - 1) * 0.1 : Math.PI - 0.55 - (i - 4) * 0.1
+                return b
+            })
+            .g(function* (b) {
+                const base = b.radian
+                const side = Math.cos(base) > 0 ? 1 : -1
+
+                b.type = "neutral"
+                b.alpha = 0.25
+                yield* Behavior.ease(b, "length", 700, 40, Ease.Out)
+                b.type = "enemy"
+                b.alpha = 1
+
+                for (let f = 0; f < 360; f++) {
+                    b.radian = base - side * 0.3 * Math.sin(f / 16)
+                    yield
+                }
+
+                yield* Behavior.fadeout(b, 20)
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(540)
     }
 
     // 初雪。画面の上から、ゆっくり左右に揺れながら雪が降りはじめ、倒れるまで降り続ける
