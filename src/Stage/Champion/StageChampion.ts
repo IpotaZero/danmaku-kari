@@ -82,29 +82,18 @@ export default class extends Stage {
 }
 
 // 一代目が倒れた所に現れる卵。温まりきる(充電が満ちる)まで何もせず、撃っても割れない。撃つほど早く温まる。
-// 温まっている間、まわりから光の粒と光の輪が卵へ吸い込まれていく
 class EnemyEgg extends Enemy {
     constructor(game: Game, p: Vec) {
-        super(game, 1, Size.L)
+        super(game, 1, Size.L, { charge: 100 })
         this.p = p.clone()
-        // 温まり始めるまでに撃たれて割れないよう、最初は攻撃を効かなくしておく
-        this.isInvincible = true
 
-        this.addScript(() => this.warm())
-        this.addScript(() => this.glow(), { loop: Infinity })
+        this.addScript(() => this.hatch())
     }
 
-    private *warm() {
-        this.isInvincible = false
-        yield* this.battery.charge(300)
+    // 温まりきると孵る
+    private *hatch() {
         this.life = 0
         yield
-    }
-
-    private *glow() {
-        yield* Charge.particle(this, "#ffd060")
-        if (this.frame % 24 < 3) yield* Charge.ring(this, "#ffd060")
-        yield* Array(3)
     }
 }
 

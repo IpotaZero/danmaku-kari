@@ -1,6 +1,6 @@
 import { uid } from "../utils/Functions/uid"
 
-export abstract class IteratorQueue {
+export class IteratorQueue {
     protected scripts = new Map<string, Generator>()
 
     private sleepFrame: number = 0

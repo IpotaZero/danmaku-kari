@@ -6,6 +6,7 @@ import { IEnemyRenderer } from "./IEnemyRenderer"
 import { EnemyRendererMob } from "./EnemyRendererMob"
 import { seededRandom } from "../../utils/Functions/seededRandom"
 import { Battery } from "./Battery"
+import { IteratorQueue } from "../IteratorQueue"
 
 export abstract class Enemy extends Actor {
     private readonly baseR: number
@@ -14,11 +15,12 @@ export abstract class Enemy extends Actor {
     frame = 0
     damaged = false
 
-    // yield* this.battery.charge(frame) と書くと、充電が満ちるまで待つ。
-    // 攻撃を受けると充電が早まる。
-    // 充電が満ちるまで何もしてはいけない。
-    // 演出には使うな
-    readonly battery = new Battery()
+    // 充電。生まれたときにだけ決まり、生まれた瞬間から満ちるまで何もしない
+    readonly battery: Battery
+
+    // 親への追従や被弾で膨らむ見た目など、充電中も止まらない体の動き。
+    // 外からは足せないので、ここに演出を入れて充電中に動かすことはできない
+    private readonly figure = new IteratorQueue()
 
     isInvincible = false
 
@@ -34,7 +36,14 @@ export abstract class Enemy extends Actor {
         game: Game,
         life: number,
         r: number,
-        { renderer = new EnemyRendererMob() }: { renderer?: IEnemyRenderer } = {},
+        {
+            renderer = new EnemyRendererMob(),
+            charge = 0,
+        }: {
+            renderer?: IEnemyRenderer
+            // 生まれてから充電にかけるフレーム数。充電はこの一度きりで、あとから始めることはできない
+            charge?: number
+        } = {},
     ) {
         super(game)
         this.p = vec(-100, -100)
@@ -45,10 +54,16 @@ export abstract class Enemy extends Actor {
         this.baseR = r
 
         this.renderer = renderer
+        this.battery = new Battery(charge)
     }
 
     update(): void {
-        super.update()
+        this.figure.update()
+
+        // 充電中は何もしない。どのスクリプトも止まるので、充電の間に動いたり演出したりはできない
+        if (this.battery.isCharging()) this.battery.tick()
+        else super.update()
+
         this.frame++
     }
 
@@ -103,7 +118,7 @@ export abstract class Enemy extends Actor {
     hit(damage: number) {
         this.damaged = true
         // 自機の弾は毎フレーム何発も当たるので、当たるたびに膨らむ演出を積み増さず、同じidで最初からやり直す
-        this.addScript(() => this.hitG(), { id: "hit" })
+        this.figure.addScript(() => this.hitG(), { id: "hit" })
 
         // 充電中は攻撃が効かず、そのぶん充電が早まる
         if (this.battery.absorb(damage)) return
@@ -139,7 +154,7 @@ export abstract class Enemy extends Actor {
     // 親敵に追従する子敵として振る舞わせる。親が死んだら自分も死ぬ。
     // 登場の演出として、現れてから60フレームかけて、親の中心から position の位置まで広がり出る
     protected setParent(parent: Enemy, position: () => Vec) {
-        this.addScript(() => this.followParent(parent, position), { id: "parent", loop: Infinity })
+        this.figure.addScript(() => this.followParent(parent, position), { id: "parent", loop: Infinity })
     }
 
     private *followParent(parent: Enemy, position: () => Vec) {
