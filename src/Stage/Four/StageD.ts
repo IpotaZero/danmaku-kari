@@ -11,6 +11,14 @@ import { Part } from "../Part"
 import { Charge } from "../Charge"
 import { Size } from "../Size"
 
+// 内側の円を六枚の甲羅が回り、外側の円を六つの子機(頭と五つの節)が等間隔のまま回る。
+// 段は部位を落とすと進む。胴に攻撃が効くのは最後の段だけ。
+// 一段目: 甲羅をすべて割ると次の段へ。胴はときどき輪を放つ。
+// 二段目: 胴は水を集めて、小甲羅(孫機)に守られた子亀を二匹呼ぶ。子亀をすべて落とすと次の段へ。
+//         胴は津波を起こす。画面の幅いっぱいの波を三列続けて押し寄せる。波には一か所だけ隙間があり、列ごとに少しずつずれる。
+// 三段目: 胴だけになると、力を溜めてから攻撃が効くようになる。胴だけでも手強いよう、三つの攻撃を重ねる。
+//         津波は四列になり、曲がりながら広がる六本腕の渦潮と、胴から四方へ伸びてゆっくり回る糸(レーザー)が加わる。
+
 export default class extends Stage {
     *G() {
         const boss = new EnemyBoss(this.game)
@@ -68,7 +76,7 @@ class EnemyBoss extends Enemy {
     readonly parts = [...this.shells, this.snakeHead, ...this.snakeBody]
 
     constructor(game: Game) {
-        super(game, 1600, Size.BOSS, { renderer: new EnemyRendererBoss() })
+        super(game, 2400, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
         this.addScript(() => this.enter())
@@ -128,13 +136,16 @@ class EnemyBoss extends Enemy {
         })
 
         // 二段目: 子亀をすべて落とすと次の段へ。胴は津波を起こす
-        this.addScript(() => this.tide(), { loop: Infinity, margin: 90, id: "body" })
+        this.addScript(() => this.tide(3), { loop: Infinity, margin: 90, id: "body" })
         while (babies.some((p) => p.life > 0)) yield
 
-        // 三段目: 渦潮。胴に攻撃が効くようになり、津波に渦を重ねる
+        // 三段目: 胴だけになると、力を溜めてから攻撃が効くようになる。四列の津波に、渦潮と糸を重ねる
+        this.removeScript("body")
+        yield* Charge.gather(this, 150, "#a0d8ff")
         this.isInvincible = false
-        this.game.camera.shake(8, 30)
-        this.addScript(() => this.whirlpool(), { loop: Infinity, margin: 30, id: "whirlpool" })
+        this.addScript(() => this.tide(4), { loop: Infinity, id: "body" })
+        this.addScript(() => this.whirlpool(), { loop: Infinity, margin: 60, id: "whirlpool" })
+        this.addScript(() => this.silk(), { loop: Infinity, margin: 120, id: "silk" })
     }
 
     // 甲羅の水弾。k 番目の甲羅は 8k フレーム待ってから、胴から外向きに五方向の水弾を放つ
@@ -233,12 +244,13 @@ class EnemyBoss extends Enemy {
         yield* Array(160)
     }
 
-    // 津波。画面の幅いっぱいの波を三列続けて押し寄せる。隙間は一か所で、列ごとに少しずつずれる
-    private *tide() {
+    // 津波。画面の幅いっぱいの波を rows 列続けて押し寄せる。隙間は一か所で、列ごとに少しずつずれる
+    private *tide(rows: number) {
         const gap = this.game.WIDTH * (0.25 + 0.5 * this.random())
-        const drift = this.random() < 0.5 ? -50 : 50
+        // 隙間は画面の真ん中の方へずれていく(四列でも画面の外へ出ない)
+        const drift = gap < this.game.WIDTH / 2 ? 45 : -45
 
-        for (let k = 0; k < 3; k++) {
+        for (let k = 0; k < rows; k++) {
             yield* remodel(this)
                 .format("small-ball")
                 .r(6)
@@ -259,9 +271,31 @@ class EnemyBoss extends Enemy {
         yield* Array(150)
     }
 
-    // 渦潮。曲がりながら広がる四本腕の渦
+    // 糸。胴から四方へ細い線が伸び、線のとおりに実体になってから、胴について回りながらゆっくり薙ぐ。回る向きは毎回変わる
+    private *silk() {
+        const turn = this.random() < 0.5 ? -0.008 : 0.008
+
+        yield* remodel(this)
+            .color("#e8f4ff")
+            .laser(40, 60, this.p.clone(), this.p.add(vec.arg(this.random() * T).scale(1500)))
+            .ex(4)
+            .g(function* (b) {
+                // 予告(30+40フレーム)と実体になる間(30フレーム)は向きを変えず、実体になってから回る
+                for (let f = 0; f < 175; f++) {
+                    b.p = this.p.clone()
+                    if (f >= 100) b.radian += turn
+                    yield
+                }
+            })
+            .fire(this.game.bullets)
+
+        yield* Array(260)
+    }
+
+    // 渦潮。曲がりながら広がる六本腕の渦。巻く向きは毎回変わる
     private *whirlpool() {
         const base = this.random() * T
+        const turn = this.random() < 0.5 ? -0.012 : 0.012
 
         for (let f = 0; f < 60; f += 5) {
             yield* remodel(this)
@@ -270,8 +304,8 @@ class EnemyBoss extends Enemy {
                 .p(this.p.clone())
                 .speed(4)
                 .radian(base + f * 0.02)
-                .ex(4)
-                .g((b) => Behavior.rotating(b, 0.012, 120))
+                .ex(6)
+                .g((b) => Behavior.rotating(b, turn, 120))
                 .fire(this.game.bullets)
             yield* Array(5)
         }
