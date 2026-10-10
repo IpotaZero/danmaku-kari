@@ -39,11 +39,14 @@ function* barrierField(player: Player): Generator<void, void, void> {
         const radius = maxRadius * Ease.Out(Math.min(1, i / 展開フレーム))
         const remaining = 持続フレーム - i
 
-        player.game.bullets
-            .filter((b) => b.type === "enemy" || b.type === "neutral")
-            .filter((b) => b.isScorable)
-            .filter((b) => b.p.sub(center).magnitude() <= radius)
-            .forEach((b) => b.scorenize())
+        // 毎フレーム全弾を見るので、filterで配列を作らずに一度で振り分ける(GC対策)
+        player.game.bullets.forEach((b) => {
+            if (b.type !== "enemy" && b.type !== "neutral") return
+            if (!b.isScorable) return
+            if ((b.p.x - center.x) ** 2 + (b.p.y - center.y) ** 2 > radius ** 2) return
+
+            b.scorenize()
+        })
 
         player.game.drawInWorld((ctx) => {
             ctx.globalAlpha = Math.min(1, remaining / 消滅フレーム)

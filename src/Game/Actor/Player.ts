@@ -150,11 +150,13 @@ export class Player extends Actor {
             const radius = Ease.Out(i / frame) * this.game.WIDTH
             const alpha = 1 - i / frame
 
-            this.game.bullets
-                .filter((b) => b.type === "enemy")
-                .filter((b) => b.isScorable)
-                .filter((b) => b.p.sub(center).magnitude() <= radius)
-                .forEach((b) => b.scorenizeToFall())
+            // 毎フレーム全弾を見るので、filterで配列を作らずに一度で振り分ける(GC対策)
+            this.game.bullets.forEach((b) => {
+                if (b.type !== "enemy" || !b.isScorable) return
+                if ((b.p.x - center.x) ** 2 + (b.p.y - center.y) ** 2 > radius ** 2) return
+
+                b.scorenizeToFall()
+            })
 
             this.game.drawInWorld((ctx) =>
                 Ctx.arc(ctx, center, radius, `rgba(255, 255, 255, ${alpha})`, { lineWidth: 2 }),

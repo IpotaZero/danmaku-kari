@@ -35,7 +35,8 @@ export abstract class IteratorQueue {
         this.scripts.set(
             id,
             (function* () {
-                yield* Array(margin)
+                // 全弾が発射時に通るので、待つためだけの配列を作らない
+                for (let i = 0; i < margin; i++) yield
 
                 while (loop--) {
                     yield* g(me)

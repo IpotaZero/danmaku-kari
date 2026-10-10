@@ -189,7 +189,7 @@ class EnemyPhase2 extends Enemy {
         for (let i = 0; i < 12; i++) {
             yield* Array(30)
             yield* this.fire(12 + i)
-            // yield* this.fire2();
+            yield* this.fire2()
         }
         yield* Array(120)
     }
@@ -203,6 +203,7 @@ class EnemyPhase2 extends Enemy {
         this.addScript(() => this.attack(), { loop: Infinity })
     }
 }
+
 class EnemyPhase3 extends Enemy {
     constructor(game: Game, parent: Enemy) {
         super(game, 1800, 40, { renderer: new EnemyRendererCore() })
@@ -313,9 +314,23 @@ class EnemyBoss extends Enemy {
         yield
     }
 
-    private *attackTurn() {}
+    private *attackTurn() {
+        yield* remodel(this)
+            .format("diamond")
+            .p(this.p.clone())
+            .aim(this.game.player)
+            .sim(3, 3, 6)
+            .delayByIndex(30)
+            .ex(31)
+            .scatter({ hue: [0, 120] })
+            .g(function* (me, _, __, i) {
+                yield* Behavior.reaccel(me, 30, 30, 30, 8)
+                yield* Behavior.rotating(me, (T / 2400) * (2 * (i % 2) - 1), 120)
+            })
+            .fire(this.game.bullets)
+    }
 
     private *attack(): Generator<void, void, void> {
-        yield* GenUtils.all({ attack: this.attackTurn(), wait: Array(720) })
+        yield* GenUtils.all({ attack: this.attackTurn(), wait: Array(60) })
     }
 }

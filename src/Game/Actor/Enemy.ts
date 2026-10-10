@@ -99,7 +99,8 @@ export abstract class Enemy extends Actor {
 
     hit(damage: number) {
         this.damaged = true
-        this.addScript(this.hitG.bind(this))
+        // 自機の弾は毎フレーム何発も当たるので、当たるたびに膨らむ演出を積み増さず、同じidで最初からやり直す
+        this.addScript(() => this.hitG(), { id: "hit" })
 
         // 充電中は攻撃が効かず、そのぶん充電が早まる
         if (this.battery.absorb(damage)) return
