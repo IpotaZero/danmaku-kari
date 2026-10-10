@@ -1,5 +1,5 @@
 import { Camera } from "./Actor/Camera"
-import { DigitalInput } from "@ipota/input"
+import { AnalogInput, DigitalInput } from "@ipota/input"
 import { Vec, vec } from "@ipota/vec"
 import { Player, PlayerConfig } from "./Actor/Player"
 import { Enemy } from "./Actor/Enemy"
@@ -21,7 +21,8 @@ export type GameAction = "right" | "left" | "up" | "down" | "slow" | "suicide" |
 
 // タッチドラッグ時、方向キーの代わりに移動量(ワールド座標のベクトル)を直接渡すための拡張。
 // TouchControls以外(キーボード/ゲームパッド)は実装しないため、未実装を許すoptionalにしている
-export type GameInput = DigitalInput.Reader<GameAction> & {
+export type GameInput = DigitalInput.Reader<GameAction> &
+    AnalogInput.Reader<GameAction> & {
     getTouchMoveVector?(): Vec | undefined
 }
 
@@ -34,6 +35,8 @@ export type GameSE = Record<
 export type GameConfig = {
     createStage: (game: Game) => Promise<Stage>
     input: DigitalInput.Reader<GameAction>
+    // 自機の移動に使う。倒し具合(0~1)を速さにする
+    analogInput: AnalogInput.Reader<GameAction>
     se: GameSE
     onWin: () => void
     onLose: (score: number) => void
@@ -107,7 +110,7 @@ export class Game extends IteratorQueue {
     private readonly onScoreCollected: (score: number) => void
     private readonly setFPS: (fps: number) => void
 
-    private constructor({ input, se, onWin, onLose, onScoreCollected, playerConfig, setFPS, scenery }: GameConfig) {
+    private constructor({ input, analogInput, se, onWin, onLose, onScoreCollected, playerConfig, setFPS, scenery }: GameConfig) {
         super()
 
         this.scenery = scenery
@@ -132,7 +135,7 @@ export class Game extends IteratorQueue {
 
         this.resizeObserver.observe(Dom.container)
 
-        this.touchControls = new TouchControls(input, this.canvas)
+        this.touchControls = new TouchControls(input, analogInput, this.canvas)
         this.input = this.touchControls
 
         this.textBox = new TextBox(this.input, () => {})

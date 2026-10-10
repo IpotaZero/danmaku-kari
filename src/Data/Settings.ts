@@ -74,9 +74,10 @@ type SerializedSettings = {
     showFps?: boolean
 }
 
-// 設定の反映先。音量はBgmManager/SEのマスター、キーコンフィグはDigitalInput、描画fpsはFrameLimiter、fps表示はFpsMeterへ渡す
+// 設定の反映先。音量はBgmManager/SEのマスター、キーコンフィグはDigitalInputとAnalogInput、描画fpsはFrameLimiter、fps表示はFpsMeterへ渡す
 type SettingsTarget = Record<VolumeKind, { setVolume(volume: number): void }> & {
     input: { updateConfig(config: KeyConfigMap): void }
+    analogInput: { updateConfig(config: KeyConfigMap): void }
     drawLimiter: { setFPS(fps: number): void }
     fpsMeter: { show(visible: boolean): void }
 }
@@ -102,6 +103,7 @@ export class Settings {
         this.applyVolume("bgm")
         this.applyVolume("se")
         this.target.input.updateConfig(this.keyConfig)
+        this.target.analogInput.updateConfig(this.keyConfig)
         this.target.drawLimiter.setFPS(this.drawFps)
         this.target.fpsMeter.show(this.showFps)
     }
@@ -153,6 +155,7 @@ export class Settings {
     private updateKeyConfig(keyConfig: KeyConfigMap) {
         this.keyConfig = keyConfig
         this.target.input.updateConfig(this.keyConfig)
+        this.target.analogInput.updateConfig(this.keyConfig)
         this.save()
     }
 

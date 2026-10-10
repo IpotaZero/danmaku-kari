@@ -9,6 +9,7 @@ App.looper.addHandler((timeScale) => {
     App.fpsMeter.countUpdate()
     App.sc.update()
     App.input.update()
+    App.analogInput.update()
 })
 
 App.looper.addRenderHandler(() => {

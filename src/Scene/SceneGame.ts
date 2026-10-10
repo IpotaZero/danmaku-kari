@@ -25,6 +25,7 @@ export class SceneGame extends Scene {
         this.game = await Game.create({
             createStage: (game) => this.node.stage(game),
             input: App.input,
+            analogInput: App.analogInput,
             se: App.se,
             onWin: () => {
                 this.node.recordClear(playerData, playerData.getLoadout().main, playerData.getLives() === initialLives)

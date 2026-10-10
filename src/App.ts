@@ -5,7 +5,7 @@ import { SceneChanger } from "./utils/Scene/SceneChanger"
 import { Looper } from "@ipota/my-utils"
 import { FrameLimiter } from "./utils/FrameLimiter"
 import { FpsMeter } from "./utils/FpsMeter"
-import { DigitalInput } from "@ipota/input"
+import { AnalogInput, DigitalInput } from "@ipota/input"
 import { DEFAULT_KEY_CONFIG, InputAction, Settings } from "./Data/Settings"
 
 Dom.init()
@@ -72,6 +72,9 @@ export namespace App {
 
     export const input = new DigitalInput<InputAction>(DEFAULT_KEY_CONFIG)
 
-    // 保存されている音量・キーコンフィグ・描画fps・fps表示を読み込んで、bm/se/input/drawLimiter/fpsMeterへ反映する
-    export const settings = new Settings({ bgm: bm, se, input, drawLimiter, fpsMeter })
+    // 自機の移動用。スティックの倒し具合をそのまま速さに使う。キーコンフィグはinputと共有する
+    export const analogInput = new AnalogInput<InputAction>(DEFAULT_KEY_CONFIG)
+
+    // 保存されている音量・キーコンフィグ・描画fps・fps表示を読み込んで、bm/se/input/analogInput/drawLimiter/fpsMeterへ反映する
+    export const settings = new Settings({ bgm: bm, se, input, analogInput, drawLimiter, fpsMeter })
 }

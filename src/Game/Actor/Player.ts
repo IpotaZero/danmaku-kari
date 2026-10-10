@@ -175,14 +175,15 @@ export class Player extends Actor {
         if (touchMoveVector) {
             this.v = touchMoveVector
         } else {
+            // スティックの倒し具合をそのまま速さにする。キーボードの斜めやスティックの角は長さが1を超えるので1に抑える
             const dir = vec(
-                (input.isPressed("right") ? 1 : 0) - (input.isPressed("left") ? 1 : 0),
-                (input.isPressed("down") ? 1 : 0) - (input.isPressed("up") ? 1 : 0),
+                input.getValue("right") - input.getValue("left"),
+                input.getValue("down") - input.getValue("up"),
             )
             this.v =
                 dir.magnitude() === 0
                     ? vec(0, 0)
-                    : dir.normalize().scale(
+                    : (dir.magnitude() > 1 ? dir.normalize() : dir).scale(
                           // ブースト中は低速入力を無視し、通常速度を基準に加速する
                           (input.isPressed("slow") && !this.isBoosted() ? this.slowSpeed : this.speed) *
                               this.speedMultiplier,

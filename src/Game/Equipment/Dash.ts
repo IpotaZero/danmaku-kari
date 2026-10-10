@@ -8,7 +8,7 @@ import type { SubEquipment } from "./types"
 // 弾は一つも消さないので、抜けた先に居場所がなければ意味がない。
 // レーザーを貫通できる唯一の技
 const 持続フレーム = 18
-const クールダウンフレーム = 720
+const クールダウンフレーム = 360
 const 速度倍率 = 7
 
 export const dash: SubEquipment = {
