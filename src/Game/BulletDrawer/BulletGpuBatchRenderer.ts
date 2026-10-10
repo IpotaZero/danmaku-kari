@@ -1,12 +1,12 @@
 import { CameraTransform } from "../Actor/Camera"
-import { AtlasUv, BulletSpriteAtlas } from "./BulletSpriteAtlas"
+import { BulletSpriteAtlas } from "./BulletSpriteAtlas"
 
 const VERTEX_SHADER = `#version 300 es
 layout(location = 0) in vec2 a_corner;
 layout(location = 1) in vec2 a_instancePos;
 layout(location = 2) in float a_instanceRotation;
 layout(location = 3) in float a_instanceAlpha;
-layout(location = 4) in float a_instanceHalfSize;
+layout(location = 4) in vec2 a_instanceHalfSize;
 layout(location = 5) in vec4 a_instanceUv;
 
 uniform vec2 u_canvasSize;
@@ -24,7 +24,7 @@ vec2 rotate(vec2 v, float a) {
 }
 
 void main() {
-    // 弾自身のローカル回転（Ctx.rotate(bullet.radian) 相当）
+    // 弾自身のローカル回転（Ctx.rotate(bullet.radian) 相当）。x が弾の向き(ビームなら長さの方向)
     vec2 local = a_corner * a_instanceHalfSize;
     vec2 worldPos = a_instancePos + rotate(local, a_instanceRotation);
 
@@ -55,7 +55,7 @@ void main() {
 }
 `
 
-const FLOATS_PER_INSTANCE = 9
+const FLOATS_PER_INSTANCE = 10
 
 /**
  * 弾スプライトをインスタンシングで1回のドローコールにまとめて描くレンダラー。
@@ -112,7 +112,9 @@ export class BulletGpuBatchRenderer {
     }
 
     /**
-     * 1体の弾を今フレームのバッチに積む。アトラスが満杯で置き場所がなければfalseを返す。
+     * スプライトを1枚、今フレームのバッチに積む。アトラスが満杯で置き場所がなければfalseを返す。
+     * (x, y) を中心に、向き rotation の方向へ halfWidth、それと直角の方向へ halfHeight の大きさで描く。
+     * uFrom から uTo はスプライトの横方向のどこからどこまでを使うか(0~1)。ビームはこれで端と中ほどを切り分けて引き伸ばす
      */
     queue(
         key: string,
@@ -121,13 +123,29 @@ export class BulletGpuBatchRenderer {
         y: number,
         rotation: number,
         alpha: number,
-        halfSize: number,
+        halfWidth: number,
+        halfHeight: number,
+        uFrom: number,
+        uTo: number,
     ): boolean {
         const uv = this.atlas.get(key, source)
         if (!uv) return false
 
         this.ensureCapacity(this.instanceCount + 1)
-        this.writeInstance(this.instanceCount, x, y, rotation, alpha, halfSize, uv)
+        // 弾ごとにオブジェクトを作らないよう、UVは数のまま渡す
+        this.writeInstance(
+            this.instanceCount,
+            x,
+            y,
+            rotation,
+            alpha,
+            halfWidth,
+            halfHeight,
+            uv.u0 + (uv.u1 - uv.u0) * uFrom,
+            uv.v0,
+            uv.u0 + (uv.u1 - uv.u0) * uTo,
+            uv.v1,
+        )
         this.instanceCount++
 
         return true
@@ -175,8 +193,12 @@ export class BulletGpuBatchRenderer {
         y: number,
         rotation: number,
         alpha: number,
-        halfSize: number,
-        uv: AtlasUv,
+        halfWidth: number,
+        halfHeight: number,
+        u0: number,
+        v0: number,
+        u1: number,
+        v1: number,
     ) {
         const offset = index * FLOATS_PER_INSTANCE
         const d = this.instanceData
@@ -185,11 +207,12 @@ export class BulletGpuBatchRenderer {
         d[offset + 1] = y
         d[offset + 2] = rotation
         d[offset + 3] = alpha
-        d[offset + 4] = halfSize
-        d[offset + 5] = uv.u0
-        d[offset + 6] = uv.v0
-        d[offset + 7] = uv.u1
-        d[offset + 8] = uv.v1
+        d[offset + 4] = halfWidth
+        d[offset + 5] = halfHeight
+        d[offset + 6] = u0
+        d[offset + 7] = v0
+        d[offset + 8] = u1
+        d[offset + 9] = v1
     }
 
     private ensureCapacity(instanceCount: number) {
@@ -291,11 +314,11 @@ export class BulletGpuBatchRenderer {
         gl.vertexAttribDivisor(3, 1)
 
         gl.enableVertexAttribArray(4)
-        gl.vertexAttribPointer(4, 1, gl.FLOAT, false, stride, 4 * 4)
+        gl.vertexAttribPointer(4, 2, gl.FLOAT, false, stride, 4 * 4)
         gl.vertexAttribDivisor(4, 1)
 
         gl.enableVertexAttribArray(5)
-        gl.vertexAttribPointer(5, 4, gl.FLOAT, false, stride, 5 * 4)
+        gl.vertexAttribPointer(5, 4, gl.FLOAT, false, stride, 6 * 4)
         gl.vertexAttribDivisor(5, 1)
 
         gl.bindVertexArray(null)
