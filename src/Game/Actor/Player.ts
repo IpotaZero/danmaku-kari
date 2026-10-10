@@ -13,43 +13,28 @@ type AfterImage = { p: Vec; alpha: number }
 const AFTER_IMAGE_MAX = 18
 const AFTER_IMAGE_DECAY = 0.05
 
-const WING_FLAP_INTERVAL = 2
-
-// 蜂の体・そのまわりの多角形と円・翅の大きさの倍率(当たり判定・かすり判定の大きさは変えない)
+// 蜂の体(翅を含む)と、そのまわりの多角形・円の大きさの倍率(当たり判定・かすり判定の大きさは変えない)
 const BODY_SCALE = 2.24
 const EFFECT_SCALE = 1.44
-const WING_SCALE = 0.8
 
 const HIT_SHAKE_INTENSITY = 12
 const HIT_SHAKE_FRAME = 60
 
-const [upperWing, lowerWing] = await createWings()
-
-// 上下2枚の羽画像を左右反転で複製し、1枚のcanvasに焼き込んでおく(毎フレームの反転描画コストを避ける)
-async function createWings() {
-    const upper = new Image()
-    upper.src = "assets/image/upper-wing.svg"
-    const lower = new Image()
-    lower.src = "assets/image/lower-wing.svg"
-    await Promise.all([upper.decode(), lower.decode()])
-
-    const upperWingCanvas = document.createElement("canvas")
-    upperWingCanvas.width = 512
-    upperWingCanvas.height = 64
-    const upperWingCtx = upperWingCanvas.getContext("2d")!
-    upperWingCtx.drawImage(upper, 256, 0)
-    upperWingCtx.scale(-1, 1)
-    upperWingCtx.drawImage(upper, -256, 0)
-
-    const lowerWingCanvas = document.createElement("canvas")
-    lowerWingCanvas.width = 512
-    lowerWingCanvas.height = 128
-    const lowerWingCtx = lowerWingCanvas.getContext("2d")!
-    lowerWingCtx.drawImage(lower, 256, 0)
-    lowerWingCtx.scale(-1, 1)
-    lowerWingCtx.drawImage(lower, -256, 0)
-
-    return [upperWingCanvas, lowerWingCanvas] as const
+// ミツバチの翅の形(体の座標、BODY_SCALE倍する前)。根元を(0,0)、翅の先を+x、前縁(頭の側)を-yに向けて描く
+namespace WingShape {
+    // 前翅。根元は細く、先の方で幅が広がり、先端は丸い
+    export const fore = new Path2D(
+        "M0 -0.5 C6 -2.2 12 -3 18 -3.4 C25 -3.8 30 -2.6 30 -0.4 C30 2.4 26 4.6 20 4.6 C13 4.6 7 3 3 1.6 C1.5 1 0.3 0.6 0 0.3 Z",
+    )
+    // 前翅の翅脈。前縁沿いの縁紋と細長い縁室、真ん中に並ぶ小さな部屋(亜縁室)
+    export const foreVeins = new Path2D(
+        "M1 -0.6 C6 -1.6 12 -2.4 17 -2.9 M17 -2.9 Q22 -1.4 26.5 -2.6 M2 0.4 C6 0.5 9 0.6 12 0.6 L16 -2.2 M12 0.6 L19 1.4 L21.5 -1.6 M19 1.4 L16 3.6 M12 0.6 L10 3.6",
+    )
+    // 後翅。前縁はまっすぐで(ここで前翅と鉤でつながる)、後ろ側は丸く、根元近くに小さな切れ込みがある
+    export const hind = new Path2D(
+        "M0 -0.5 L13 -2.2 C17 -2.6 20 -1.6 20 0 C20 1.8 16 3.6 10 3.6 C8 3.6 7 3 6 2.6 Q5 2 4 2.8 C2 2.4 0.5 1.6 0 0.8 Z",
+    )
+    export const hindVeins = new Path2D("M1 -0.2 L10 -0.6 M10 -0.6 L13 1.6 M10 -0.6 L15 -1.6")
 }
 
 // Player自身はセーブデータ(Data層)を知らない。呼び出し側(Scene層)が
@@ -81,6 +66,11 @@ export class Player extends Actor {
 
     // 直近フレームの移動速度(羽の傾き等、見た目の計算にのみ使う)
     private v: Vec = vec(0, 0)
+
+    // 蜂らしい飛び方の見た目まわり。体と翅は、当たり判定(this.p)からhoverだけずらして描く
+    private hover: Vec = vec(0, 0)
+    // 横への傾き。速度にすぐには追いつかず、遅れて傾く
+    private bank = 0
 
     // 低速(スニーク)時の見た目まわり
     private drawRadianVelocity = 0
@@ -120,6 +110,7 @@ export class Player extends Actor {
         this.updateDrawRadian()
         this.updateSneakProgress()
         this.updateDashEffect()
+        this.updateFlight()
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
@@ -133,9 +124,9 @@ export class Player extends Actor {
         this.drawActionCooldown(ctx)
         this.drawLife(ctx)
         this.drawGrazeBoundary(ctx)
+        this.drawWings(ctx)
         this.drawBody(ctx)
         this.drawCore(ctx)
-        this.drawWings(ctx)
 
         ctx.restore()
     }
@@ -327,6 +318,19 @@ export class Player extends Actor {
         }
     }
 
+    // ホバリング中の、8の字を描くようなゆるい揺れと、羽音のような細かい震え。横へ動くときは遅れて体をその向きへ向ける
+    private updateFlight() {
+        this.hover = vec(
+            Math.sin(this.frame / 17) * 1.5 + (Math.random() - 0.5) * 0.6,
+            Math.sin(this.frame / 9) * 1.2 + (Math.random() - 0.5) * 0.6,
+        )
+        // 止まっている間は、あたりを見回すように頭の向きをゆっくり左右に振る
+        const stillness = 1 - Math.min(1, this.v.magnitude() / this.slowSpeed)
+        // タッチ操作では速度がとても大きくなることがあるので、傾きには上限を付ける
+        const target = Math.max(-0.3, Math.min(0.3, this.v.x * 0.03)) + Math.sin(this.frame / 37) * 0.12 * stillness
+        this.bank += (target - this.bank) * 0.15
+    }
+
     private updateSneakProgress() {
         const target = this.game.input.isPressed("slow") ? 1 : 0
         this.sneakProgress += (target - this.sneakProgress) * 0.15
@@ -437,17 +441,12 @@ export class Player extends Actor {
 
         ctx.save()
         ctx.globalAlpha *= 0.7
-        ctx.translate(this.p.x, this.p.y)
-        // 横へ動くと、その向きへ少し体を傾ける
-        ctx.rotate(this.v.x * 0.02)
-        // 形は小さな座標で描いて、まとめて大きくする。線の太さは拡大後に1pxになるようにする
-        ctx.scale(BODY_SCALE, BODY_SCALE)
-        ctx.lineWidth = 1 / BODY_SCALE
+        this.toBodySpace(ctx)
 
         // 腹。動きと逆へ少し遅れて振れ、呼吸するようにわずかに伸び縮みする
         ctx.save()
         ctx.translate(0, 5)
-        ctx.rotate(Math.sin(this.frame / 10) * 0.05 - this.v.x * 0.02)
+        ctx.rotate(Math.sin(this.frame / 10) * 0.05 - this.bank * 0.6)
         ctx.scale(1, 1 + Math.sin(this.frame / 7) * 0.03)
 
         ctx.beginPath()
@@ -482,7 +481,7 @@ export class Player extends Actor {
 
         // 頭と複眼
         ctx.beginPath()
-        ctx.ellipse(0, -9, 5, 3.8, 0, 0, T)
+        ctx.ellipse(0, -10, 5, 3.8, 0, 0, T)
         ctx.strokeStyle = outline
         ctx.stroke()
 
@@ -510,21 +509,61 @@ export class Player extends Actor {
         }
     }
 
-    // 上下2枚の羽をWING_FLAP_INTERVALフレームごとに交互に切り替えて羽ばたきに見せる
+    // 体と翅を描くための座標に移す。(0,0)が胸の真ん中で、頭が上(-y)。
+    // 形は小さな座標で描いて、まとめて大きくする。線の太さは拡大後に1pxになるようにする
+    private toBodySpace(ctx: CanvasRenderingContext2D) {
+        ctx.translate(this.p.x + this.hover.x, this.p.y + this.hover.y)
+        // 横へ動くと、その向きへ少し遅れて体を向ける
+        ctx.rotate(this.bank)
+        ctx.scale(BODY_SCALE, BODY_SCALE)
+        ctx.lineWidth = 1 / BODY_SCALE
+    }
+
+    // 蜂の翅は、短い振り幅(およそ90°)をとても速く往復するので、形は見えず、根元から開いた扇のようにぶれて見える。
+    // 扇の残像を描き、その中で翅を左右そろえてなめらかに往復させる。
+    // 本物の速さで動かすと人の目にはやかましいので、ゆっくり振って見せる。速く飛ぶほど大きく振る
     private drawWings(ctx: CanvasRenderingContext2D) {
-        const isUpperFrame = Math.floor(this.frame / WING_FLAP_INTERVAL) % 2 === 0
-        const phase = isUpperFrame ? 1 : -1
-        const offsetY = phase * 3 * WING_SCALE
-        const scaleY = 1 + phase * 0.08
+        const power = Math.min(1, this.v.magnitude() / this.speed)
+        // 真横を0として、後ろへ回る向きを正にした、翅を振る範囲
+        const front = -0.6 - power * 0.25
+        const back = 0.95 + power * 0.25
+
+        // 翅は扇の端まではいかせず、少し内側で振り返す
+        const angle = (front + back) / 2 + ((back - front) / 2) * 0.8 * Math.sin(this.frame * 0.9)
 
         ctx.save()
-        ctx.translate(this.p.x, this.p.y + offsetY)
-        ctx.scale(WING_SCALE, WING_SCALE * scaleY)
-        ctx.globalAlpha = 0.6
-        ctx.rotate((this.v.x / 20) * T * 0.02)
-        ctx.translate(-256, -40)
+        this.toBodySpace(ctx)
 
-        ctx.drawImage(isUpperFrame ? upperWing : lowerWing, Math.random() - 0.5, Math.random() - 0.5)
+        for (const side of [-1, 1]) {
+            ctx.save()
+            ctx.scale(side, 1)
+
+            // 前翅と後翅は鉤でつながっていて、一緒に動く。後翅は前翅の少し後ろにつく
+            for (const [rootY, length, lag, shape, veins] of [
+                [-2, 30, 0, WingShape.fore, WingShape.foreVeins],
+                [2, 20, 0.15, WingShape.hind, WingShape.hindVeins],
+            ] as const) {
+                ctx.beginPath()
+                ctx.moveTo(2.5, rootY)
+                ctx.arc(2.5, rootY, length, front + lag, back + lag)
+                ctx.closePath()
+                ctx.fillStyle = "rgba(255, 255, 255, 0.06)"
+                ctx.fill()
+
+                ctx.save()
+                ctx.translate(2.5, rootY)
+                ctx.rotate(angle + lag)
+                ctx.fillStyle = "rgba(255, 255, 255, 0.08)"
+                ctx.fill(shape)
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.35)"
+                ctx.stroke(shape)
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.18)"
+                ctx.stroke(veins)
+                ctx.restore()
+            }
+
+            ctx.restore()
+        }
 
         ctx.restore()
     }
