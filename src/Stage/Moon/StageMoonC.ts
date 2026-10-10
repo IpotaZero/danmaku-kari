@@ -48,14 +48,14 @@ class EnemyMortar extends Enemy {
         // 主機の体力は衛星の総和くらい
         super(game, RABBIT_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity, margin: 100 })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.cycle(), { loop: Infinity, margin: 100 })
     }
 
     private home() {
@@ -94,7 +94,7 @@ class EnemyRabbit extends Enemy {
 
         this.setParent(parent, () => vec(side * game.WIDTH * 0.32, game.HEIGHT * 0.05 * Math.sin(this.frame / 80)))
 
-        this.addScript(() => this.cycle(side), { margin: ENTRANCE_FRAMES, loop: Infinity })
+        this.scripts.add(() => this.cycle(side), { margin: ENTRANCE_FRAMES, loop: Infinity })
     }
 
     private *cycle(side: number) {

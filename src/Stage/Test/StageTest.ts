@@ -36,14 +36,14 @@ class EnemyBoss extends Enemy {
     constructor(game: Game) {
         super(game, 1500, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
         yield* this.moveTo(vec(this.game.WIDTH / 2, this.game.HEIGHT / 4), ENTRANCE_FRAMES)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.attack(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.attack(), { loop: Infinity })
     }
 
     private *move() {
@@ -103,7 +103,7 @@ class EnemySatellite extends Enemy {
 
         this.setParent(parent, () => vec.arg(phase + this.frame * orbitSpeed).scale(radius))
 
-        this.addScript(() => this.attack(), { margin: ENTRANCE_FRAMES, loop: Infinity })
+        this.scripts.add(() => this.attack(), { margin: ENTRANCE_FRAMES, loop: Infinity })
     }
 
     // ボスを一切見ず、ボスと全く同じフレーム数だけ待つことで結果的に同時発射になる

@@ -107,15 +107,15 @@ class EnemyUsuba extends Enemy {
         this.isInvincible = true
         this.abdomen.guardedBy(this.sandbags)
 
-        this.addScript(() => this.enter())
-        this.addScript(() => this.phases())
+        this.scripts.add(() => this.enter())
+        this.scripts.add(() => this.phases())
     }
 
     private *enter() {
         this.p = vec(-200, -200)
         yield* this.moveTo(this.home(), 120)
 
-        this.addScript(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
     }
 
     private home() {
@@ -140,11 +140,11 @@ class EnemyUsuba extends Enemy {
 
     private *phases() {
         // 一段目: 大顎と腹を落とすと次の段へ
-        this.addScript(() => this.ring(), { loop: Infinity, margin: 150, id: "body" })
+        this.scripts.add(() => this.ring(), { loop: Infinity, margin: 150, id: "body" })
         while (this.guards.some((p) => p.life > 0)) yield
 
         // 羽化。砂を吸い込んで力を溜めてから、胴を囲む正方形に四枚の翅を出す
-        this.removeScript("body")
+        this.scripts.remove("body")
         yield* Charge.gather(this, 150, "#ffd890")
 
         const wings = [
@@ -168,14 +168,14 @@ class EnemyUsuba extends Enemy {
 
         // 二段目: 翅を落とすと次の段へ。胴は砂の帳を下ろす
         yield* this.sync()
-        this.addScript(() => this.curtain(), { loop: Infinity, id: "body" })
+        this.scripts.add(() => this.curtain(), { loop: Infinity, id: "body" })
         while (wings.some((p) => p.life > 0)) yield
 
         // 三段目: 砂嵐。胴に攻撃が効くようになり、渦と砂の帳を同時に使う
         this.isInvincible = false
         this.game.camera.shake(8, 30)
         yield* this.sync()
-        this.addScript(() => this.whirl(), { loop: Infinity, id: "whirl" })
+        this.scripts.add(() => this.whirl(), { loop: Infinity, id: "whirl" })
     }
 
     // 大顎の砂の流れ。外の斜め下へ吐き、内側へ巻き込むように曲がっていく

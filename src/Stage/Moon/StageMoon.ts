@@ -86,15 +86,15 @@ class EnemySuzumushi extends Enemy {
         super(game, 1600, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
-        this.addScript(() => this.enter())
-        this.addScript(() => this.phases())
+        this.scripts.add(() => this.enter())
+        this.scripts.add(() => this.phases())
     }
 
     private *enter() {
         this.p = vec(-200, -200)
         yield* this.moveTo(this.home(), 120)
 
-        this.addScript(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
     }
 
     private home() {
@@ -108,11 +108,11 @@ class EnemySuzumushi extends Enemy {
 
     private *phases() {
         // 一段目: 翅を両方落とすと次の段へ
-        this.addScript(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
+        this.scripts.add(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
         while (this.wings.some((p) => p.life > 0)) yield
 
         // 合奏。大きく息を吸い込んでから、小鈴(孫機)に守られた子スズムシを呼ぶ
-        this.removeScript("body")
+        this.scripts.remove("body")
         yield* Charge.gather(this, 150, "#fff0b0")
 
         const crickets = [-1, 0, 1].map((k) => {
@@ -143,13 +143,13 @@ class EnemySuzumushi extends Enemy {
         })
 
         // 二段目: 子スズムシをすべて落とすと次の段へ。胴は月の輪を放つ
-        this.addScript(() => this.moonRing(), { loop: Infinity, margin: 90, id: "body" })
+        this.scripts.add(() => this.moonRing(), { loop: Infinity, margin: 90, id: "body" })
         while (crickets.some((p) => p.life > 0)) yield
 
         // 三段目: 満月。胴に攻撃が効くようになり、胴も半円の波を鳴らす
         this.isInvincible = false
         this.game.camera.shake(8, 30)
-        this.addScript(() => this.chirp(this, 0, 21), { loop: Infinity, margin: 30, id: "song" })
+        this.scripts.add(() => this.chirp(this, 0, 21), { loop: Infinity, margin: 30, id: "song" })
     }
 
     // 半円の音の波。下向きの半円の波を三つ続けて広げる。右寄りのものほど少し遅れるので、波がずれて重なる

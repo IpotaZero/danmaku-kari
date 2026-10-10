@@ -20,7 +20,7 @@ export const dash: SubEquipment = {
         while (true) {
             if (player.game.input.isPushed("action")) {
                 // クールタイムはダッシュ中も含めて進める
-                player.addScript(() => burst(player))
+                player.scripts.add(() => burst(player))
                 yield* actionCooldown(player, クールダウンフレーム)
             }
 

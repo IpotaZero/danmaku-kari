@@ -50,15 +50,15 @@ class EnemyMaster extends Enemy {
         // 主機の体力は子機の総和くらい
         super(game, 1800, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
-        this.addScript(() => this.watchAnts(), { margin: 120 })
+        this.scripts.add(() => this.enter())
+        this.scripts.add(() => this.watchAnts(), { margin: 120 })
     }
 
     private *enter() {
         yield* this.moveTo(this.home(), 120)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.shower(), { loop: Infinity, margin: 40 })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.shower(), { loop: Infinity, margin: 40 })
     }
 
     private home() {

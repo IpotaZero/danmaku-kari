@@ -45,14 +45,14 @@ class EnemyMaster extends Enemy {
         // 師範代だけが残るつまらない時間を短くするため、体力は盾持ちの総和よりずっと少なくする
         super(game, 800, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
         yield* this.moveTo(this.home(), 120)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.fan(), { loop: Infinity, margin: 60 })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.fan(), { loop: Infinity, margin: 60 })
     }
 
     private home() {

@@ -1,4 +1,5 @@
 import { Actor } from "./Actor"
+import { IteratorQueue } from "../IteratorQueue"
 import { Game } from "../Game"
 import { vec, Vec } from "@ipota/vec"
 import { T } from "../../T"
@@ -42,6 +43,8 @@ export class Player extends Actor {
 
     readonly renderer = new PlayerRenderer()
 
+    readonly scripts = new IteratorQueue()
+
     private readonly onLifeChange: (life: number) => void
 
     private readonly equipments: readonly (MainEquipment | SubEquipment)[]
@@ -55,8 +58,8 @@ export class Player extends Actor {
         this.onLifeChange = config.onLifeChange
         this.equipments = [config.mainEquipment, ...(config.subEquipment ? [config.subEquipment] : [])]
 
-        this.addScript(() => config.mainEquipment.fire(this), { loop: Infinity })
-        if (config.subEquipment) this.addScript(() => config.subEquipment!.action(this))
+        this.scripts.add(() => config.mainEquipment.fire(this), { loop: Infinity })
+        if (config.subEquipment) this.scripts.add(() => config.subEquipment!.action(this))
     }
 
     // ステージの会話を装備で分岐させるためのもの。例: this.game.player.isEquipped(laser)
@@ -92,7 +95,7 @@ export class Player extends Actor {
         this.game.se.hit.play()
         this.game.camera.shake(HIT_SHAKE_INTENSITY, HIT_SHAKE_FRAME)
 
-        this.addScript(
+        this.scripts.add(
             function* () {
                 const invincibleFrame = 120
                 yield* Array(invincibleFrame)
@@ -102,9 +105,9 @@ export class Player extends Actor {
 
         if (this.life < 0) {
             this.game.lose()
-            this.addScript(() => this.explode(), { id: "explode" })
+            this.scripts.add(() => this.explode(), { id: "explode" })
         } else {
-            this.addScript(() => this.hitField(), { id: "hitField" })
+            this.scripts.add(() => this.hitField(), { id: "hitField" })
         }
     }
 
@@ -116,7 +119,7 @@ export class Player extends Actor {
         this.game.se.hit.play()
         this.game.camera.shake(HIT_SHAKE_INTENSITY, HIT_SHAKE_FRAME)
 
-        this.addScript(() => this.explode(), { id: "explode" })
+        this.scripts.add(() => this.explode(), { id: "explode" })
         this.game.lose()
     }
 
@@ -140,7 +143,7 @@ export class Player extends Actor {
 
     // 被弾した瞬間に自機を中心としたリングを広げ、触れた敵弾をスコアに変える。
     // このスコアは自機へ寄ってこず落ちていくので、拾うには取りに行く必要がある。
-    // 無敵時間と同じくaddScript任せで進行させ、見た目もこの中で完結させて描いてしまう
+    // 無敵時間と同じくscripts任せで進行させ、見た目もこの中で完結させて描いてしまう
     // (Playerに専用フィールドを持たせない)
     private *hitField() {
         const frame = 60
@@ -215,7 +218,7 @@ export class Player extends Actor {
         const count = isBoosted ? 2 : 1
 
         for (let i = 0; i < count; i++) {
-            this.addScript(() => this.moveParticle(isBoosted))
+            this.scripts.add(() => this.moveParticle(isBoosted))
         }
     }
 

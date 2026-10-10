@@ -43,7 +43,7 @@ class EnemyTarget extends Enemy {
         super(game, 3000, Size.MASTER, { renderer: new EnemyRendererCore() })
 
         this.p = vec(game.WIDTH / 2, game.HEIGHT * 0.12)
-        this.addScript(() => this.lineUp())
+        this.scripts.add(() => this.lineUp())
     }
 
     // 弾を2列に並べる。的が倒れるまで、自機に触れているかどうかで色を変え続ける

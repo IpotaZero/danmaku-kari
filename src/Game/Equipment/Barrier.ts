@@ -21,7 +21,7 @@ export const barrier: SubEquipment = {
     *action(player) {
         while (true) {
             if (player.game.input.isPushed("action")) {
-                player.addScript(() => barrierField(player))
+                player.scripts.add(() => barrierField(player))
                 yield* actionCooldown(player, クールダウンフレーム)
             }
 

@@ -10,5 +10,5 @@ export function* actionCooldown(player: Player, frame: number): Generator<void, 
     }
 
     player.actionCooldownRemaining = 0
-    player.addScript(() => actionReadyEffect(player))
+    player.scripts.add(() => actionReadyEffect(player))
 }

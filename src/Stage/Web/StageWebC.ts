@@ -73,7 +73,7 @@ class EnemyMother extends Enemy {
         // 主機の体力は衛星の総和くらい
         super(game, SPIDER_LIFE * SPIDER_COUNT + DANGLER_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private home() {
@@ -83,8 +83,8 @@ class EnemyMother extends Enemy {
     private *enter() {
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.cycle(), { loop: Infinity })
     }
 
     private *move() {
@@ -126,7 +126,7 @@ class EnemySpider extends Enemy {
 
         this.setParent(parent, () => vec.arg(this.frame / 600 + (T * index) / SPIDER_COUNT).scale(160))
 
-        this.addScript(() => this.cycle(index), { margin: ENTRANCE_FRAMES, loop: Infinity })
+        this.scripts.add(() => this.cycle(index), { margin: ENTRANCE_FRAMES, loop: Infinity })
     }
 
     private *cycle(index: number) {
@@ -155,7 +155,7 @@ class EnemyDangler extends Enemy {
     constructor(game: Game, side: number) {
         super(game, DANGLER_LIFE, Size.S)
 
-        this.addScript(() => this.enter(side))
+        this.scripts.add(() => this.enter(side))
     }
 
     private home(side: number) {
@@ -166,9 +166,9 @@ class EnemyDangler extends Enemy {
         this.p = this.home(side).add(vec(0, -this.game.HEIGHT * 0.2))
         yield* this.moveTo(this.home(side), ENTRANCE_FRAMES)
 
-        this.addScript(() => this.move(side), { loop: Infinity })
+        this.scripts.add(() => this.move(side), { loop: Infinity })
         // 左右で途切れ目の来るタイミングをずらす
-        this.addScript(() => this.thread(), {
+        this.scripts.add(() => this.thread(), {
             loop: Infinity,
             margin: side > 0 ? (THREAD_FRAMES + THREAD_GAP_FRAMES) / 2 : 0,
         })

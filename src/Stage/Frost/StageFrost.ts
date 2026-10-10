@@ -78,20 +78,20 @@ class EnemyFrost extends Enemy {
         super(game, 2400, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     *start() {
-        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle" })
+        this.scripts.add(() => this.cycle0(), { loop: Infinity, id: "cycle" })
         yield
 
-        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.scripts.add(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
 
-        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.scripts.add(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
 
-        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.scripts.add(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
     }
 
@@ -99,7 +99,7 @@ class EnemyFrost extends Enemy {
         this.p = vec(-200, -200)
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
-        this.addScript(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
     }
 
     private home() {

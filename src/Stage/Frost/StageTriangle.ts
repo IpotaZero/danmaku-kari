@@ -59,7 +59,7 @@ class EnemyLine extends Enemy {
     constructor(game: Game, parent: Enemy) {
         super(game, 750, Size.S)
         this.setParent(parent, () => vec.arg(T / 2 + (T / 180) * this.frame).scale(parent.r))
-        this.addScript(() => this.line(), { loop: Infinity, margin: 240 })
+        this.scripts.add(() => this.line(), { loop: Infinity, margin: 240 })
     }
 
     private *line() {
@@ -84,7 +84,7 @@ class EnemySnow extends Enemy {
     constructor(game: Game, parent: Enemy) {
         super(game, 750, Size.S)
         this.setParent(parent, () => vec.arg((T / 180) * this.frame).scale(parent.r))
-        this.addScript(() => this.snow(), { loop: Infinity, margin: 120 })
+        this.scripts.add(() => this.snow(), { loop: Infinity, margin: 120 })
     }
 
     private *snow() {
@@ -112,14 +112,14 @@ class EnemyHexagon extends Enemy {
     constructor(game: Game) {
         super(game, 1500, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.cycle(), { loop: Infinity })
     }
 
     private home() {

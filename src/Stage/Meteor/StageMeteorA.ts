@@ -32,14 +32,14 @@ class EnemyPupil extends Enemy {
         // 主機の体力は子機の総和くらい
         super(game, 2000, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
         yield* this.moveTo(this.home(), 120)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.cycle(), { loop: Infinity })
     }
 
     private home() {
@@ -102,9 +102,9 @@ class EnemyStardust extends Enemy {
         this.setParent(parent, () => vec.arg(this.frame / 60 + (T * index) / 4).scale(110))
 
         if (index % 2 === 0) {
-            this.addScript(() => this.fan(), { loop: Infinity, margin: 150 + index * 20 })
+            this.scripts.add(() => this.fan(), { loop: Infinity, margin: 150 + index * 20 })
         } else {
-            this.addScript(() => this.ring(), { loop: Infinity, margin: 170 + index * 20 })
+            this.scripts.add(() => this.ring(), { loop: Infinity, margin: 170 + index * 20 })
         }
     }
 

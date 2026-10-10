@@ -3,13 +3,19 @@ import { Game } from "../Game/Game"
 import { IteratorQueue } from "../Game/IteratorQueue"
 import { Figure } from "./Figure"
 
-export abstract class Stage extends IteratorQueue {
+export abstract class Stage {
+    // ステージを進めるスクリプト
+    readonly scripts = new IteratorQueue()
+
     private flashAlpha = 0
     private flashColor = "#ffffff"
 
     constructor(protected readonly game: Game) {
-        super()
-        this.addScript(() => this.H(), { id: "runToEnd" })
+        this.scripts.add(() => this.H(), { id: "runToEnd" })
+    }
+
+    update() {
+        this.scripts.update()
     }
 
     // G()が最後まで到達したらステージクリア
@@ -45,7 +51,7 @@ export abstract class Stage extends IteratorQueue {
     // 画面全体を指定色でフラッシュさせる(frameフレームかけて薄れて消える)。敵の演出からも game.stage.flash で呼べる
     flash(color: string = "#ffffff", frame: number = 12) {
         this.flashColor = color
-        this.addScript(() => this.flashG(frame), { id: "flash" })
+        this.scripts.add(() => this.flashG(frame), { id: "flash" })
     }
 
     private *flashG(frame: number): Generator<void, void, void> {

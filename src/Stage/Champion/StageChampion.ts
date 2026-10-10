@@ -46,7 +46,7 @@ export default class extends Stage {
         // 一代目が完全に倒れると、初雪が降りはじめる。一年が冬へ戻っていく。画面の弾を花粉に変えて、一息つかせる
         this.scorenizeAllBullets()
         this.flash("#eef6ffc0", 40)
-        this.addScript(() => this.quietSnow(), { loop: Infinity })
+        this.scripts.add(() => this.quietSnow(), { loop: Infinity })
 
         // 倒れた所に卵が現れ、温まりきると孵る
         yield* Array(40)
@@ -87,7 +87,7 @@ class EnemyEgg extends Enemy {
         super(game, 1, Size.L, { charge: 100 })
         this.p = p.clone()
 
-        this.addScript(() => this.hatch())
+        this.scripts.add(() => this.hatch())
     }
 
     // 温まりきると孵る
@@ -199,8 +199,8 @@ class EnemyHornet extends Enemy {
 
         this.parts = [...mandibles, ...this.wings, ...legs, stinger, ...workers]
 
-        this.addScript(() => this.enter(generation))
-        this.addScript(() => this.phases(generation))
+        this.scripts.add(() => this.enter(generation))
+        this.scripts.add(() => this.phases(generation))
     }
 
     // 一代目は画面の外から飛んでくる。二代目は、卵の孵った所で輪を放ちながら舞い上がる
@@ -221,7 +221,7 @@ class EnemyHornet extends Enemy {
 
         yield* this.moveTo(this.home(), 120)
 
-        this.addScript(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
     }
 
     private home() {
@@ -235,12 +235,12 @@ class EnemyHornet extends Enemy {
 
     private *phases(generation: number) {
         // 翅を落とすまで、胴に攻撃が効かない。胴はときどき輪を放つ
-        this.addScript(() => this.ring(generation), { loop: Infinity, margin: 180, id: "body" })
+        this.scripts.add(() => this.ring(generation), { loop: Infinity, margin: 180, id: "body" })
         while (this.wings.some((p) => p.life > 0)) yield
 
         // 二代目は、翅を落とすと力を溜めて、まわりを回る六つの親衛隊を呼ぶ
         if (generation > 0) {
-            this.removeScript("body")
+            this.scripts.remove("body")
             yield* Charge.gather(this, 150, "#ffd060")
 
             const escorts = [0, 1, 2, 3, 4, 5].map(
@@ -256,17 +256,17 @@ class EnemyHornet extends Enemy {
                     ),
             )
             this.game.enemies.push(...escorts)
-            this.addScript(() => this.ring(generation), { loop: Infinity, margin: 60, id: "body" })
+            this.scripts.add(() => this.ring(generation), { loop: Infinity, margin: 60, id: "body" })
 
             while (escorts.some((p) => p.life > 0)) yield
         }
 
         // 胴に攻撃が効くようになり、女王の怒りを撒く。二代目は光の翅も広げる
-        this.removeScript("body")
+        this.scripts.remove("body")
         yield* Charge.gather(this, 120, "#ffb040")
         this.isInvincible = false
-        this.addScript(() => this.fury(generation), { loop: Infinity, id: "body" })
-        if (generation > 0) this.addScript(() => this.lightWings(), { loop: Infinity, margin: 60, id: "wings" })
+        this.scripts.add(() => this.fury(generation), { loop: Infinity, id: "body" })
+        if (generation > 0) this.scripts.add(() => this.lightWings(), { loop: Infinity, margin: 60, id: "wings" })
     }
 
     // 大顎の噛みつき。横へ開いた弾が一度止まり、少しして自機のいた所へ一斉に飛びかかる
@@ -507,7 +507,7 @@ class EnemyHornet extends Enemy {
 
     // 初雪。画面の上から、ゆっくり左右に揺れながら雪が降りはじめ、倒れるまで降り続ける
     snow() {
-        this.addScript(() => this.snowfall(), { loop: Infinity })
+        this.scripts.add(() => this.snowfall(), { loop: Infinity })
     }
 
     private *snowfall() {

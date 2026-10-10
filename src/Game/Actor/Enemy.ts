@@ -22,12 +22,14 @@ export abstract class Enemy extends Actor {
     // 外からは足せないので、ここに演出を入れて充電中に動かすことはできない
     private readonly figure = new IteratorQueue()
 
+    readonly scripts = new EnemyScripts(this)
+
     isInvincible = false
 
     readonly renderer: IEnemyRenderer
 
     // 弾幕用の乱数のシード。n 体目の敵は、ステージに入り直すたびに同じシードになる
-    private readonly randomSeed = this.game.enemySeeds.next().value
+    readonly randomSeed = this.game.enemySeeds.next().value
 
     // 弾幕用の乱数。スクリプトや弾の挙動の実行中は、それ専用の乱数に差し替わる (withRandom を参照)
     random = seededRandom(this.randomSeed)
@@ -65,15 +67,6 @@ export abstract class Enemy extends Actor {
         else super.update()
 
         this.frame++
-    }
-
-    // スクリプトごとに乱数を初期化する。フェーズの長さやほかのスクリプトの消費量に関係なく、各スクリプトは毎回同じ列を使う
-    addScript(
-        g: (me: this) => Iterable<unknown, unknown, void>,
-        config?: { loop?: number; margin?: number; id?: string },
-    ) {
-        const random = seededRandom(this.randomSeed)
-        super.addScript((me) => me.withRandom(random, g(me)), config)
     }
 
     // iterable が1ステップ進む間だけ this.random を random に差し替える。
@@ -118,7 +111,7 @@ export abstract class Enemy extends Actor {
     hit(damage: number) {
         this.damaged = true
         // 自機の弾は毎フレーム何発も当たるので、当たるたびに膨らむ演出を積み増さず、同じidで最初からやり直す
-        this.figure.addScript(() => this.hitG(), { id: "hit" })
+        this.figure.add(() => this.hitG(), { id: "hit" })
 
         // 充電中は攻撃が効かず、そのぶん充電が早まる
         if (this.battery.absorb(damage)) return
@@ -154,13 +147,13 @@ export abstract class Enemy extends Actor {
     // 親敵に追従する子敵として振る舞わせる。親が死んだら自分も死ぬ。
     // 登場の演出として、現れてから60フレームかけて、親の中心から position の位置まで広がり出る
     protected setParent(parent: Enemy, position: () => Vec) {
-        this.figure.addScript(() => this.followParent(parent, position), { id: "parent", loop: Infinity })
+        this.figure.add(() => this.followParent(parent, position), { id: "parent", loop: Infinity })
     }
 
     private *followParent(parent: Enemy, position: () => Vec) {
         if (parent.life <= 0) {
             this.life = 0
-            // ここでyieldせずreturnすると、addScriptのloop:Infinityが
+            // ここでyieldせずreturnすると、addのloop:Infinityが
             // 一度もyieldしないまま呼び出しを回し続けてタブがフリーズする
             yield
             return
@@ -174,5 +167,17 @@ export abstract class Enemy extends Actor {
         const w = this.game.WIDTH
         const h = this.game.HEIGHT
         yield* this.moveTo(vec(w * (0.1 + 0.8 * this.random()), h * (0.1 + 0.1 * this.random())), frames)
+    }
+}
+
+// 敵のスクリプト。スクリプトごとに乱数を初期化する。フェーズの長さやほかのスクリプトの消費量に関係なく、各スクリプトは毎回同じ列を使う
+class EnemyScripts extends IteratorQueue {
+    constructor(private readonly enemy: Enemy) {
+        super()
+    }
+
+    add(g: () => Iterable<unknown, unknown, void>, config?: { loop?: number; margin?: number; id?: string }) {
+        const random = seededRandom(this.enemy.randomSeed)
+        super.add(() => this.enemy.withRandom(random, g()), config)
     }
 }

@@ -49,14 +49,14 @@ class EnemyAntlion extends Enemy {
         // 主機の体力は衛星の総和くらい
         super(game, ANT_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.cycle(), { loop: Infinity })
     }
 
     private home() {
@@ -105,7 +105,7 @@ class EnemyAnt extends Enemy {
 
         this.setParent(parent, () => vec.arg(this.frame / 160 + (T / 2) * index).scale(RIM))
 
-        this.addScript(() => this.cycle(parent), { margin: ENTRANCE_FRAMES, loop: Infinity })
+        this.scripts.add(() => this.cycle(parent), { margin: ENTRANCE_FRAMES, loop: Infinity })
     }
 
     private *cycle(pit: Enemy) {

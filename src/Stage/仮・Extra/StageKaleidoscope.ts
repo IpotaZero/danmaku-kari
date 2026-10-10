@@ -39,21 +39,21 @@ class EnemyKaleidoscope extends Enemy {
     constructor(game: Game) {
         super(game, 3200, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
         yield* this.moveTo(this.at(0), ENTRANCE_FRAMES)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() =>
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() =>
             Mirage.images(this, (p) =>
                 Array.from({ length: FOLD - 1 }, (_, k) =>
                     this.center.add(p.sub(this.center).rotate((T * (k + 1)) / FOLD)),
                 ),
             ),
         )
-        this.addScript(() => this.cycle(), { loop: Infinity, margin: 30 })
+        this.scripts.add(() => this.cycle(), { loop: Infinity, margin: 30 })
     }
 
     // 中心のまわりを回る位置。t はフレーム数

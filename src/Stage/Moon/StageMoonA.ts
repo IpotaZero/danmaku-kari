@@ -48,14 +48,14 @@ class EnemyPupil extends Enemy {
         // 主機の体力は子機の総和くらい
         super(game, 1400, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
         yield* this.moveTo(this.home(), 120)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.ring(), { loop: Infinity, margin: 60 })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.ring(), { loop: Infinity, margin: 60 })
     }
 
     private home() {

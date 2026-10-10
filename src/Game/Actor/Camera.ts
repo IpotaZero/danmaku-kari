@@ -1,6 +1,7 @@
 import { vec, Vec } from "@ipota/vec"
 import { Actor } from "./Actor"
 import { Game } from "../Game"
+import { IteratorQueue } from "../IteratorQueue"
 
 export type CameraTransform = {
     x: number
@@ -18,6 +19,8 @@ export class Camera extends Actor {
 
     private shakeP = vec(0, 0)
 
+    readonly scripts = new IteratorQueue()
+
     constructor(game: Game, firstPosition: Vec) {
         super(game)
         this.p = firstPosition
@@ -25,7 +28,7 @@ export class Camera extends Actor {
 
     // 画面全体を揺らす。intensityは最大のずれ幅(px)、frameは減衰しながら続くフレーム数
     shake(intensity: number, frame: number = 20) {
-        this.addScript(() => this.shakeG(intensity, frame), { id: "shake" })
+        this.scripts.add(() => this.shakeG(intensity, frame), { id: "shake" })
     }
 
     private *shakeG(intensity: number, frame: number): Generator<void, void, void> {

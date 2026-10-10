@@ -81,15 +81,15 @@ class EnemyKabuto extends Enemy {
         super(game, 2800, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
-        this.addScript(() => this.enter())
-        this.addScript(() => this.takeOff(), { margin: 120 })
+        this.scripts.add(() => this.enter())
+        this.scripts.add(() => this.takeOff(), { margin: 120 })
     }
 
     private *enter() {
         this.p = vec(-200, -200)
         yield* this.moveTo(this.home(), 120)
 
-        this.addScript(() => this.walk(), { id: "move" })
+        this.scripts.add(() => this.walk(), { id: "move" })
     }
 
     private home() {
@@ -123,9 +123,9 @@ class EnemyKabuto extends Enemy {
         this.game.camera.shake(8, 30)
 
         // 一度もとの位置へ戻ってから飛びまわる
-        this.removeScript("move")
+        this.scripts.remove("move")
         yield* this.moveTo(this.home().add(vec(0, this.game.HEIGHT * 0.06)), 40)
-        this.addScript(() => this.fly(), { id: "move" })
+        this.scripts.add(() => this.fly(), { id: "move" })
 
         // 後翅は胴の前の左右一対(胴の後ろだと、胴にさえぎられて撃てない)
         const wings = [-1, 1].map(
@@ -142,7 +142,7 @@ class EnemyKabuto extends Enemy {
         )
         this.game.enemies.push(...wings)
 
-        this.addScript(() => this.whirl(), { loop: Infinity, margin: 60 })
+        this.scripts.add(() => this.whirl(), { loop: Infinity, margin: 60 })
     }
 
     // 角突き。自機へ向けて予告の線を引き、少しして線に沿って針の列を突き出す

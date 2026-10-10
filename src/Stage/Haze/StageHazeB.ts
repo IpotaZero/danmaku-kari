@@ -45,7 +45,7 @@ class EnemyMaster extends Enemy {
         // 主機の体力は衛星の総和くらい
         super(game, FLAME_LIFE, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
@@ -53,8 +53,8 @@ class EnemyMaster extends Enemy {
 
         Mirage.show(this, this.mirrors, DRAW_FRAMES)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity, margin: DRAW_FRAMES + 30 })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.cycle(), { loop: Infinity, margin: DRAW_FRAMES + 30 })
     }
 
     // 左上の部屋の真ん中
@@ -110,9 +110,9 @@ class EnemyFlame extends Enemy {
 
         this.setParent(parent, () => vec.arg(this.frame / 90).scale(70))
         // 幻は、高弟が登場して鏡を引き終わってから映る
-        this.addScript(() => Mirage.ghosts(this, parent.mirrors, ENTRANCE_FRAMES + DRAW_FRAMES))
+        this.scripts.add(() => Mirage.ghosts(this, parent.mirrors, ENTRANCE_FRAMES + DRAW_FRAMES))
 
-        this.addScript(() => this.cycle(), { margin: ENTRANCE_FRAMES + 180, loop: Infinity })
+        this.scripts.add(() => this.cycle(), { margin: ENTRANCE_FRAMES + 180, loop: Infinity })
     }
 
     private *cycle() {

@@ -46,13 +46,13 @@ class EnemyBoss extends Enemy {
             this.segments.push(new Segment(game, this.segments[k - 1] ?? this))
         }
 
-        this.addScript(() => this.enter())
-        this.addScript(() => this.phases())
+        this.scripts.add(() => this.enter())
+        this.scripts.add(() => this.phases())
     }
 
     private *enter() {
         yield* this.glide(this.home(), 150)
-        this.addScript(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
     }
 
     private home() {
@@ -133,7 +133,7 @@ class EnemyBoss extends Enemy {
         }
 
         yield* Array(20)
-        this.segments.filter((p) => p.life > 0).forEach((p, k) => p.addScript(() => p.shed(), { margin: k * 4 }))
+        this.segments.filter((p) => p.life > 0).forEach((p, k) => p.scripts.add(() => p.shed(), { margin: k * 4 }))
         yield* Array(60)
     }
 
@@ -218,7 +218,7 @@ class EnemyBoss extends Enemy {
         // 頭だけになると、力を溜めてから攻撃が効くようになる。動いた跡に肋の残像を残す
         yield* Charge.gather(this, 120, "#d0ffa0")
         this.isInvincible = false
-        this.addScript(() => this.afterimage(), { loop: Infinity, id: "afterimage" })
+        this.scripts.add(() => this.afterimage(), { loop: Infinity, id: "afterimage" })
     }
 
     // 残像。動いた跡に、進む向きを横切る肋の形の光を残す。光はしばらくその場にとどまって消える。速く動くほど長い
@@ -260,8 +260,8 @@ class Segment extends Enemy {
         super(game, 150, Size.M)
         this.p = leader.p.clone()
 
-        this.addScript(() => this.follow(leader), { loop: Infinity })
-        this.addScript(() => this.rib(leader))
+        this.scripts.add(() => this.follow(leader), { loop: Infinity })
+        this.scripts.add(() => this.rib(leader))
     }
 
     // 一つ前の節から40pxより離れたら、その分だけ引き寄せられる

@@ -49,8 +49,8 @@ class EnemyBoss extends Enemy {
         super(game, 1400, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
-        this.addScript(() => this.enter())
-        this.addScript(() => this.phases())
+        this.scripts.add(() => this.enter())
+        this.scripts.add(() => this.phases())
     }
 
     // generation 対目の翼。対によって攻撃が変わる
@@ -75,7 +75,7 @@ class EnemyBoss extends Enemy {
         this.p = vec(-200, -200)
         yield* this.moveTo(this.home(), 120)
 
-        this.addScript(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
     }
 
     private home() {
@@ -89,26 +89,26 @@ class EnemyBoss extends Enemy {
 
     private *phases() {
         // 一対目の翼を落とすまで
-        this.addScript(() => this.ring(0), { loop: Infinity, margin: 180, id: "body" })
+        this.scripts.add(() => this.ring(0), { loop: Infinity, margin: 180, id: "body" })
         while (this.firstWings.some((p) => p.life > 0)) yield
 
         // 二対目・三対目。落とすたびに力を溜めて、もっと激しい翼を出す
         for (const generation of [1, 2]) {
-            this.removeScript("body")
+            this.scripts.remove("body")
             yield* Charge.gather(this, 120, "#ff9050")
 
             const wings = [-1, 1].map((side) => this.wing(side, generation))
             this.game.enemies.push(...wings)
-            this.addScript(() => this.ring(generation), { loop: Infinity, margin: 60, id: "body" })
+            this.scripts.add(() => this.ring(generation), { loop: Infinity, margin: 60, id: "body" })
 
             while (wings.some((p) => p.life > 0)) yield
         }
 
         // 三対目を落とすと、胴に攻撃が効くようになり、炎の渦を撒く
-        this.removeScript("body")
+        this.scripts.remove("body")
         yield* Charge.gather(this, 120, "#ff7050")
         this.isInvincible = false
-        this.addScript(() => this.spiral(), { loop: Infinity, id: "body" })
+        this.scripts.add(() => this.spiral(), { loop: Infinity, id: "body" })
     }
 
     // 一対目の翼。外側の斜め下へ、ゆっくり出て一気に速くなる炎の羽の扇を三度払う

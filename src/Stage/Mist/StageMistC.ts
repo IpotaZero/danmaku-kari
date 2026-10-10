@@ -51,14 +51,14 @@ class EnemyMaster extends Enemy {
         // 主機の体力は衛星の総和くらい
         super(game, CLONE_LIFE * CLONE_COUNT, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.cycle(), { loop: Infinity })
     }
 
     private home() {
@@ -114,7 +114,7 @@ class EnemyClone extends Enemy {
             vec(offset.x * game.WIDTH, (offset.y + 0.02 * Math.sin(this.frame / 90 + index)) * game.HEIGHT),
         )
 
-        this.addScript(() => this.cycle(index), { margin: ENTRANCE_FRAMES, loop: Infinity })
+        this.scripts.add(() => this.cycle(index), { margin: ENTRANCE_FRAMES, loop: Infinity })
     }
 
     private *cycle(index: number) {

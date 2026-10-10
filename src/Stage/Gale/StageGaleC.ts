@@ -29,7 +29,7 @@ class EnemyAim extends Enemy {
     constructor(game: Game, parent: Enemy, radian: number) {
         super(game, 1000, Size.S)
         this.setParent(parent, () => vec.arg(radian + this.frame / 300).scale(parent.r + this.r))
-        this.addScript(() => this.attack(), { loop: Infinity, margin: 120 })
+        this.scripts.add(() => this.attack(), { loop: Infinity, margin: 120 })
     }
 
     private *fire() {
@@ -106,7 +106,7 @@ class EnemyCore extends Enemy {
 
     constructor(game: Game) {
         super(game, 1800, Size.MASTER, { renderer: new EnemyRendererCore() })
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private center() {
@@ -116,9 +116,9 @@ class EnemyCore extends Enemy {
     private *enter() {
         yield* this.moveTo(this.center(), 120)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.attack(), { loop: Infinity })
-        // this.addScript(() => this.attack2(), { loop: Infinity });
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.attack(), { loop: Infinity })
+        // this.scripts.add(() => this.attack2(), { loop: Infinity });
     }
 
     private *move() {

@@ -41,7 +41,7 @@ class EnemyPhase1 extends Enemy {
         super(game, 1900, 40, { renderer: new EnemyRendererCore() })
         this.setParent(parent, () => vec.arg(this.frame / 360).scale(parent.r + this.r * 3))
         this.parent = parent
-        this.addScript(() => this.attack(), { loop: Infinity, margin: 60 })
+        this.scripts.add(() => this.attack(), { loop: Infinity, margin: 60 })
     }
 
     private *fire() {
@@ -200,7 +200,7 @@ class EnemyPhase2 extends Enemy {
 
     start() {
         this.isInvincible = false
-        this.addScript(() => this.attack(), { loop: Infinity })
+        this.scripts.add(() => this.attack(), { loop: Infinity })
     }
 }
 
@@ -281,7 +281,7 @@ class EnemyPhase3 extends Enemy {
 
     start() {
         this.isInvincible = false
-        this.addScript(() => this.attack(), { loop: Infinity })
+        this.scripts.add(() => this.attack(), { loop: Infinity })
     }
 }
 
@@ -291,7 +291,7 @@ class EnemyBoss extends Enemy {
     constructor(game: Game) {
         super(game, 1800, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private center() {
@@ -301,12 +301,12 @@ class EnemyBoss extends Enemy {
     private *enter() {
         yield* this.moveTo(this.center(), 120)
 
-        this.addScript(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
     }
 
     start() {
         this.isInvincible = false
-        this.addScript(() => this.attack(), { loop: Infinity })
+        this.scripts.add(() => this.attack(), { loop: Infinity })
     }
 
     private *move() {

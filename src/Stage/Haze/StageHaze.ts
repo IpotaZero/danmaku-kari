@@ -75,33 +75,33 @@ class EnemyHaze extends Enemy {
         super(game, 3600, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     *start() {
-        this.addScript(() => this.cycle0(), { id: "cycle", margin: 150 })
+        this.scripts.add(() => this.cycle0(), { id: "cycle", margin: 150 })
         yield
 
         this.reflectIn([], DRAW_FRAMES)
-        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 300 })
-        this.addScript(function* (me) {
-            yield* Array(240)
-            me.reflectIn([Mirage.horizontal(me.game)], DRAW_FRAMES)
-        })
+        this.scripts.add(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 300 })
+        this.scripts.add(() => this.reflectInLater(() => [Mirage.horizontal(this.game)]))
         yield
 
         this.reflectIn([], DRAW_FRAMES)
-        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 300 })
+        this.scripts.add(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 300 })
         yield
 
         this.reflectIn([], DRAW_FRAMES)
-        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 300 })
-        this.addScript(function* (me) {
-            yield* Array(240)
-            me.reflectIn(Mirage.cross(me.game), DRAW_FRAMES)
-        })
+        this.scripts.add(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 300 })
+        this.scripts.add(() => this.reflectInLater(() => Mirage.cross(this.game)))
 
         yield
+    }
+
+    // 240フレーム待ってから鏡を掛け替える。鏡は掛け替えるときに作る
+    private *reflectInLater(mirrors: () => readonly Mirage.Mirror[]) {
+        yield* Array(240)
+        this.reflectIn(mirrors(), DRAW_FRAMES)
     }
 
     // 鏡を掛け替える。今の鏡は取り去られ、鏡の線も幻も、映っていた弾も薄れて消える。
@@ -116,7 +116,7 @@ class EnemyHaze extends Enemy {
         this.p = vec(-200, -200)
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
-        this.addScript(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
     }
 
     private home() {

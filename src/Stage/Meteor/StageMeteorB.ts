@@ -31,14 +31,14 @@ class EnemySun extends Enemy {
         // 主機の体力は子機の総和くらい
         super(game, 2400, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
         yield* this.moveTo(this.home(), 120)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.cycle(), { loop: Infinity })
     }
 
     private home() {
@@ -135,9 +135,9 @@ class EnemyPlanet extends Enemy {
         this.setParent(parent, () => vec.arg((turn * this.frame) / (60 + 20 * index) + (T * index) / 4).scale(radius))
 
         if (index % 2 === 0) {
-            this.addScript(() => this.fan(), { loop: Infinity, margin: 180 + index * 25 })
+            this.scripts.add(() => this.fan(), { loop: Infinity, margin: 180 + index * 25 })
         } else {
-            this.addScript(() => this.ring(), { loop: Infinity, margin: 200 + index * 25 })
+            this.scripts.add(() => this.ring(), { loop: Infinity, margin: 200 + index * 25 })
         }
     }
 

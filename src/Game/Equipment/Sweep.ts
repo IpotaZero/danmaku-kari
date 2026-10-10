@@ -18,7 +18,7 @@ export const sweep: SubEquipment = {
     *action(player) {
         while (true) {
             if (player.game.input.isPushed("action")) {
-                player.addScript(() => sweepWave(player))
+                player.scripts.add(() => sweepWave(player))
                 yield* actionCooldown(player, クールダウンフレーム)
             }
 

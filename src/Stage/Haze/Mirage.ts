@@ -226,7 +226,7 @@ export namespace Mirage {
 
     // e に鏡を引いて、幻を映す。drawFrames は鏡を引くのにかかる時間
     export function show(e: Enemy, mirrors: readonly Mirror[], drawFrames: number) {
-        mirrors.forEach((m) => e.addScript(() => draw(e, m, drawFrames)))
-        e.addScript(() => ghosts(e, mirrors, drawFrames))
+        mirrors.forEach((m) => e.scripts.add(() => draw(e, m, drawFrames)))
+        e.scripts.add(() => ghosts(e, mirrors, drawFrames))
     }
 }

@@ -90,27 +90,27 @@ class EnemyBoss extends Enemy {
         super(game, 1600, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
-        this.addScript(() => this.enter())
-        this.addScript(() => this.phases())
+        this.scripts.add(() => this.enter())
+        this.scripts.add(() => this.phases())
     }
 
     private *enter() {
         this.p = vec(-200, -200)
         yield* this.moveTo(vec(this.game.WIDTH / 2, this.game.HEIGHT * 0.16), 120)
 
-        this.addScript(() => this.pounce(), { loop: Infinity, id: "move" })
+        this.scripts.add(() => this.pounce(), { loop: Infinity, id: "move" })
     }
 
     private *phases() {
         // 一段目: 前脚と尾を落とすと次の段へ
-        this.addScript(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
+        this.scripts.add(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
         while (this.guards.some((p) => p.life > 0)) yield
 
         // 遠吠え。立ち止まって吠えてから、爪(孫機)に守られた若虎を呼ぶ
-        this.removeScript("body")
-        this.removeScript("move")
+        this.scripts.remove("body")
+        this.scripts.remove("move")
         yield* Charge.gather(this, 150, "#f0f0ff")
-        this.addScript(() => this.pounce(), { loop: Infinity, id: "move" })
+        this.scripts.add(() => this.pounce(), { loop: Infinity, id: "move" })
 
         const youngs = [-1, 1].map((side) => {
             const young = new Part(
@@ -137,19 +137,19 @@ class EnemyBoss extends Enemy {
         })
 
         // 二段目: 若虎をすべて落とすと次の段へ。胴は咆哮する
-        this.addScript(() => this.roar(), { loop: Infinity, margin: 90, id: "body" })
+        this.scripts.add(() => this.roar(), { loop: Infinity, margin: 90, id: "body" })
         while (youngs.some((p) => p.life > 0)) yield
 
         // 三段目: 発狂。胴だけになると、怒りを溜めてから攻撃が効くようになり、四つの攻撃を同時に使って暴れる。
         // 短く構えては素早く跳び、着地のたびに衝撃の輪を放ちながら、落とした前脚の爪・尾の縞と、咆哮を自分で使う
-        this.removeScript("body")
-        this.removeScript("move")
+        this.scripts.remove("body")
+        this.scripts.remove("move")
         yield* Charge.gather(this, 120, "#ff7070")
         this.isInvincible = false
-        this.addScript(() => this.gale(), { loop: Infinity, id: "move" })
-        this.addScript(() => this.claw(this), { loop: Infinity, margin: 30, id: "claw" })
-        this.addScript(() => this.stripes(this), { loop: Infinity, margin: 90, id: "stripes" })
-        this.addScript(() => this.roar(), { loop: Infinity, margin: 60, id: "body" })
+        this.scripts.add(() => this.gale(), { loop: Infinity, id: "move" })
+        this.scripts.add(() => this.claw(this), { loop: Infinity, margin: 30, id: "claw" })
+        this.scripts.add(() => this.stripes(this), { loop: Infinity, margin: 90, id: "stripes" })
+        this.scripts.add(() => this.roar(), { loop: Infinity, margin: 60, id: "body" })
     }
 
     // 少し構えてから、画面の上の方の別の場所へ素早く跳ぶ

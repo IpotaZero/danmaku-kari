@@ -4,6 +4,7 @@ import { Actor } from "./Actor"
 import { Polygon } from "../BulletDrawer/Polygon"
 import { uid } from "../../utils/Functions/uid"
 import { Game } from "../Game"
+import { IteratorQueue } from "../IteratorQueue"
 
 // 鏡が取り去られた双子が薄れて消えるまで
 const TWIN_FADE_FRAMES = 24
@@ -23,6 +24,9 @@ export class Bullet extends Actor {
     isScorable: boolean = true
 
     delay: number = 0
+
+    // cloneで作り直すのでreadonlyにしない
+    scripts = new IteratorQueue()
 
     appearance: "donut" | "ball" | "line" | "arrow" | "laser" | "beam" | "player" | "score" | Polygon.Type = "donut"
     collision: "circle" | "line" | "arrow" | "rect" | Polygon.Type = "circle"
@@ -54,7 +58,7 @@ export class Bullet extends Actor {
         // 参照型のプロパティは共有しないよう作り直す
         b.p = this.p.clone()
         b.scriptReservations = [...this.scriptReservations]
-        b.scripts = new Map()
+        b.scripts = new IteratorQueue()
         b.twins = []
 
         return b
@@ -137,7 +141,7 @@ export class Bullet extends Actor {
 
         if (!this.isTwin) {
             if (this.scripts.has("move")) {
-                this.addScript(() => watch(this), { id: "boundary" })
+                this.scripts.add(() => watch(this), { id: "boundary" })
             } else {
                 this.bookScript(watch, { id: "boundary" })
             }
@@ -181,11 +185,11 @@ export class Bullet extends Actor {
     }
 
     init() {
-        this.addScript(() => this.move(this), { id: "move" })
-        this.addScript(() => this.boundary(this), { id: "boundary" })
+        this.scripts.add(() => this.move(this), { id: "move" })
+        this.scripts.add(() => this.boundary(this), { id: "boundary" })
 
-        this.scriptReservations.forEach((g) => {
-            this.addScript(...g)
+        this.scriptReservations.forEach(([g, config]) => {
+            this.scripts.add(() => g(this), config)
         })
 
         this.update()
@@ -203,8 +207,8 @@ export class Bullet extends Actor {
         if (this.type === "score") return
         this.becomeScore()
 
-        this.addScript(() => this.homing(this), { id: "score-homing" })
-        this.addScript(() => this.move(this), { id: "move" })
+        this.scripts.add(() => this.homing(this), { id: "score-homing" })
+        this.scripts.add(() => this.move(this), { id: "move" })
 
         this.twins.forEach((t) => t.scorenize())
     }
@@ -215,8 +219,8 @@ export class Bullet extends Actor {
         if (this.type === "score") return
         this.becomeScore()
 
-        this.addScript(() => this.fall(this), { id: "score-fall" })
-        this.addScript(() => this.boundary(this), { id: "boundary" })
+        this.scripts.add(() => this.fall(this), { id: "score-fall" })
+        this.scripts.add(() => this.boundary(this), { id: "boundary" })
 
         this.twins.forEach((t) => t.scorenizeToFall())
     }
@@ -231,7 +235,7 @@ export class Bullet extends Actor {
         this.color = "#ecce74"
         this.isScorable = false
 
-        this.clearScripts()
+        this.scripts.clear()
     }
 
     // 少し跳ね上がってから、ゆっくり加速して落ちる。自機が近くに来たら、そこからホーミングして回収される
@@ -245,8 +249,8 @@ export class Bullet extends Actor {
         }
 
         // ホーミング中は自機を追い続けて画面の外へは出ないので、画面の端で消す見張りは外す
-        me.removeScript("boundary")
-        me.addScript(() => me.move(me), { id: "move" })
+        me.scripts.remove("boundary")
+        me.scripts.add(() => me.move(me), { id: "move" })
         yield* me.homing(me)
     }
 

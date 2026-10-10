@@ -41,15 +41,15 @@ class EnemyPupil extends Enemy {
     constructor(game: Game) {
         super(game, 1200, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.ring.build().fire(this.game.bullets))
-        this.addScript(() => this.cycle(), { loop: Infinity, margin: 60 })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.ring.build().fire(this.game.bullets))
+        this.scripts.add(() => this.cycle(), { loop: Infinity, margin: 60 })
     }
 
     private home() {

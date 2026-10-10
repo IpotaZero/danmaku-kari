@@ -84,15 +84,15 @@ class EnemyHotaru extends Enemy {
         super(game, 1600, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
-        this.addScript(() => this.enter())
-        this.addScript(() => this.phases())
+        this.scripts.add(() => this.enter())
+        this.scripts.add(() => this.phases())
     }
 
     private *enter() {
         this.p = vec(-200, -200)
         yield* this.moveTo(this.home(), 120)
 
-        this.addScript(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
     }
 
     private home() {
@@ -106,11 +106,11 @@ class EnemyHotaru extends Enemy {
 
     private *phases() {
         // 一段目: 発光器を落とすと次の段へ
-        this.addScript(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
+        this.scripts.add(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
         while (this.lantern.life > 0) yield
 
         // 蛍集め。光を集めてから、孫蛍(孫機)に守られた大蛍を呼ぶ
-        this.removeScript("body")
+        this.scripts.remove("body")
         yield* Charge.gather(this, 150, "#d8ff90")
 
         // 大蛍は胴の下に、横一列に並ぶ
@@ -142,14 +142,14 @@ class EnemyHotaru extends Enemy {
         })
 
         // 二段目: 大蛍をすべて落とすと次の段へ。胴が光りだす
-        this.addScript(() => this.meteorFan(), { loop: Infinity, margin: 60, id: "body" })
+        this.scripts.add(() => this.meteorFan(), { loop: Infinity, margin: 60, id: "body" })
         while (bigs.some((p) => p.life > 0)) yield
 
         // 三段目: 最後の灯。胴に攻撃が効くようになる
-        this.removeScript("body")
+        this.scripts.remove("body")
         this.isInvincible = false
         this.game.camera.shake(8, 30)
-        this.addScript(() => this.lastLight(), { loop: Infinity, margin: 30, id: "body" })
+        this.scripts.add(() => this.lastLight(), { loop: Infinity, margin: 30, id: "body" })
     }
 
     // 発光器の流れ星。自機を狙った線と、その両脇の線の三本。どれも発光器を通る
@@ -157,7 +157,7 @@ class EnemyHotaru extends Enemy {
         const aim = this.game.player.p.sub(me.p).radian()
 
         for (const k of [0, -1, 1]) {
-            me.addScript(
+            me.scripts.add(
                 () =>
                     Meteor.fall(me, me.p.clone(), aim + k * 0.45, {
                         preview: 45,
@@ -271,7 +271,7 @@ class EnemyHotaru extends Enemy {
         const sway = (this.random() - 0.5) * 0.6
 
         for (const k of [0, 1, 2, 3]) {
-            this.addScript(
+            this.scripts.add(
                 () =>
                     Meteor.fall(this, this.p.clone(), T / 4 + sway + (k - 1.5) * 0.5, {
                         preview: 40,
@@ -292,7 +292,7 @@ class EnemyHotaru extends Enemy {
         const aim = this.game.player.p.sub(this.p).radian()
 
         for (const k of [0, -1, 1]) {
-            this.addScript(
+            this.scripts.add(
                 () =>
                     Meteor.fall(this, this.p.clone(), aim + k * 0.4, {
                         preview: 40,

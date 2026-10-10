@@ -51,7 +51,10 @@ export type GameConfig = {
 /**
  * ゲーム本体をカプセル化したクラス。
  */
-export class Game extends IteratorQueue {
+export class Game {
+    // ゲーム全体を進めるスクリプト
+    readonly scripts = new IteratorQueue()
+
     readonly canvas: HTMLCanvasElement
     readonly ctx: CanvasRenderingContext2D
 
@@ -111,7 +114,6 @@ export class Game extends IteratorQueue {
     private readonly setFPS: (fps: number) => void
 
     private constructor({ input, analogInput, se, onWin, onLose, onScoreCollected, playerConfig, setFPS, scenery }: GameConfig) {
-        super()
 
         this.scenery = scenery
 
@@ -196,7 +198,7 @@ export class Game extends IteratorQueue {
 
         if (this.stage.isCleared()) this.win()
 
-        super.update()
+        this.scripts.update()
     }
 
     // ワールド座標での描画を予約する。次のdraw()で、本体の描画の上に重ねて描かれる
@@ -212,7 +214,7 @@ export class Game extends IteratorQueue {
         this.state = "cleared"
         this.se.crush.play()
         this.onWin()
-        this.addScript(() => this.waitScoreCollected())
+        this.scripts.add(() => this.waitScoreCollected())
     }
 
     // ゲームオーバー。何度呼ばれてもonLoseは1度だけ発火する
@@ -300,7 +302,7 @@ export class Game extends IteratorQueue {
         const aliveEnemies = this.enemies.filter((e) => {
             if (e.life <= 0) {
                 this.se.crush.play()
-                this.addScript(() => e.onDead())
+                this.scripts.add(() => e.onDead())
                 this.cancelBulletsOf(e)
             }
 

@@ -40,14 +40,14 @@ class EnemyMaster extends Enemy {
         // 主機の体力は衛星の総和くらい
         super(game, SPARK_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.cycle(), { loop: Infinity })
     }
 
     private home() {
@@ -74,7 +74,7 @@ class EnemySpark extends Enemy {
 
         this.setParent(parent, () => vec(side * game.WIDTH * 0.3, game.HEIGHT * 0.04 * Math.sin(this.frame / 100)))
 
-        this.addScript(() => this.cycle(), {
+        this.scripts.add(() => this.cycle(), {
             margin: ENTRANCE_FRAMES + Heat.SEED_FRAMES + (side > 0 ? 45 : 0),
             loop: Infinity,
         })

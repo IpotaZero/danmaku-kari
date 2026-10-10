@@ -18,14 +18,14 @@ export class Part extends Enemy {
         super(game, life, r)
 
         this.setParent(parent, () => place(this))
-        this.addScript(() => attack(this), { loop: Infinity, margin: delay })
+        this.scripts.add(() => attack(this), { loop: Infinity, margin: delay })
     }
 
     // guards(この部位の盾になる部位や孫機)がすべて倒れるまで、この部位には攻撃が効かない。
     // 攻撃が効かない間は弾が素通りするので、うしろにある guards にも弾が届く
     guardedBy(guards: readonly Enemy[]) {
         this.isInvincible = true
-        this.addScript(() => this.guard(guards), { loop: Infinity, id: "guard" })
+        this.scripts.add(() => this.guard(guards), { loop: Infinity, id: "guard" })
     }
 
     private *guard(guards: readonly Enemy[]) {

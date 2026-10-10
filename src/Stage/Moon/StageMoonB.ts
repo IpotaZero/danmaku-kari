@@ -41,14 +41,14 @@ class EnemyMoon extends Enemy {
         // 主機の体力は衛星の総和くらい
         super(game, STAR_LIFE * 2, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
         yield* this.moveTo(this.home(), ENTRANCE_FRAMES)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.cycle(), { loop: Infinity })
     }
 
     private home() {
@@ -83,7 +83,7 @@ class EnemyStar extends Enemy {
 
         this.setParent(parent, () => vec(side * game.WIDTH * 0.32, game.HEIGHT * 0.05 * Math.sin(this.frame / 110)))
 
-        this.addScript(() => this.cycle(), { margin: ENTRANCE_FRAMES + 90 + (side > 0 ? 55 : 0), loop: Infinity })
+        this.scripts.add(() => this.cycle(), { margin: ENTRANCE_FRAMES + 90 + (side > 0 ? 55 : 0), loop: Infinity })
     }
 
     private *cycle() {

@@ -46,7 +46,7 @@ class EnemyPupil extends Enemy {
     constructor(game: Game) {
         super(game, 3000, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private *enter() {
@@ -54,8 +54,8 @@ class EnemyPupil extends Enemy {
 
         Mirage.show(this, [this.mirror], DRAW_FRAMES)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.cycle(), { loop: Infinity, margin: DRAW_FRAMES + 30 })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.cycle(), { loop: Infinity, margin: DRAW_FRAMES + 30 })
     }
 
     private home() {

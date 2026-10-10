@@ -79,15 +79,15 @@ class EnemyBoss extends Enemy {
         super(game, 2400, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
-        this.addScript(() => this.enter())
-        this.addScript(() => this.phases())
+        this.scripts.add(() => this.enter())
+        this.scripts.add(() => this.phases())
     }
 
     private *enter() {
         this.p = vec(-200, -200)
         yield* this.moveTo(this.home(), 120)
 
-        this.addScript(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
     }
 
     private home() {
@@ -101,11 +101,11 @@ class EnemyBoss extends Enemy {
 
     private *phases() {
         // 一段目: 甲羅をすべて割ると次の段へ
-        this.addScript(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
+        this.scripts.add(() => this.ring(), { loop: Infinity, margin: 180, id: "body" })
         while (this.shells.some((p) => p.life > 0)) yield
 
         // 子亀。水を集めてから、小甲羅(孫機)に守られた子亀を呼ぶ
-        this.removeScript("body")
+        this.scripts.remove("body")
         yield* Charge.gather(this, 150, "#90d0ff")
 
         const babies = [-1, 1].map((side) => {
@@ -136,16 +136,16 @@ class EnemyBoss extends Enemy {
         })
 
         // 二段目: 子亀をすべて落とすと次の段へ。胴は津波を起こす
-        this.addScript(() => this.tide(3), { loop: Infinity, margin: 90, id: "body" })
+        this.scripts.add(() => this.tide(3), { loop: Infinity, margin: 90, id: "body" })
         while (babies.some((p) => p.life > 0)) yield
 
         // 三段目: 胴だけになると、力を溜めてから攻撃が効くようになる。四列の津波に、渦潮と糸を重ねる
-        this.removeScript("body")
+        this.scripts.remove("body")
         yield* Charge.gather(this, 150, "#a0d8ff")
         this.isInvincible = false
-        this.addScript(() => this.tide(4), { loop: Infinity, id: "body" })
-        this.addScript(() => this.whirlpool(), { loop: Infinity, margin: 60, id: "whirlpool" })
-        this.addScript(() => this.silk(), { loop: Infinity, margin: 120, id: "silk" })
+        this.scripts.add(() => this.tide(4), { loop: Infinity, id: "body" })
+        this.scripts.add(() => this.whirlpool(), { loop: Infinity, margin: 60, id: "whirlpool" })
+        this.scripts.add(() => this.silk(), { loop: Infinity, margin: 120, id: "silk" })
     }
 
     // 甲羅の水弾。k 番目の甲羅は 8k フレーム待ってから、胴から外向きに五方向の水弾を放つ

@@ -480,7 +480,7 @@ export class Remodel<Parent extends Actor> {
             )
             .g(function* (me) {
                 while (this.life > 0) yield
-                me.removeScript("laser")
+                me.scripts.remove("laser")
                 yield* Behavior.fadeout(me, 30)
             })
     }

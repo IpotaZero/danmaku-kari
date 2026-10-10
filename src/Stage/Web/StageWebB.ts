@@ -25,7 +25,7 @@ class EnemyCore extends Enemy {
     constructor(game: Game) {
         super(game, 2400, Size.MASTER, { renderer: new EnemyRendererCore() })
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     private center() {
@@ -35,8 +35,8 @@ class EnemyCore extends Enemy {
     private *enter() {
         yield* this.moveTo(this.center(), 120)
 
-        this.addScript(() => this.move(), { loop: Infinity })
-        this.addScript(() => this.attack(), { loop: Infinity })
+        this.scripts.add(() => this.move(), { loop: Infinity })
+        this.scripts.add(() => this.attack(), { loop: Infinity })
     }
 
     private *move() {
@@ -92,7 +92,7 @@ class EnemyMob extends Enemy {
         super(game, 1200, Size.S)
         this.setParent(parent, () => vec.arg(this.frame / 360 + T * (index / 3)).scale(120))
 
-        this.addScript(() => this.attack(), { loop: Infinity })
+        this.scripts.add(() => this.attack(), { loop: Infinity })
     }
 
     private *attack() {

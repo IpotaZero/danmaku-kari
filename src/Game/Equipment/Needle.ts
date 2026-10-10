@@ -34,7 +34,7 @@ export const needle: SubEquipment = {
     *action(player) {
         while (true) {
             if (player.game.input.isPushed("action") && !player.game.isGameOver) {
-                player.addScript(() => shoot(player))
+                player.scripts.add(() => shoot(player))
                 yield* actionCooldown(player, クールダウンフレーム)
             }
 
@@ -76,7 +76,7 @@ function* waitForStab(player: Player, me: Bullet): Generator<void, void, void> {
     const direction = vec.arg(me.radian)
     const tip = me.p.add(direction.scale(me.r - me.speed))
 
-    player.addScript(() => stab(player, tip, me.radian))
+    player.scripts.add(() => stab(player, tip, me.radian))
 }
 
 // 刺さった瞬間、画面が白く光って大きく揺れ、刺さった所に針の形が焼きつく。

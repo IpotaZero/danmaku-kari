@@ -64,20 +64,20 @@ class EnemyBoss extends Enemy {
         super(game, 2400, Size.BOSS, { renderer: new EnemyRendererBoss() })
         this.isInvincible = true
 
-        this.addScript(() => this.enter())
+        this.scripts.add(() => this.enter())
     }
 
     *start() {
-        this.addScript(() => this.cycle0(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.scripts.add(() => this.cycle0(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
 
-        this.addScript(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.scripts.add(() => this.cycle1(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
 
-        this.addScript(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.scripts.add(() => this.cycle2(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
 
-        this.addScript(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 150 })
+        this.scripts.add(() => this.cycle3(), { loop: Infinity, id: "cycle", margin: 150 })
         yield
     }
 
