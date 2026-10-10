@@ -14,7 +14,7 @@ import type { SubEquipment } from "./types"
 // 貫かないので、どの部位に当てるかを狙って撃つことになる。
 // 当たり判定は小さめなので外れるかもしれない。
 const 針半径 = 28
-const 針威力 = 150
+const 針威力 = 200
 const 初速 = 2
 const 最終速度 = 36
 const 加速フレーム = 20

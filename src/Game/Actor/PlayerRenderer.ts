@@ -47,7 +47,7 @@ export class PlayerRenderer {
     drawRadian = 0
     sneakProgress = 0 // 0.0〜1.0、低速中に1へ近づく
 
-    // ブースト(ダッシュ等でspeedMultiplierが1を超えた状態)時の見た目まわり
+    // ブースト(ダッシュ等でboostSpeedが設定されている状態)時の見た目まわり
     dashProgress = 0 // 0.0〜1.0、ブースト中に1へ近づく
     readonly afterImages: AfterImage[] = []
 

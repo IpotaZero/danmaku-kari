@@ -31,7 +31,8 @@ export class Player extends Actor {
     readonly slowSpeed = 3
 
     // 装備(主にsub装備のaction)が移動速度・無敵状態・クールタイムを一時的に変えるためのフック
-    speedMultiplier = 1
+    // ブースト中の速さ(定値)。ブースト中でなければundefined
+    boostSpeed: number | undefined
     isActionInvincible = false
     // action発動直後が1、クールタイムが明けると0(0の間はクールタイム表示を出さない)
     actionCooldownRemaining = 0
@@ -77,9 +78,9 @@ export class Player extends Actor {
         return this.scripts.has("invincible") || this.isActionInvincible
     }
 
-    // ダッシュ等でspeedMultiplierが1を超えている状態
+    // ダッシュ等でboostSpeedが設定されている状態
     isBoosted() {
-        return this.speedMultiplier > 1
+        return this.boostSpeed !== undefined
     }
 
     // 被弾処理: ライフを減らし、しばらく無敵にする
@@ -180,14 +181,16 @@ export class Player extends Actor {
                 input.getValue("right") - input.getValue("left"),
                 input.getValue("down") - input.getValue("up"),
             )
-            this.v =
-                dir.magnitude() === 0
-                    ? vec(0, 0)
-                    : (dir.magnitude() > 1 ? dir.normalize() : dir).scale(
-                          // ブースト中は低速入力を無視し、通常速度を基準に加速する
-                          (input.isPressed("slow") && !this.isBoosted() ? this.slowSpeed : this.speed) *
-                              this.speedMultiplier,
-                      )
+            if (dir.magnitude() === 0) {
+                this.v = vec(0, 0)
+            } else if (this.boostSpeed !== undefined) {
+                // ブースト中は倒し具合も低速入力も無視し、向きだけ使って定値の速さで動く
+                this.v = dir.normalize().scale(this.boostSpeed)
+            } else {
+                this.v = (dir.magnitude() > 1 ? dir.normalize() : dir).scale(
+                    input.isPressed("slow") ? this.slowSpeed : this.speed,
+                )
+            }
         }
 
         if (this.v.magnitude() === 0) return

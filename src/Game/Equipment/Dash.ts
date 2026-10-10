@@ -7,9 +7,10 @@ import type { SubEquipment } from "./types"
 // 短く・頻繁に使え、薄い壁を一瞬で突き抜けるのが得意。
 // 弾は一つも消さないので、抜けた先に居場所がなければ意味がない。
 // レーザーを貫通できる唯一の技
+// 制御できないくらい速くする
 const 持続フレーム = 18
 const クールダウンフレーム = 360
-const 速度倍率 = 7
+const 速度 = 100
 
 export const dash: SubEquipment = {
     label: "高速移動",
@@ -29,12 +30,12 @@ export const dash: SubEquipment = {
 }
 
 function* burst(player: Player): Generator<void, void, void> {
-    player.speedMultiplier = 速度倍率
+    player.boostSpeed = 速度
     player.isActionInvincible = true
     player.game.se.dash.play()
 
     yield* GenUtils.waitFrames(持続フレーム)
 
-    player.speedMultiplier = 1
+    player.boostSpeed = undefined
     player.isActionInvincible = false
 }
