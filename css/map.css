@@ -88,7 +88,7 @@
             opacity: 0.4;
 
             &.locked {
-                opacity: 0.2;
+                opacity: 0.1;
             }
 
             /* 主装備standardでのクリアが条件の辺は破線 */
@@ -99,6 +99,11 @@
             /* 主装備laserでのクリアが条件の辺は二重線(2本の線はSceneMap側で引く) */
             &.laser {
                 stroke-width: 1;
+            }
+
+            /* すべての免状が条件の辺は金の糸。免状の印(.map-badge-seal)を数珠のように通す */
+            &.badges {
+                stroke: var(--gold);
             }
         }
     }
@@ -259,6 +264,50 @@
         }
     }
 
+    /* 最後の場所への関所(すべての免状が条件の辺)に数珠のように並べる、免状の印(src/Map/MapBadgeSeals.ts)。
+       道場主ごとにその場所の絵柄を丸の中に描く。授かった免状は金で塗り、まだのものは輪だけ、まだ行けない場所は絵柄を伏せた破線の輪にする */
+    .map-badge-seals {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+
+    .map-badge-seal {
+        position: absolute;
+        width: 28px;
+        height: 28px;
+        transform: translate(-50%, -50%);
+        align-items: center;
+
+        border-radius: 50%;
+        /* 下を通る金の糸を隠して、糸に通した玉に見せる */
+        background: var(--map-ground);
+        border: 1.5px solid color-mix(in srgb, var(--paper) 60%, transparent);
+        color: color-mix(in srgb, var(--paper) 70%, transparent);
+
+        .map-node-motif {
+            width: 75%;
+            height: 75%;
+        }
+
+        &.earned {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--map-ground);
+            box-shadow: 0 0 6px color-mix(in srgb, var(--gold) 60%, transparent);
+        }
+
+        &.locked {
+            border-color: var(--sage);
+            border-style: dashed;
+            opacity: 0.6;
+
+            .map-node-motif {
+                visibility: hidden;
+            }
+        }
+    }
+
     /* 地図の上の自分(src/Map/MapBee.ts)。選んだノードの上にとまり、ノードを移るとカメラと同じ速さで飛んでいく */
     .map-bee {
         position: absolute;
@@ -330,7 +379,7 @@
             cursor: pointer;
 
             &.cleared {
-                fill: var(--sage);
+                fill: var(--silver);
             }
 
             &.no-miss {
@@ -352,10 +401,10 @@
             pointer-events: none;
 
             transition:
-                x 0.4s ease-out,
-                y 0.4s ease-out,
-                width 0.4s ease-out,
-                height 0.4s ease-out;
+                x 0.2s ease-out,
+                y 0.2s ease-out,
+                width 0.2s ease-out,
+                height 0.2s ease-out;
             animation: map-minimap-cursor-blink 0.8s ease-in-out infinite alternate;
         }
     }

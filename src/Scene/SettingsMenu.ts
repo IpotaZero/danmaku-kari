@@ -1,4 +1,4 @@
-import { KeyConfig, type Source } from "@ipota/input"
+import { KeyConfig, StandardGamepadMap, type Source } from "@ipota/input"
 import { App } from "../App"
 import { playerData } from "../Data/PlayerData"
 import { InputAction, VOLUME_MAX_LEVEL, VolumeKind } from "../Data/Settings"
@@ -226,7 +226,7 @@ export class SettingsMenu {
     }
 
     private keyConfigLabel(action: InputAction): HTMLElement {
-        const keys = App.settings.keyConfig[action].map((code) => InputCode.label(code)).join(" ")
+        const keys = App.settings.keyConfig[action].map((code) => StandardGamepadMap.getSourceAlias(code)).join(" ")
 
         const el = document.createElement("span")
         el.className = "settings-row"
@@ -283,7 +283,7 @@ export class SettingsMenu {
         const el = document.createElement("span")
         el.className = "settings-row"
         el.innerHTML = `
-            <span>${InputCode.label(code)}</span>
+            <span>${StandardGamepadMap.getSourceAlias(code)}</span>
             <span>×</span>
         `
         return el

@@ -1,7 +1,7 @@
 import { playerData } from "../Data/PlayerData"
 import { MapGraph, MapNode, MapNodeId } from "./MapGraph"
 
-// ミニマップの外周に取る余白(ワールド座標px)
+// ミニマップの外周、カーソル枠のさらに外に取る余白(ワールド座標px)
 const MINIMAP_PADDING = 40
 
 // 選択中ノードを囲むカーソル枠と、ノードとの隙間(ノードの短辺に対する比率)
@@ -59,20 +59,31 @@ export class MapMinimap {
         this.cursor.classList.toggle("hidden", !node)
         if (!node) return
 
-        const gap = Math.min(node.width, node.height) * CURSOR_GAP_RATIO
-        this.cursor.setAttribute("x", `${node.x - node.width / 2 - gap}`)
-        this.cursor.setAttribute("y", `${node.y - node.height / 2 - gap}`)
-        this.cursor.setAttribute("width", `${node.width + gap * 2}`)
-        this.cursor.setAttribute("height", `${node.height + gap * 2}`)
+        const rect = this.cursorRect(node)
+        this.cursor.setAttribute("x", `${rect.x}`)
+        this.cursor.setAttribute("y", `${rect.y}`)
+        this.cursor.setAttribute("width", `${rect.width}`)
+        this.cursor.setAttribute("height", `${rect.height}`)
     }
 
-    // 表示するノードを、その大きさも含めて囲む範囲
+    // nodeを選んだときのカーソル枠の範囲。ノードの外側に隙間を空けて囲む
+    private cursorRect(node: MapNode) {
+        const gap = Math.min(node.width, node.height) * CURSOR_GAP_RATIO
+        return {
+            x: node.x - node.width / 2 - gap,
+            y: node.y - node.height / 2 - gap,
+            width: node.width + gap * 2,
+            height: node.height + gap * 2,
+        }
+    }
+
+    // 表示するノードを、カーソル枠まで含めて囲む範囲。端のノードを選んでも枠が見切れないようにする
     private viewBox(): string {
-        const nodes = this.nodes
-        const minX = Math.min(...nodes.map((node) => node.x - node.width / 2)) - MINIMAP_PADDING
-        const maxX = Math.max(...nodes.map((node) => node.x + node.width / 2)) + MINIMAP_PADDING
-        const minY = Math.min(...nodes.map((node) => node.y - node.height / 2)) - MINIMAP_PADDING
-        const maxY = Math.max(...nodes.map((node) => node.y + node.height / 2)) + MINIMAP_PADDING
+        const rects = this.nodes.map((node) => this.cursorRect(node))
+        const minX = Math.min(...rects.map((rect) => rect.x)) - MINIMAP_PADDING
+        const maxX = Math.max(...rects.map((rect) => rect.x + rect.width)) + MINIMAP_PADDING
+        const minY = Math.min(...rects.map((rect) => rect.y)) - MINIMAP_PADDING
+        const maxY = Math.max(...rects.map((rect) => rect.y + rect.height)) + MINIMAP_PADDING
         return `${minX} ${minY} ${maxX - minX} ${maxY - minY}`
     }
 

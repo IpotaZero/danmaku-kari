@@ -14,21 +14,25 @@ export const DEFAULT_KEY_CONFIG: KeyConfigMap = {
     up: [
         { type: "keyboard", code: "ArrowUp" },
         { type: "keyboard", code: "KeyW" },
+        { type: "gamepad-button", index: 12 },
         { type: "gamepad-axis", index: 1, direction: "negative", threshold: 0.1 },
     ],
     down: [
         { type: "keyboard", code: "ArrowDown" },
         { type: "keyboard", code: "KeyS" },
+        { type: "gamepad-button", index: 13 },
         { type: "gamepad-axis", index: 1, direction: "positive", threshold: 0.1 },
     ],
     left: [
         { type: "keyboard", code: "ArrowLeft" },
         { type: "keyboard", code: "KeyA" },
+        { type: "gamepad-button", index: 14 },
         { type: "gamepad-axis", index: 0, direction: "negative", threshold: 0.1 },
     ],
     right: [
         { type: "keyboard", code: "ArrowRight" },
         { type: "keyboard", code: "KeyD" },
+        { type: "gamepad-button", index: 15 },
         { type: "gamepad-axis", index: 0, direction: "positive", threshold: 0.1 },
     ],
     slow: [
@@ -41,7 +45,7 @@ export const DEFAULT_KEY_CONFIG: KeyConfigMap = {
     ],
     action: [
         { type: "keyboard", code: "ControlLeft" },
-        { type: "gamepad-button", index: 3 },
+        { type: "gamepad-button", index: 7 },
     ],
 
     ok: [

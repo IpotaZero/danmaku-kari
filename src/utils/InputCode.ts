@@ -1,37 +1,9 @@
-import type { Source } from "@ipota/input"
+import { StandardGamepadMap, type Source } from "@ipota/input"
 
-// e.codeのままだと長い/分かりにくいものだけ、表示用の名前を決めておく
-const SPECIAL_LABELS: Partial<Record<string, string>> = {
-    ArrowUp: "↑",
-    ArrowDown: "↓",
-    ArrowLeft: "←",
-    ArrowRight: "→",
-    ShiftLeft: "LShift",
-    ShiftRight: "RShift",
-    ControlLeft: "LCtrl",
-    ControlRight: "RCtrl",
-    AltLeft: "LAlt",
-    AltRight: "RAlt",
-    Escape: "Esc",
-    Backspace: "BS",
-}
-
-/** Di/** DigitalInputに割り当てる入力(キーボードのe.code / ゲームパッドのボタン・軸)を扱う */
+/** DigitalInputに割り当てる入力(キーボードのe.code / ゲームパッドのボタン・軸)を扱う */
 export namespace InputCode {
     export function isGamepad(code: Source): boolean {
         return code.type !== "keyboard"
-    }
-
-    // 画面に出す短い名前。例: KeyZ -> "Z", ゲームパッドのボタン0 -> "Pad0", 軸1の負方向 -> "Axis1-"
-    export function label(code: Source): string {
-        switch (code.type) {
-            case "keyboard":
-                return SPECIAL_LABELS[code.code] ?? code.code.replace(/^(Key|Digit)/, "")
-            case "gamepad-button":
-                return `Pad${code.index}`
-            case "gamepad-axis":
-                return `Axis${code.index}${code.direction === "positive" ? "+" : "-"}`
-        }
     }
 
     /**
@@ -78,6 +50,6 @@ export namespace InputCode {
     // 操作説明用に、割り当てのうち最初のキーボード入力の名前を返す(キーボードが無ければ最初の入力)
     export function primaryLabel(codes: readonly Source[]): string {
         const code = codes.find((c) => !isGamepad(c)) ?? codes[0]
-        return code ? label(code) : "-"
+        return code ? StandardGamepadMap.getSourceAlias(code) : "-"
     }
 }

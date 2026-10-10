@@ -6,6 +6,7 @@ import { mainEquipments, subEquipments } from "../Game/Equipment/PlayerEquipment
 import { MapEdge, MapGraph, MapNode, MapNodeId } from "../Map/MapGraph"
 import { MapMinimap } from "../Map/MapMinimap"
 import { MapBee } from "../Map/MapBee"
+import { MapBadgeSeals } from "../Map/MapBadgeSeals"
 import { MapCamera } from "../Map/MapCamera"
 import { MapProps } from "../Map/MapProps"
 import { InputCode } from "../utils/InputCode"
@@ -90,6 +91,8 @@ export class SceneMap extends Scene {
         const nodesEl = this.root.querySelector<HTMLElement>(".map-nodes")!
         // 塊のまわりの小物は、辺より手前・ノードより奥に置く
         nodesEl.before(new MapProps(this.graph, playerData).el)
+        // 最後の場所への関所の辺には、免状の印を辺より手前・ノードより奥に並べる
+        nodesEl.before(new MapBadgeSeals(this.graph, playerData).el)
         for (const node of this.graph.nodes) {
             const el = document.createElement("div")
             // ノードには文字の代わりに、その場所の景色の絵柄を描く。まだ行けない場所の絵柄は伏せておく(css)

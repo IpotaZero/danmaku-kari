@@ -312,11 +312,22 @@
     font-size: 8pt;
 }
 
+/* 割り当てキーは1行に収め、はみ出した分は…で省略する。text-overflowはflexでは効かないのでblockにする */
 .title-menu-stack .settings-panel .settings-keys {
+    display: block;
+    flex: 1;
+    min-width: 0;
     font-size: 12pt;
-    flex-wrap: wrap;
-    justify-content: flex-end;
     text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* キーが長くてもアクション名(キャンセルなど)の方は縮めたり折り返したりしない */
+.title-menu-stack .settings-panel .settings-row:has(.settings-keys) > span:first-child {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 /* 設定を開いている間、タイトルロゴを左へスライドさせながら透明にする */
