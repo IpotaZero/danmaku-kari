@@ -28,11 +28,11 @@ export class SceneGame extends Scene {
             se: App.se,
             onWin: () => {
                 this.node.recordClear(playerData, playerData.getLoadout().main, playerData.getLives() === initialLives)
-                this.showResultMenu("--:: 前進 ::--")
+                this.showResultMenu("--:: 前進 ::--", "Next")
             },
             onLose: (score) => {
                 playerData.addScore(score)
-                this.showResultMenu("--:: 停滞 ::--")
+                this.showResultMenu("--:: 停滞 ::--", "Back")
             },
             onScoreCollected: (score) => playerData.addScore(score),
             playerConfig: createPlayerConfig(),
@@ -60,8 +60,9 @@ export class SceneGame extends Scene {
         this.game?.draw()
     }
 
-    // クリア/ゲームオーバー時に、タイトルへ戻れるメニューを重ねて表示する
-    private showResultMenu(title: string) {
+    // クリア/ゲームオーバー時に、マップへ戻れるメニューを重ねて表示する。
+    // マップへ戻るボタンは、勝てば先へ進む「Next」、負ければ引き返す「Back」と呼び分ける
+    private showResultMenu(title: string, mapLabel: string) {
         if (this.resultMenu) return
 
         this.resultMenu = new Menu(
@@ -80,7 +81,7 @@ export class SceneGame extends Scene {
                         },
                         {
                             type: "select",
-                            label: "Back",
+                            label: mapLabel,
                             onSelect: () => {
                                 App.sc.goto(async () => import("./SceneMap").then(({ SceneMap }) => SceneMap.create()))
                             },
