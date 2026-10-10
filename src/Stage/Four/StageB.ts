@@ -143,7 +143,7 @@ class EnemyBoss extends Enemy {
 
     // 少し構えてから、画面の上の方の別の場所へ素早く跳ぶ
     private *pounce() {
-        yield* Array(70)
+        yield* Array(55)
         yield* this.moveTo(
             vec(this.game.WIDTH * (0.32 + 0.36 * this.random()), this.game.HEIGHT * (0.1 + 0.12 * this.random())),
             22,
@@ -152,7 +152,7 @@ class EnemyBoss extends Enemy {
 
     // 疾風。短く構えて素早く跳び、着地するたびに衝撃の輪を放つ
     private *gale() {
-        yield* Array(40)
+        yield* Array(30)
         yield* this.moveTo(
             vec(this.game.WIDTH * (0.32 + 0.36 * this.random()), this.game.HEIGHT * (0.1 + 0.14 * this.random())),
             16,
@@ -164,12 +164,12 @@ class EnemyBoss extends Enemy {
             .p(this.p.clone())
             .speed(2)
             .radian(this.random() * T)
-            .ex(24)
-            .g((b) => Behavior.ease(b, "speed", 6, 30, Ease.In))
+            .ex(32)
+            .g((b) => Behavior.ease(b, "speed", 6.5, 30, Ease.In))
             .fire(this.game.bullets)
     }
 
-    // 前脚の爪。自機へ向けて三本の爪痕を薄く見せてから、爪痕に沿って速い爪を走らせる
+    // 前脚の爪。自機へ向けて四本の爪痕を薄く見せてから、爪痕に沿って速い爪を走らせる
     private *claw(me: Part) {
         const start = me.p.clone()
         const aim = this.game.player.p.sub(start).radian()
@@ -187,7 +187,7 @@ class EnemyBoss extends Enemy {
             .radian(aim)
             .length(this.game.WIDTH + this.game.HEIGHT)
             .alpha(0)
-            .shift(3, 24)
+            .shift(4, 22)
             .g(function* (b) {
                 yield* Behavior.ease(b, "alpha", 0.1, 8)
                 yield* Array(20)
@@ -206,10 +206,10 @@ class EnemyBoss extends Enemy {
             .speed(24)
             .duplicate(6)
             .delayByIndex(3)
-            .shift(3, 24)
+            .shift(4, 22)
             .fire(this.game.bullets)
 
-        yield* Array(82)
+        yield* Array(62)
     }
 
     // 後脚の風。横へ蹴り出した風が、大きく弧を描いて下へ回り込む
@@ -221,9 +221,9 @@ class EnemyBoss extends Enemy {
             .p(me.p.clone())
             .speed(6.5)
             .radian(side > 0 ? 0 : Math.PI)
-            .duplicate(6)
+            .duplicate(8)
             .delayByIndex(4)
-            .nway(2, 0.25)
+            .nway(3, 0.22)
             .unbounded()
             .g(function* (b) {
                 yield* Behavior.rotating(b, side * 0.045, 35)
@@ -233,27 +233,27 @@ class EnemyBoss extends Enemy {
             })
             .fire(this.game.bullets)
 
-        yield* Array(150)
+        yield* Array(120)
     }
 
-    // 尾の縞。弾の間の狭い帯を、少しずつ向きを変えながら四本続けて振り下ろす
+    // 尾の縞。弾の間の狭い帯を、少しずつ向きを変えながら五本続けて振り下ろす
     private *stripes(me: Part) {
         const sway = (this.random() - 0.5) * 0.6
 
-        for (let k = 0; k < 4; k++) {
+        for (let k = 0; k < 5; k++) {
             yield* remodel(me)
                 .format("small-ball")
                 .r(5)
                 .color("#f0f0f0")
                 .p(me.p.clone())
-                .speed(4.5)
-                .radian(T / 4 + sway + (k - 1.5) * 0.12)
-                .shift(9, 24)
+                .speed(5.5)
+                .radian(T / 4 + sway + (k - 2) * 0.12)
+                .shift(11, 24)
                 .fire(this.game.bullets)
             yield* Array(14)
         }
 
-        yield* Array(170)
+        yield* Array(140)
     }
 
     // 子虎の小さな輪。だんだん速くなる
@@ -265,11 +265,11 @@ class EnemyBoss extends Enemy {
             .p(me.p.clone())
             .speed(1.5)
             .radian(this.random() * T)
-            .ex(8)
-            .g((b) => Behavior.ease(b, "speed", 5, 40, Ease.In))
+            .ex(12)
+            .g((b) => Behavior.ease(b, "speed", 5.5, 40, Ease.In))
             .fire(this.game.bullets)
 
-        yield* Array(90)
+        yield* Array(75)
     }
 
     // 若虎の咆哮。止まってから散る輪
@@ -281,11 +281,11 @@ class EnemyBoss extends Enemy {
             .p(me.p.clone())
             .speed(4)
             .radian(this.random() * T)
-            .ex(14)
-            .g((b) => Behavior.reaccel(b, 20, 20, 30, 5))
+            .ex(20)
+            .g((b) => Behavior.reaccel(b, 20, 20, 30, 5.5))
             .fire(this.game.bullets)
 
-        yield* Array(110)
+        yield* Array(90)
     }
 
     // 若虎の爪。真下へ三本の爪痕を落とす
@@ -296,13 +296,13 @@ class EnemyBoss extends Enemy {
             .p(me.p.clone())
             .speed(3)
             .radian(T / 4)
-            .duplicate(4)
+            .duplicate(5)
             .delayByIndex(3)
             .shift(3, 16)
-            .g((b) => Behavior.ease(b, "speed", 8, 30, Ease.In))
+            .g((b) => Behavior.ease(b, "speed", 9, 30, Ease.In))
             .fire(this.game.bullets)
 
-        yield* Array(90)
+        yield* Array(70)
     }
 
     // 一段目の胴。ときどき輪を放つ
@@ -314,10 +314,10 @@ class EnemyBoss extends Enemy {
             .p(this.p.clone())
             .speed(3.5)
             .radian(this.random() * T)
-            .ex(16)
+            .ex(24)
             .fire(this.game.bullets)
 
-        yield* Array(160)
+        yield* Array(120)
     }
 
     // 咆哮。速さの違う三重の輪
@@ -327,14 +327,14 @@ class EnemyBoss extends Enemy {
             .color("#ffffff")
             .p(this.p.clone())
             .radian(this.random() * T)
-            .ex(22)
+            .ex(28)
             .duplicate(3, (b, k) => {
-                b.radian += (k * T) / 66
+                b.radian += (k * T) / 84
                 b.speed = 3.5 + k
                 return b
             })
             .fire(this.game.bullets)
 
-        yield* Array(100)
+        yield* Array(80)
     }
 }
