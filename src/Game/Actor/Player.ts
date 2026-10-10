@@ -327,7 +327,7 @@ export class Player extends Actor {
         // 止まっている間は、あたりを見回すように頭の向きをゆっくり左右に振る
         const stillness = 1 - Math.min(1, this.v.magnitude() / this.slowSpeed)
         // タッチ操作では速度がとても大きくなることがあるので、傾きには上限を付ける
-        const target = Math.max(-0.3, Math.min(0.3, this.v.x * 0.03)) + Math.sin(this.frame / 37) * 0.12 * stillness
+        const target = Math.max(-0.08, Math.min(0.08, this.v.x * 0.01)) + Math.sin(this.frame / 37) * 0.03 * stillness
         this.bank += (target - this.bank) * 0.15
     }
 
@@ -446,8 +446,8 @@ export class Player extends Actor {
         // 腹。動きと逆へ少し遅れて振れ、呼吸するようにわずかに伸び縮みする
         ctx.save()
         ctx.translate(0, 5)
-        ctx.rotate(Math.sin(this.frame / 10) * 0.05 - this.bank * 0.6)
-        ctx.scale(1, 1 + Math.sin(this.frame / 7) * 0.03)
+        ctx.rotate(Math.sin(this.frame / 10) * 0.012 - this.bank * 0.3)
+        ctx.scale(1, 1 + Math.sin(this.frame / 7) * 0.008)
 
         ctx.beginPath()
         ctx.moveTo(-1.8, 18)
@@ -471,7 +471,7 @@ export class Player extends Actor {
         // 触角。ときどき小さくぴくりと動かす
         ctx.beginPath()
         for (const side of [-1, 1]) {
-            const twitch = Math.sin(this.frame / 13 + side) * 1.2
+            const twitch = Math.sin(this.frame / 13 + side) * 0.4
             ctx.moveTo(side * 1.5, -11)
             ctx.lineTo(side * 3.5, -16)
             ctx.lineTo(side * (7 + twitch), -19 + twitch)
