@@ -9,7 +9,7 @@ const CURSOR_GAP_RATIO = 0.35
 
 // 全ノードを一画面に収めて表示するオーバーレイ。
 // SVGのviewBoxを全ノードの範囲に合わせ、preserveAspectRatioで画面に収める。
-// まだプレイできないノードと、それにつながる辺は表示しない(先の構造をネタバレしないため)
+// まだプレイできないノードと、まだ通れない辺は表示しない(先の構造をネタバレしないため)
 export class MapMinimap {
     readonly el: HTMLElement
     private readonly nodeElements = new Map<MapNodeId, SVGRectElement>()
@@ -19,7 +19,7 @@ export class MapMinimap {
 
     constructor(graph: MapGraph, onNodeTap: (id: MapNodeId) => void, onBack: () => void) {
         this.nodes = graph.nodes.filter((node) => graph.isUnlocked(node, playerData))
-        const edges = graph.edges.filter((edge) => this.nodes.includes(edge.from) && this.nodes.includes(edge.to))
+        const edges = graph.edges.filter((edge) => graph.isPassable(edge, playerData))
 
         this.el = document.createElement("div")
         this.el.className = "map-minimap"

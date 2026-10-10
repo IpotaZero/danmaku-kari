@@ -117,7 +117,7 @@ export class MapEdge {
         readonly condition: EdgeCondition,
     ) {}
 
-    // カーソル移動用。解放とは違い、辺は両方向にたどれる
+    // カーソル移動用。解放とは違い、開いている辺は両方向にたどれる
     connects(node: MapNode): boolean {
         return this.from === node || this.to === node
     }
@@ -201,8 +201,16 @@ export class MapGraph {
         return node
     }
 
-    neighbors(node: MapNode): MapNode[] {
-        return this.edgesOf(node).map((edge) => edge.opposite(node))
+    // カーソルで移れる隣のノード。通れる辺でつながったものだけ
+    neighbors(node: MapNode, playerData: PlayerData): MapNode[] {
+        return this.edgesOf(node)
+            .filter((edge) => this.isPassable(edge, playerData))
+            .map((edge) => edge.opposite(node))
+    }
+
+    // 辺を通れるか。両端が解放済みでも、開いていない辺(fromが未クリアなど)は通れない(デバッグ用の全解放中は無条件)
+    isPassable(edge: MapEdge, playerData: PlayerData): boolean {
+        return playerData.debugUnlockAll || edge.isOpen(playerData)
     }
 
     // スタート地点は常に解放。それ以外は、入ってくる辺のうち1つでも開いていれば解放される(デバッグ用の全解放中は無条件)

@@ -3,6 +3,7 @@ import { App } from "../App"
 import { playerData } from "../Data/PlayerData"
 import { InputAction, THRESHOLD_MAX_LEVEL, VOLUME_MAX_LEVEL, VolumeKind } from "../Data/Settings"
 import { InputCode } from "../utils/InputCode"
+import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 import type { Menu, MenuOption, MenuOptionBox } from "../utils/Menu/Menu"
 import { MenuPreset } from "../utils/Menu/MenuPreset"
 
@@ -69,14 +70,19 @@ export class SettingsMenu {
                         },
                     },
                 ],
-                [
-                    {
-                        type: "submenu",
-                        label: "キーコンフィグ",
-                        hides: ["settings"],
-                        subMenu: () => this.keyConfigBox(),
-                    },
-                ],
+                // スマホは画面が狭くてキーコンフィグが見切れるうえ、キーボードやゲームパッドもまず使わないので出さない
+                ...(isSmartPhone
+                    ? []
+                    : [
+                          [
+                              {
+                                  type: "submenu",
+                                  label: "キーコンフィグ",
+                                  hides: ["settings"],
+                                  subMenu: () => this.keyConfigBox(),
+                              } satisfies MenuOption,
+                          ],
+                      ]),
                 [
                     {
                         type: "select",

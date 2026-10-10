@@ -188,7 +188,7 @@ export class SceneMap extends Scene {
 
     private move(direction: Direction) {
         const current = this.graph.node(this.selectedId)
-        const neighbors = this.graph.neighbors(current).filter((node) => this.graph.isUnlocked(node, playerData))
+        const neighbors = this.graph.neighbors(current, playerData)
 
         const next = pickClosestInDirection(current, neighbors, DIRECTION_VECTORS[direction])
         if (!next) return
@@ -475,7 +475,7 @@ export class SceneMap extends Scene {
 
     private renderEdge(edge: MapEdge): string {
         const { from, to } = edge
-        const locked = !this.graph.isUnlocked(from, playerData) || !this.graph.isUnlocked(to, playerData)
+        const locked = !this.graph.isPassable(edge, playerData)
         const className = [locked ? "locked" : "", edge.condition.name ?? ""].join(" ")
         const line = (offset: { x: number; y: number }) =>
             `<line class="${className}" x1="${from.x + offset.x}" y1="${from.y + offset.y}" x2="${to.x + offset.x}" y2="${to.y + offset.y}" />`
