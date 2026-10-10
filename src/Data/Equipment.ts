@@ -14,4 +14,4 @@ export const DEFAULT_LOADOUT: Loadout = {
 
 // 初期状態で所持している装備
 export const DEFAULT_OWNED_MAIN_EQUIPMENT_IDS: readonly EquipmentId[] = ["standard", "laser"]
-export const DEFAULT_OWNED_SUB_EQUIPMENT_IDS: readonly EquipmentId[] = ["dash", "barrier"]
+export const DEFAULT_OWNED_SUB_EQUIPMENT_IDS: readonly EquipmentId[] = ["dash"]

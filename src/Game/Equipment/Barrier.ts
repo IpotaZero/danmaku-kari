@@ -12,7 +12,7 @@ const 持続フレーム = 300
 const 展開フレーム = 8
 const 消滅フレーム = 20
 const クールダウンフレーム = 720
-const 半径倍率 = 12
+const 半径倍率 = 4
 
 export const barrier: SubEquipment = {
     label: "障壁",
