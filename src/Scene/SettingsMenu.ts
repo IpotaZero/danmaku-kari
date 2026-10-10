@@ -1,7 +1,7 @@
 import { KeyConfig, StandardGamepadMap, type Source } from "@ipota/input"
 import { App } from "../App"
 import { playerData } from "../Data/PlayerData"
-import { InputAction, VOLUME_MAX_LEVEL, VolumeKind } from "../Data/Settings"
+import { InputAction, THRESHOLD_MAX_LEVEL, VOLUME_MAX_LEVEL, VolumeKind } from "../Data/Settings"
 import { InputCode } from "../utils/InputCode"
 import type { Menu, MenuOption, MenuOptionBox } from "../utils/Menu/Menu"
 import { MenuPreset } from "../utils/Menu/MenuPreset"
@@ -238,6 +238,7 @@ export class SettingsMenu {
     }
 
     // 1つのアクションに割り当てたキーの一覧。「追加」で好きなだけ増やせ、キーを選ぶとそのキーを外す。
+    // ゲームパッドの行は [←] [名前とゲージ] [→] [×] にして、左右の矢印で閾値を変えられるようにする。
     // 追加を先頭に置くのは、追加したキーが下に増えてもカーソルが追加の上に残るようにするため
     private keyBindBox(action: InputAction): MenuOptionBox {
         return {
@@ -253,19 +254,22 @@ export class SettingsMenu {
                         },
                     },
                 ],
-                ...App.settings.keyConfig[action].map((code): MenuOption[] => [
-                    {
-                        type: "select",
-                        label: this.keyBindLabel(code),
-                        sound: "cancel",
-                        // 入力待ちの間は追加以外を選べないようにする
-                        disabled: () => this.waiting !== undefined || !App.settings.canRemoveKey(action),
-                        onSelect: () => {
-                            App.settings.removeKey(action, code)
-                            this.menu.render()
-                        },
-                    },
-                ]),
+                ...App.settings.keyConfig[action].map((code): MenuOption[] =>
+                    InputCode.isGamepad(code)
+                        ? [
+                              this.thresholdArrow(action, code, -1),
+                              {
+                                  type: "select",
+                                  label: this.thresholdLabel(code),
+                                  // 名前とゲージを見せるだけで、選んでも何もしない
+                                  sound: "none",
+                                  onSelect: () => {},
+                              },
+                              this.thresholdArrow(action, code, 1),
+                              this.removeKeyOption(action, code, this.removeMark()),
+                          ]
+                        : [this.removeKeyOption(action, code, this.keyBindLabel(code))],
+                ),
                 [
                     {
                         type: "select",
@@ -277,6 +281,61 @@ export class SettingsMenu {
                 ],
             ],
         }
+    }
+
+    private removeKeyOption(action: InputAction, code: Source, label: HTMLElement): MenuOption {
+        return {
+            type: "select",
+            label,
+            sound: "cancel",
+            // 入力待ちの間は追加以外を選べないようにする
+            disabled: () => this.waiting !== undefined || !App.settings.canRemoveKey(action),
+            onSelect: () => {
+                App.settings.removeKey(action, code)
+                this.menu.render()
+            },
+        }
+    }
+
+    private removeMark(): HTMLElement {
+        const el = document.createElement("span")
+        el.className = "settings-arrow"
+        el.textContent = "×"
+        return el
+    }
+
+    // 閾値を1段階ずつ変える矢印。音量の矢印と同じ見た目にする
+    private thresholdArrow(action: InputAction, code: InputCode.GamepadSource, diff: -1 | 1): MenuOption {
+        const label = document.createElement("span")
+        label.className = "settings-arrow"
+        label.textContent = diff < 0 ? "←" : "→"
+
+        return {
+            type: "select",
+            label,
+            disabled: () => {
+                if (this.waiting !== undefined) return true
+                const next = App.settings.thresholdLevel(code) + diff
+                return next < 1 || THRESHOLD_MAX_LEVEL < next
+            },
+            onSelect: () => {
+                App.settings.changeThresholdLevel(action, code, App.settings.thresholdLevel(code) + diff)
+                this.menu.render()
+            },
+        }
+    }
+
+    // ■が多いほど深く押し込まないと反応しない
+    private thresholdLabel(code: InputCode.GamepadSource): HTMLElement {
+        const level = App.settings.thresholdLevel(code)
+
+        const el = document.createElement("span")
+        el.className = "settings-row"
+        el.innerHTML = `
+            <span>${StandardGamepadMap.getSourceAlias(code)}</span>
+            <span class="settings-gauge">${"■".repeat(level)}${"□".repeat(THRESHOLD_MAX_LEVEL - level)}</span>
+        `
+        return el
     }
 
     private keyBindLabel(code: Source): HTMLElement {

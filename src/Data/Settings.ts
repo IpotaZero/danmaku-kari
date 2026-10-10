@@ -1,4 +1,5 @@
-import { SourceKey, type DigitalInput, type Source } from "@ipota/input"
+import type { DigitalInput, Source } from "@ipota/input"
+import { InputCode } from "../utils/InputCode"
 import { isSmartPhone } from "../utils/Functions/isSmartPhone"
 
 export type InputAction = "up" | "down" | "left" | "right" | "slow" | "action" | "suicide" | "ok" | "cancel"
@@ -9,6 +10,9 @@ export type VolumeKind = "bgm" | "se"
 
 export const VOLUME_MAX_LEVEL = 10
 const DEFAULT_VOLUME_LEVEL = 8
+
+// ゲームパッドの閾値は0.1刻みの1~9段階(0.1~0.9)で持つ。0だと倒していなくても押しっぱなしになってしまう
+export const THRESHOLD_MAX_LEVEL = 9
 
 export const DEFAULT_KEY_CONFIG: KeyConfigMap = {
     up: [
@@ -128,7 +132,7 @@ export class Settings {
 
     // 割り当てられる数に上限は無い。既にそのアクションに割り当て済みなら何もせずfalseを返す
     addKey(action: InputAction, code: Source): boolean {
-        if (this.keyConfig[action].some((c) => SourceKey.equals(c, code))) return false
+        if (this.keyConfig[action].some((c) => InputCode.isSameInput(c, code))) return false
 
         this.updateKeyConfig({ ...this.keyConfig, [action]: [...this.keyConfig[action], code] })
         return true
@@ -144,7 +148,21 @@ export class Settings {
 
         this.updateKeyConfig({
             ...this.keyConfig,
-            [action]: this.keyConfig[action].filter((c) => !SourceKey.equals(c, code)),
+            [action]: this.keyConfig[action].filter((c) => !InputCode.isSameInput(c, code)),
+        })
+    }
+
+    // 閾値を省略している割り当ては、DigitalInputと同じく0.5とみなす
+    thresholdLevel(code: InputCode.GamepadSource): number {
+        return Math.round((code.threshold ?? 0.5) * 10)
+    }
+
+    changeThresholdLevel(action: InputAction, code: InputCode.GamepadSource, level: number) {
+        const threshold = Math.min(THRESHOLD_MAX_LEVEL, Math.max(1, level)) / 10
+
+        this.updateKeyConfig({
+            ...this.keyConfig,
+            [action]: this.keyConfig[action].map((c) => (InputCode.isSameInput(c, code) ? { ...code, threshold } : c)),
         })
     }
 

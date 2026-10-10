@@ -1,9 +1,20 @@
-import { StandardGamepadMap, type Source } from "@ipota/input"
+import { SourceKey, StandardGamepadMap, type Source } from "@ipota/input"
 
 /** DigitalInputに割り当てる入力(キーボードのe.code / ゲームパッドのボタン・軸)を扱う */
 export namespace InputCode {
-    export function isGamepad(code: Source): boolean {
+    export type GamepadSource = Exclude<Source, { type: "keyboard" }>
+
+    export function isGamepad(code: Source): code is GamepadSource {
         return code.type !== "keyboard"
+    }
+
+    // 閾値の違いを無視して、同じキー/ボタン/軸かどうか。SourceKey.equalsは閾値まで比べてしまう
+    export function isSameInput(a: Source, b: Source): boolean {
+        return SourceKey.equals(withoutThreshold(a), withoutThreshold(b))
+    }
+
+    function withoutThreshold(code: Source): Source {
+        return isGamepad(code) ? { ...code, threshold: undefined } : code
     }
 
     /**
